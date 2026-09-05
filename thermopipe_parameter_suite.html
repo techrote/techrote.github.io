@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>ThermoPipe Parameter Suite — Copper / Pentane / Hexane</title>
+<style>
+:root{
+  --bg:#0b0e12; --panel:#12171e; --panel2:#171e27; --line:#293341; --text:#e7edf4;
+  --muted:#93a1b1; --accent:#55d6be; --accent2:#7eb6ff; --warn:#ffc857; --bad:#ff6b6b; --good:#67e480;
+  --shadow:0 18px 50px rgba(0,0,0,.28);
+}
+*{box-sizing:border-box} html{scroll-behavior:smooth}
+body{margin:0;background:radial-gradient(circle at 20% 0%,#16202c 0,#0b0e12 38%),var(--bg);color:var(--text);font:14px/1.42 Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+button,input,select{font:inherit}.app{max-width:1500px;margin:auto;padding:22px}
+header{display:flex;gap:18px;align-items:flex-start;justify-content:space-between;margin-bottom:16px}
+h1{font-size:26px;line-height:1.1;margin:0 0 6px;letter-spacing:.2px}.sub{color:var(--muted);max-width:900px}
+.badge{display:inline-flex;gap:7px;align-items:center;border:1px solid var(--line);background:#111821;border-radius:999px;padding:7px 10px;color:#c7d2df;white-space:nowrap}
+.layout{display:grid;grid-template-columns:minmax(330px,420px) 1fr;gap:16px}.panel{background:linear-gradient(180deg,rgba(23,30,39,.95),rgba(16,21,28,.96));border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow)}
+.sidebar{padding:15px;position:sticky;top:10px;align-self:start;max-height:calc(100vh - 20px);overflow:auto}.main{display:flex;flex-direction:column;gap:16px}
+.section{padding:13px;border:1px solid #24303d;border-radius:11px;background:rgba(8,12,16,.25);margin-top:10px}.section h2{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#b8c5d3;margin:0 0 10px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:9px}.field{display:flex;flex-direction:column;gap:5px}.field.full{grid-column:1/-1}.field label{font-size:12px;color:#aebbc9}.field input,.field select{width:100%;background:#0c1117;color:var(--text);border:1px solid #314050;border-radius:8px;padding:8px 9px;outline:none}.field input:focus,.field select:focus{border-color:var(--accent2);box-shadow:0 0 0 2px rgba(126,182,255,.12)}
+.help{font-size:11px;color:#748496}.inline{display:flex;gap:8px;align-items:center}.btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.btn{cursor:pointer;border:1px solid #334253;background:#18212b;color:#dce6f0;border-radius:9px;padding:9px 10px}.btn:hover{border-color:#60778e}.btn.primary{background:linear-gradient(180deg,#1c695f,#154b45);border-color:#2b8a7b;color:#f3fffd}.btn.secondary{background:linear-gradient(180deg,#234566,#1a334d);border-color:#376791}.btn.small{padding:6px 8px;font-size:12px}
+.notice{border:1px solid rgba(255,200,87,.38);background:rgba(255,200,87,.08);color:#ffe4a3;border-radius:10px;padding:10px 11px;margin-top:10px;font-size:12px}.notice strong{color:#fff0c8}
+.hero{padding:16px;display:grid;grid-template-columns:1.3fr .7fr;gap:12px;align-items:center}.hero h3{margin:0 0 6px;font-size:20px}.hero p{margin:0;color:#a6b4c3}.score{justify-self:end;text-align:right}.score strong{font-size:30px;display:block;line-height:1}.score span{color:#9eacbb;font-size:12px}
+.kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}.kpi{padding:12px;border:1px solid var(--line);border-radius:11px;background:#111720;min-height:88px}.kpi .lab{font-size:11px;color:#8192a5;text-transform:uppercase;letter-spacing:.08em}.kpi .val{font-size:20px;font-weight:700;margin-top:6px}.kpi .note{font-size:11px;color:#738397;margin-top:3px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}.card{padding:14px}.card h3{font-size:14px;margin:0 0 10px}.canvasWrap{height:260px;position:relative}canvas{width:100%;height:100%;display:block}
+.tableWrap{overflow:auto;border:1px solid #283443;border-radius:10px}table{border-collapse:collapse;width:100%;min-width:720px}th,td{padding:8px 9px;border-bottom:1px solid #25303d;text-align:right;white-space:nowrap}th{position:sticky;top:0;background:#161e27;color:#aebaca;font-size:11px;text-transform:uppercase;letter-spacing:.06em}td:first-child,th:first-child{text-align:left}tr:last-child td{border-bottom:none}.ok{color:var(--good)}.warn{color:var(--warn)}.bad{color:var(--bad)}
+.warningList{display:grid;gap:8px}.warningItem{border-left:3px solid #53677d;background:#10161e;padding:9px 10px;border-radius:6px}.warningItem.warn{border-color:var(--warn);color:#ffdea0}.warningItem.bad{border-color:var(--bad);color:#ffb2b2}.warningItem.ok{border-color:var(--good);color:#b8f5c4}.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}.muted{color:var(--muted)}
+.props{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.prop{background:#0f151c;border:1px solid #26323f;padding:9px;border-radius:9px}.prop b{display:block;font-size:15px}.prop span{font-size:11px;color:#7f91a5}.footerNote{font-size:11px;color:#748496;margin-top:10px}.hidden{display:none!important}
+details{border:1px solid #2a3644;border-radius:10px;background:#10161d;padding:10px 12px}summary{cursor:pointer;color:#cbd7e3;font-weight:600}details p,details li{color:#94a4b5}.tag{display:inline-block;padding:3px 6px;border-radius:6px;background:#1c2733;border:1px solid #314155;color:#aec1d4;font-size:11px}
+@media(max-width:1150px){.layout{grid-template-columns:1fr}.sidebar{position:relative;max-height:none;top:auto}.kpis{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:760px){.app{padding:12px}.two,.hero{grid-template-columns:1fr}.grid2{grid-template-columns:1fr}.field.full{grid-column:auto}.kpis{grid-template-columns:repeat(2,1fr)}.props{grid-template-columns:repeat(2,1fr)}header{flex-direction:column}.score{justify-self:start;text-align:left}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <div>
+    <h1>ThermoPipe Parameter Suite</h1>
+    <div class="sub">Concept sizing for straight copper two-phase thermosyphons and simple wicked heat pipes using <b>n-pentane</b> or <b>n-hexane</b>. The app exposes its assumptions and scans practical tube sizes instead of claiming a universal optimum.</div>
+  </div>
+  <div class="badge">Offline single-file calculator · SI units</div>
+</header>
+
+<div class="layout">
+<aside class="panel sidebar">
+  <div class="grid2">
+    <div class="field"><label>Device type</label><select id="mode"><option value="thermosyphon">Wickless thermosyphon</option><option value="wicked">Wicked heat pipe</option></select></div>
+    <div class="field"><label>Working fluid</label><select id="fluid"><option value="pentane">n-Pentane</option><option value="hexane">n-Hexane</option></select></div>
+  </div>
+
+  <div class="section">
+    <h2>Duty & temperatures</h2>
+    <div class="grid2">
+      <div class="field"><label>Heat load (W)</label><input id="Q" type="number" min="1" step="10" value="200"></div>
+      <div class="field"><label>Design margin ×</label><input id="margin" type="number" min="1" max="10" step="0.1" value="2.0"></div>
+      <div class="field"><label>Evaporator saturation target (°C)</label><input id="Te" type="number" step="1" value="50"></div>
+      <div class="field"><label>Condenser saturation target (°C)</label><input id="Tc" type="number" step="1" value="35"></div>
+      <div class="field"><label>Maximum credible wall temp (°C)</label><input id="Tmax" type="number" step="1" value="65"></div>
+      <div class="field"><label>Ambient pressure (bar abs)</label><input id="Pamb" type="number" min="0.5" max="2" step="0.001" value="1.013"></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Geometry</h2>
+    <div class="grid2">
+      <div class="field"><label>Total active length (m)</label><input id="L" type="number" min="0.05" step="0.05" value="1.0"></div>
+      <div class="field"><label>Elevation angle (°)</label><input id="angle" type="number" min="-90" max="90" step="5" value="90"><div class="help">+90° = condenser above evaporator.</div></div>
+      <div class="field"><label>Evaporator length (m)</label><input id="Le" type="number" min="0.01" step="0.01" value="0.25"></div>
+      <div class="field"><label>Condenser length (m)</label><input id="Lc" type="number" min="0.01" step="0.01" value="0.45"></div>
+      <div class="field"><label>Tube OD (mm)</label><input id="OD" type="number" min="3" step="0.1" value="15"></div>
+      <div class="field"><label>Wall thickness (mm)</label><input id="wall" type="number" min="0.2" step="0.1" value="1.0"></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Charge / inventory</h2>
+    <div class="grid2">
+      <div class="field"><label>Fill ratio (%)</label><input id="fill" type="number" min="1" max="150" step="1" value="30"></div>
+      <div class="field"><label>Fill-ratio basis</label><select id="fillBasis"><option value="evap">Evaporator volume</option><option value="total">Total internal volume</option></select></div>
+      <div class="field"><label>Charge reference temp (°C)</label><input id="Tcharge" type="number" step="1" value="20"></div>
+      <div class="field"><label>Design stress input (MPa)</label><input id="allowStress" type="number" min="1" step="1" value="20"><div class="help">User-defined screening value; not a copper certification.</div></div>
+    </div>
+  </div>
+
+  <div id="wickSection" class="section hidden">
+    <h2>Simple annular wick model</h2>
+    <div class="grid2">
+      <div class="field"><label>Wick thickness (mm)</label><input id="wickT" type="number" min="0.05" step="0.05" value="0.5"></div>
+      <div class="field"><label>Effective pore radius (µm)</label><input id="pore" type="number" min="1" step="5" value="50"></div>
+      <div class="field"><label>Permeability (m²)</label><input id="perm" type="number" min="1e-13" step="1e-10" value="1e-9"></div>
+      <div class="field"><label>Contact angle (°)</label><input id="contact" type="number" min="0" max="89" step="1" value="20"></div>
+    </div>
+    <div class="help" style="margin-top:7px">Capillary limit uses a Darcy-flow annulus model. Real mesh/sintered/grooved wicks require measured permeability and pore radius.</div>
+  </div>
+
+  <div class="section">
+    <h2>Model behaviour</h2>
+    <div class="grid2">
+      <div class="field full"><label class="inline"><input id="extrap" type="checkbox" style="width:auto"> Allow Antoine extrapolation beyond NIST fit range</label><div class="help">Off by default. Out-of-range vapour-pressure results are otherwise withheld.</div></div>
+    </div>
+  </div>
+
+  <div class="btns">
+    <button id="autosize" class="btn primary">Auto-size tube</button>
+    <button id="compare" class="btn secondary">Compare fluids</button>
+    <button id="save" class="btn">Export config</button>
+    <button id="load" class="btn">Import config</button>
+  </div>
+  <input id="fileIn" type="file" accept="application/json" hidden>
+
+  <div class="notice"><strong>Safety scope:</strong> both working fluids are highly flammable. This tool does not provide charging, brazing, purging, leak-test, ignition-control, ventilation, pressure-vessel approval or hazardous-area procedures. Use it for concept screening, then validate the design against applicable codes and qualified practice.</div>
+</aside>
+
+<main class="main">
+  <section class="panel hero">
+    <div><h3 id="heroTitle">Calculating…</h3><p id="heroText"></p></div>
+    <div class="score"><strong id="scoreVal">—</strong><span id="scoreText">design margin</span></div>
+  </section>
+
+  <section class="kpis">
+    <div class="kpi"><div class="lab">Evap. pressure</div><div class="val" id="kPev">—</div><div class="note">absolute</div></div>
+    <div class="kpi"><div class="lab">Cond. pressure</div><div class="val" id="kPcond">—</div><div class="note">absolute</div></div>
+    <div class="kpi"><div class="lab">Charge mass</div><div class="val" id="kCharge">—</div><div class="note" id="kChargeNote">at charge reference temp</div></div>
+    <div class="kpi"><div class="lab">Transport limit</div><div class="val" id="kLimit">—</div><div class="note" id="kLimitNote">screening model</div></div>
+    <div class="kpi"><div class="lab">Vapour speed</div><div class="val" id="kVel">—</div><div class="note" id="kMach">at target heat load</div></div>
+    <div class="kpi"><div class="lab">Required Rth</div><div class="val" id="kRth">—</div><div class="note">ΔT / Q requirement</div></div>
+  </section>
+
+  <section class="two">
+    <div class="panel card"><h3>Saturation pressure vs temperature</h3><div class="canvasWrap"><canvas id="pressureChart"></canvas></div><div class="footerNote">Solid line: within NIST Antoine range. Dashed extension is only drawn when extrapolation is enabled.</div></div>
+    <div class="panel card"><h3>Transport capacity vs common copper tube OD</h3><div class="canvasWrap"><canvas id="capacityChart"></canvas></div><div class="footerNote" id="capChartNote"></div></div>
+  </section>
+
+  <section class="panel card">
+    <h3>Tube-size scan</h3>
+    <div class="tableWrap"><table><thead><tr><th>OD</th><th>ID</th><th>Sonic</th><th id="limHead">Flooding</th><th>Governing</th><th>Capacity / load</th><th>Hot-case hoop</th><th>Status</th></tr></thead><tbody id="sizeBody"></tbody></table></div>
+    <div class="footerNote">Flooding correlation is a vertical thermosyphon estimate. Wick capillary capacity is based on the entered pore radius, permeability, thickness and contact angle. Neither substitutes for validated hardware data.</div>
+  </section>
+
+  <section class="two">
+    <div class="panel card"><h3>Working-fluid state at mean saturation temperature</h3><div class="props" id="props"></div><div class="footerNote">Liquid density, viscosity and surface tension are compact engineering approximations anchored to cited reference values; vapour density uses an ideal-gas estimate.</div></div>
+    <div class="panel card"><h3>Checks & warnings</h3><div class="warningList" id="warnings"></div></div>
+  </section>
+
+  <section class="panel card">
+    <h3>Charge sensitivity</h3>
+    <div class="tableWrap"><table><thead><tr><th>Fill ratio</th><th>Basis volume</th><th>Liquid volume</th><th>Approx. mass</th><th>Interpretation</th></tr></thead><tbody id="fillBody"></tbody></table></div>
+    <div class="footerNote">Inventory affects dryout, flooding and thermal resistance in ways this reduced-order model cannot predict. The sweep deliberately reports inventory, not a fabricated performance optimum.</div>
+  </section>
+
+  <section class="panel card">
+    <div class="inline" style="justify-content:space-between"><h3 style="margin:0">Compact engineering report</h3><button id="copyReport" class="btn small">Copy report</button></div>
+    <pre id="report" class="mono" style="white-space:pre-wrap;color:#aebdcb;background:#0d1319;border:1px solid #26323f;padding:12px;border-radius:9px;max-height:340px;overflow:auto"></pre>
+  </section>
+
+  <details>
+    <summary>Model basis, references and limitations</summary>
+    <p><b>Vapour pressure:</b> NIST Chemistry WebBook Antoine equation, log10(P/bar)=A−B/(T+C). n-Pentane: A=3.9892, B=1070.617, C=−40.454, 268.8–341.37 K. n-Hexane: A=4.00266, B=1171.53, C=−48.784, 286.18–342.69 K; a lower-temperature NIST fit is also included.</p>
+    <p><b>Latent heat:</b> NIST Majer–Svoboda correlations. <b>Flooding:</b> Faghri-style gravity thermosyphon correlation using vapour density, surface tension and Bond number. <b>Sonic limit:</b> one-dimensional choked-vapour screening relation. <b>Wick mode:</b> capillary pressure 2σcosθ/rp with Darcy liquid return and estimated vapour pressure drop.</p>
+    <p><b>Reference property anchors:</b> PubChem/CRC values for room-temperature liquid density, viscosity and surface tension. Temperature variation for those three properties is intentionally simple and should be replaced with REFPROP/CoolProp or measured data for final design.</p>
+    <ul>
+      <li>NIST Chemistry WebBook SRD 69 — n-pentane and n-hexane phase-change data.</li>
+      <li>NIST Thermophysical Properties of Fluid Systems / REFPROP for high-accuracy property work.</li>
+      <li>Thermosyphon reviews covering flooding, dryout, boiling, sonic and viscous limits.</li>
+      <li>Literature on filling ratio shows geometry/fluid-specific optima rather than a universal value.</li>
+    </ul>
+    <p>Pressure mechanics here are thin-wall screening only. Negative gauge pressure is reported as a vacuum case and is <b>not</b> checked for external-pressure collapse. Joint strength, cyclic fatigue, local thinning, copper temper, brazed/soldered joint derating and code compliance are outside scope.</p>
+  </details>
+</main>
+</div>
+</div>
+
+<script>
+'use strict';
+const R=8.314462618, g=9.80665;
+const FLUIDS={
+  pentane:{name:'n-Pentane',M:0.0721488,Tc:469.6,Tboil:309.2,
+    ant:[{min:268.8,max:341.37,A:3.9892,B:1070.617,C:-40.454}],
+    hv:{min:260,max:428,A:37.01,alpha:-0.1238,beta:0.4121,Tc:469.6},
+    rhoRef:626.38,rhoT:20,rhoSlope:1.00,
+    sigRef:0.016,sigT:20,muRef:0.0002224,muT:25,muK:0.0175,
+    gamma:1.08,muV:8.2e-6},
+  hexane:{name:'n-Hexane',M:0.08617536,Tc:507.4,Tboil:341.9,
+    ant:[{min:177.70,max:264.93,A:3.45604,B:1044.038,C:-53.893},{min:286.18,max:342.69,A:4.00266,B:1171.53,C:-48.784}],
+    hv:{min:298,max:444,A:43.85,alpha:-0.039,beta:0.397,Tc:507.4},
+    rhoRef:659.1,rhoT:20,rhoSlope:0.88,
+    sigRef:0.01789,sigT:25,muRef:0.000326,muT:20,muK:0.0145,
+    gamma:1.08,muV:8.4e-6}
+};
+const commonOD=[6,8,10,12,15,18,22,28,35,42];
+const $=id=>document.getElementById(id);
+const ids=['mode','fluid','Q','margin','Te','Tc','Tmax','Pamb','L','angle','Le','Lc','OD','wall','fill','fillBasis','Tcharge','allowStress','wickT','pore','perm','contact','extrap'];
+function num(id){return parseFloat($(id).value)}
+function clamp(x,a,b){return Math.min(b,Math.max(a,x))}
+function fmt(x,d=2){if(!Number.isFinite(x))return '—'; if(Math.abs(x)>=10000||Math.abs(x)<0.01&&x!==0)return x.toExponential(2); return x.toLocaleString(undefined,{maximumFractionDigits:d})}
+function c2k(c){return c+273.15}
+function getFluid(){return FLUIDS[$('fluid').value]}
+function input(){return {mode:$('mode').value,fluid:$('fluid').value,Q:num('Q'),margin:num('margin'),Te:num('Te'),Tc:num('Tc'),Tmax:num('Tmax'),Pamb:num('Pamb'),L:num('L'),angle:num('angle'),Le:num('Le'),Lc:num('Lc'),OD:num('OD'),wall:num('wall'),fill:num('fill'),fillBasis:$('fillBasis').value,Tcharge:num('Tcharge'),allowStress:num('allowStress'),wickT:num('wickT'),pore:num('pore'),perm:num('perm'),contact:num('contact'),extrap:$('extrap').checked}}
+function antFit(f,TK){
+  for(const a of f.ant) if(TK>=a.min&&TK<=a.max)return {a,ex:false};
+  if(!$('extrap').checked)return null;
+  let a=f.ant[0],dist=Infinity; for(const z of f.ant){const d=TK<z.min?z.min-TK:TK>z.max?TK-z.max:0;if(d<dist){dist=d;a=z}}
+  return {a,ex:true};
+}
+function psat(f,TC){const TK=c2k(TC),fit=antFit(f,TK);if(!fit)return {p:NaN,ex:false};const a=fit.a;return {p:10**(a.A-a.B/(TK+a.C)),ex:fit.ex}}
+function hvap(f,TC){const T=c2k(TC),h=f.hv;if(T>=h.Tc)return NaN;const Tr=T/h.Tc;return h.A*Math.exp(-h.alpha*Tr)*Math.pow(1-Tr,h.beta)*1000/f.M}
+function rhoL(f,TC){return clamp(f.rhoRef-f.rhoSlope*(TC-f.rhoT),380,760)}
+function sigma(f,TC){const T=c2k(TC),Tr=T/f.Tc,Tr0=c2k(f.sigT)/f.Tc;if(Tr>=1)return 0;return f.sigRef*Math.pow((1-Tr)/(1-Tr0),1.26)}
+function muL(f,TC){return f.muRef*Math.exp(-f.muK*(TC-f.muT))}
+function rhoV(f,TC,pbar){return Number.isFinite(pbar)?pbar*1e5*f.M/(R*c2k(TC)):NaN}
+function soundSpeed(f,TC){return Math.sqrt(f.gamma*(R/f.M)*c2k(TC))}
+function geom(ODmm,wallmm,wickTmm=0,mode='thermosyphon'){
+  const od=ODmm/1000, id=od-2*wallmm/1000; let core=id;
+  if(mode==='wicked') core=id-2*wickTmm/1000;
+  return {od,id,core,A:Math.PI*core*core/4,Aint:Math.PI*id*id/4,Aw:Math.max(0,Math.PI*(id*id-core*core)/4)};
+}
+function vapourDP(Q,f,TC,pbar,D,A,hfg,L){
+  if(!(D>0&&A>0&&hfg>0&&pbar>0))return {dp:NaN,v:NaN,Re:NaN,factor:NaN};
+  const rv=rhoV(f,TC,pbar),md=Q/hfg,v=md/(rv*A),Re=rv*v*D/f.muV;
+  const ff=Re>0?(Re<2300?64/Re:0.3164/Math.pow(Re,0.25)):NaN;
+  return {dp:ff*(L/D)*(rv*v*v/2),v,Re,factor:ff};
+}
+function sonicLimit(f,TC,pbar,D,A,hfg){
+  const rv=rhoV(f,TC,pbar); if(!(rv>0&&A>0&&hfg>0))return NaN;
+  const crit=Math.sqrt(f.gamma*(R/f.M)*c2k(TC)/(2*(f.gamma+1)));
+  return A*rv*hfg*crit;
+}
+function floodingLimit(f,TC,pbar,D,A,hfg){
+  const rv=rhoV(f,TC,pbar),rl=rhoL(f,TC),s=sigma(f,TC); if(!(rv>0&&D>0&&A>0&&s>0))return NaN;
+  const Bo=D*Math.sqrt(g*(rl-rv)/s);
+  const K=Math.pow(rl/rv,0.14)*Math.pow(Math.tanh(Math.pow(Bo,0.25)),2);
+  const denom=Math.pow(Math.pow(rl,-0.25)+Math.pow(rv,-0.25),2);
+  return K*hfg*A*Math.sqrt(rv)*Math.pow(g*s*(rl-rv),0.25)/denom;
+}
+function capillaryLimit(f,TC,pbar,gm,inp,hfg){
+  if(!(gm.core>0&&gm.Aw>0))return NaN;
+  const rl=rhoL(f,TC),mul=muL(f,TC),s=sigma(f,TC),rp=inp.pore*1e-6,theta=inp.contact*Math.PI/180;
+  const Pcap=2*s*Math.cos(theta)/rp;
+  const Pgrav=rl*g*inp.L*Math.sin(inp.angle*Math.PI/180); // + angle assists condensate return
+  const available=Pcap+Pgrav;
+  if(available<=0)return 0;
+  const k=inp.perm,Aw=gm.Aw,L=inp.L;
+  const residual=q=>{
+    const dpL=(q/hfg/rl)*mul*L/(k*Aw);
+    const dpV=vapourDP(q,f,TC,pbar,gm.core,gm.A,hfg,L).dp;
+    return available-dpL-(Number.isFinite(dpV)?dpV:0);
+  };
+  let lo=0,hi=Math.max(1,sonicLimit(f,TC,pbar,gm.core,gm.A,hfg));
+  if(!Number.isFinite(hi))hi=1e4;
+  for(let i=0;i<55;i++){const mid=(lo+hi)/2;if(residual(mid)>=0)lo=mid;else hi=mid}
+  return lo;
+}
+function calcFor(f,inp,OD=inp.OD){
+  const gm=geom(OD,inp.wall,inp.wickT,inp.mode),pe=psat(f,inp.Te),pc=psat(f,inp.Tc),h=hvap(f,inp.Te);
+  const qs=sonicLimit(f,inp.Te,pe.p,gm.core,gm.A,h);
+  const q2=inp.mode==='thermosyphon'?floodingLimit(f,inp.Te,pe.p,gm.core,gm.A,h):capillaryLimit(f,inp.Te,pe.p,gm,inp,h);
+  const governing=Math.min(qs,q2),vp=vapourDP(inp.Q,f,inp.Te,pe.p,gm.core,gm.A,h),a=soundSpeed(f,inp.Te);
+  const pmax=psat(f,inp.Tmax),gauge=(pmax.p-inp.Pamb)*1e5;
+  const hoop=gauge>0&&gm.id>0?(gauge*gm.id/(2*(inp.wall/1000)))/1e6:0;
+  return {gm,pe,pc,h,qs,q2,governing,vp,mach:vp.v/a,pmax,hoop};
+}
+function inventory(f,inp){
+  const gm=geom(inp.OD,inp.wall,inp.wickT,inp.mode),base=gm.Aint*(inp.fillBasis==='evap'?inp.Le:inp.L),V=base*inp.fill/100,rl=rhoL(f,inp.Tcharge);return {base,V,m:V*rl,rl};
+}
+function transportName(inp){return inp.mode==='thermosyphon'?'flooding':'capillary'}
+function findSize(f,inp){
+  const rows=commonOD.map(od=>({od,...calcFor(f,inp,od)}));
+  const pass=rows.find(r=>r.gm.id>0&&r.gm.core>0&&Number.isFinite(r.governing)&&r.governing>=inp.Q*inp.margin&&(!Number.isFinite(r.hoop)||r.hoop<=inp.allowStress));
+  return {rows,pass};
+}
+function fluidScore(f,inp){
+  const c=calcFor(f,inp),p=c.pe.p; if(!Number.isFinite(p)||!Number.isFinite(c.governing))return {score:0,c};
+  let s=100;
+  if(p<0.15)s-=35; else if(p<0.3)s-=15; else if(p>5)s-=25; else if(p>3)s-=10;
+  const ratio=c.governing/inp.Q; if(ratio<1)s-=55; else if(ratio<inp.margin)s-=25;
+  if(inp.mode==='thermosyphon'&&inp.angle<10)s-=35;
+  if(c.pe.ex)s-=20;
+  return {score:clamp(Math.round(s),0,100),c};
+}
+function drawChart(canvas,series,xmin,xmax,yLabel,logY=false){
+  const dpr=window.devicePixelRatio||1,rect=canvas.getBoundingClientRect(); canvas.width=Math.max(300,rect.width*dpr);canvas.height=Math.max(180,rect.height*dpr);const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);const W=rect.width,H=rect.height,p={l:48,r:16,t:16,b:34};ctx.clearRect(0,0,W,H);
+  let ys=[];series.forEach(s=>s.data.forEach(pt=>{if(Number.isFinite(pt.y)&&pt.y>=(logY?1e-8:-Infinity))ys.push(pt.y)}));if(!ys.length)return;
+  let ymin=logY?Math.max(1e-3,Math.min(...ys)*.7):Math.min(0,Math.min(...ys)),ymax=Math.max(...ys)*1.12;if(ymax===ymin)ymax=ymin+1;
+  const Y=v=>p.t+(H-p.t-p.b)*(1-(logY?(Math.log10(v)-Math.log10(ymin))/(Math.log10(ymax)-Math.log10(ymin)):(v-ymin)/(ymax-ymin)));
+  const X=v=>p.l+(W-p.l-p.r)*(v-xmin)/(xmax-xmin);
+  ctx.strokeStyle='#2d3947';ctx.lineWidth=1;ctx.fillStyle='#7f91a5';ctx.font='11px system-ui';ctx.textAlign='right';ctx.textBaseline='middle';
+  for(let i=0;i<=5;i++){const t=i/5,y=logY?10**(Math.log10(ymin)+(Math.log10(ymax)-Math.log10(ymin))*t):ymin+(ymax-ymin)*t,py=Y(y);ctx.beginPath();ctx.moveTo(p.l,py);ctx.lineTo(W-p.r,py);ctx.stroke();ctx.fillText(logY?fmt(y,2):fmt(y,0),p.l-6,py)}
+  ctx.textAlign='center';ctx.textBaseline='top';for(let i=0;i<=5;i++){const x=xmin+(xmax-xmin)*i/5,px=X(x);ctx.fillText(fmt(x,0),px,H-p.b+8)}
+  const palette=['#55d6be','#7eb6ff','#ffc857','#ff7aa8']; series.forEach((s,si)=>{ctx.strokeStyle=palette[si%palette.length];ctx.lineWidth=2;ctx.beginPath();let started=false;for(const pt of s.data){if(!Number.isFinite(pt.y)||pt.y<=0&&logY){started=false;continue}const px=X(pt.x),py=Y(pt.y);if(!started){ctx.moveTo(px,py);started=true}else ctx.lineTo(px,py)}ctx.stroke();ctx.fillStyle=palette[si%palette.length];ctx.textAlign='left';ctx.textBaseline='top';ctx.fillText(s.name,p.l+8,p.t+si*16)});
+  ctx.fillStyle='#718397';ctx.textAlign='right';ctx.textBaseline='bottom';ctx.fillText(yLabel,W-p.r,H-3);
+}
+function renderPressure(){
+  const series=[];for(const key of ['pentane','hexane']){const f=FLUIDS[key],data=[];for(let t=-5;t<=75;t+=1){const r=psat(f,t);data.push({x:t,y:r.p})}series.push({name:f.name,data})}drawChart($('pressureChart'),series,-5,75,'bar abs',true)
+}
+function renderCapacity(inp,scan){
+  const f=getFluid(),s1=[],s2=[];for(const r of scan.rows){s1.push({x:r.od,y:r.qs});s2.push({x:r.od,y:r.q2})}drawChart($('capacityChart'),[{name:'Sonic',data:s1},{name:inp.mode==='thermosyphon'?'Flooding':'Capillary',data:s2}],commonOD[0],commonOD[commonOD.length-1],'W',true);$('capChartNote').textContent=`Target ${fmt(inp.Q,0)} W; requested design margin ${fmt(inp.margin,1)}×. Curves are screening limits, not guaranteed capacity.`
+}
+function renderSizes(inp,scan){
+  $('limHead').textContent=inp.mode==='thermosyphon'?'Flooding':'Capillary';const body=$('sizeBody');body.innerHTML='';
+  scan.rows.forEach(r=>{const cap=r.governing,ratio=cap/inp.Q,mechOK=!Number.isFinite(r.hoop)||r.hoop<=inp.allowStress;let cls='bad',status='Below target';if(ratio>=inp.margin&&mechOK){cls='ok';status='Margin met'}else if(ratio>=1&&mechOK){cls='warn';status='Runs, low margin'}if(r.gm.id<=0||r.gm.core<=0){cls='bad';status='Invalid geometry'}const tr=document.createElement('tr');tr.innerHTML=`<td>${r.od} mm</td><td>${fmt(r.gm.id*1000,1)} mm</td><td>${fmt(r.qs,0)} W</td><td>${fmt(r.q2,0)} W</td><td>${fmt(cap,0)} W</td><td>${fmt(ratio,2)}×</td><td>${r.pmax.p<inp.Pamb?'vacuum':fmt(r.hoop,2)+' MPa'}</td><td class="${cls}">${status}</td>`;body.appendChild(tr)})
+}
+function renderFill(f,inp){const gm=geom(inp.OD,inp.wall,inp.wickT,inp.mode),base=gm.Aint*(inp.fillBasis==='evap'?inp.Le:inp.L),rl=rhoL(f,inp.Tcharge),vals=[20,25,30,35,40,50,60,75,100],body=$('fillBody');body.innerHTML='';for(const fr of vals){const V=base*fr/100,m=V*rl;let interp=fr<20?'dryout risk can increase':fr<=35?'common experimental starting region':fr<=60?'moderate inventory; test sensitivity':fr<=75?'high inventory; flooding/pooling may increase':'very high inventory';const tr=document.createElement('tr');tr.innerHTML=`<td>${fr}%</td><td>${fmt(base*1e6,1)} mL</td><td>${fmt(V*1e6,1)} mL</td><td>${fmt(m*1000,1)} g</td><td>${interp}</td>`;body.appendChild(tr)}}
+function renderProps(f,inp,c){const tm=(inp.Te+inp.Tc)/2,p=psat(f,tm),h=hvap(f,tm),rv=rhoV(f,tm,p.p),items=[['Saturation pressure',fmt(p.p,3)+' bar'],['Liquid density',fmt(rhoL(f,tm),0)+' kg/m³'],['Vapour density',fmt(rv,3)+' kg/m³'],['Latent heat',fmt(h/1000,0)+' kJ/kg'],['Surface tension',fmt(sigma(f,tm)*1000,2)+' mN/m'],['Liquid viscosity',fmt(muL(f,tm)*1e3,3)+' mPa·s'],['Normal boiling point',fmt(f.Tboil-273.15,1)+' °C'],['Critical temperature',fmt(f.Tc-273.15,1)+' °C']];$('props').innerHTML=items.map(([a,b])=>`<div class="prop"><span>${a}</span><b>${b}</b></div>`).join('')}
+function renderWarnings(f,inp,c,inv){const w=[];const push=(type,text)=>w.push({type,text});if(inp.Te<=inp.Tc)push('bad','Evaporator target must be hotter than condenser target.');if(c.gm.id<=0||c.gm.core<=0)push('bad','Tube wall / wick geometry leaves no valid vapour core.');if(!Number.isFinite(c.pe.p))push('bad',`Evaporator temperature is outside the included NIST Antoine range for ${f.name}; enable extrapolation only for exploratory work.`);else if(c.pe.ex)push('warn','Evaporator pressure is extrapolated beyond the NIST Antoine fit range.');if(!Number.isFinite(c.pc.p))push('warn','Condenser temperature is outside the included Antoine fit range; pressure difference is incomplete.');if(inp.mode==='thermosyphon'){if(inp.angle<=0)push('bad','A wickless thermosyphon cannot rely on gravity return when the condenser is not above the evaporator.');else if(inp.angle<15)push('warn','Low elevation angle gives weak gravity return; the vertical flooding estimate is optimistic for this orientation.');else push('ok','Gravity orientation is favourable for a conventional thermosyphon.')}else{const cap=c.q2;if(cap<inp.Q)push('bad','Entered wick properties do not provide enough capillary return for the target load in this reduced model.');else if(cap<inp.Q*inp.margin)push('warn','Capillary limit exceeds the load but not the requested design margin.');else push('ok','Entered wick properties clear the requested transport margin in the reduced model.')}
+  if(Number.isFinite(c.governing)){const r=c.governing/inp.Q;if(r<1)push('bad',`Predicted governing transport limit is only ${fmt(r,2)}× the target load.`);else if(r<inp.margin)push('warn',`Transport capacity clears the load but misses the requested ${fmt(inp.margin,1)}× margin.`);else push('ok',`Screening transport margin is ${fmt(r,2)}×.`)}
+  if(Number.isFinite(c.pmax.p)){if(c.pmax.p<inp.Pamb)push('warn',`At ${inp.Tmax} °C the tube remains below ambient pressure; external-pressure collapse and joint air-ingress behaviour require separate checking.`);else if(c.hoop>inp.allowStress)push('bad',`Thin-wall hot-case hoop stress (${fmt(c.hoop,2)} MPa) exceeds your entered design-stress screen (${fmt(inp.allowStress,1)} MPa).`);else push('ok',`Thin-wall hot-case hoop stress is below your entered design-stress screen. `)}else push('warn','Maximum-temperature pressure is outside the Antoine range, so the mechanical screen is incomplete.');
+  if(inp.fill<20)push('warn','Very low fill ratios can increase dryout sensitivity.');if(inp.fill>75)push('warn','High fill ratios can increase liquid pooling/flooding and reduce condenser area; optimum inventory is geometry-specific.');
+  push('warn','Flammable-fluid hazards, solvent compatibility, copper temper/joints, non-condensable gases, freeze/thaw, external fire exposure and code compliance are outside the model.');
+  $('warnings').innerHTML=w.map(x=>`<div class="warningItem ${x.type}">${x.text}</div>`).join('')
+}
+function recommendation(f,inp,c,scan){const inv=inventory(f,inp),ratio=c.governing/inp.Q,best=scan.pass;let title,text;if(best){title=`Starting point: ${best.od} mm OD ${f.name} ${inp.mode==='thermosyphon'?'thermosyphon':'heat pipe'}`;text=`The smallest scanned tube that clears ${fmt(inp.margin,1)}× transport capacity is ${best.od} mm OD with about ${fmt(best.gm.id*1000,1)} mm bore before ${inp.mode==='wicked'?'the wick':'film allowance'}. Current ${inp.OD} mm OD geometry gives ${fmt(ratio,2)}× capacity/load.`}else{title='No scanned tube clears every requested screen';text='Increase bore, reduce heat load, relax the margin only with validation, improve wick properties, or revise operating temperature/orientation. The detailed table shows which limit is governing.'}return {title,text,inv,ratio}}
+function makeReport(f,inp,c,scan,inv){const tm=(inp.Te+inp.Tc)/2;return `THERMOPIPE CONCEPT SCREEN\n\nDevice: ${inp.mode==='thermosyphon'?'wickless thermosyphon':'wicked heat pipe'}\nFluid: ${f.name}\nHeat load: ${fmt(inp.Q,1)} W | requested margin: ${fmt(inp.margin,2)}x\nTemperatures: evaporator ${inp.Te} °C | condenser ${inp.Tc} °C | max wall ${inp.Tmax} °C\nGeometry: OD ${inp.OD} mm | wall ${inp.wall} mm | ID ${fmt(c.gm.id*1000,2)} mm | length ${inp.L} m | angle ${inp.angle}°\n\nSTATE\nEvap saturation pressure: ${fmt(c.pe.p,4)} bar abs${c.pe.ex?' [EXTRAPOLATED]':''}\nCond saturation pressure: ${fmt(c.pc.p,4)} bar abs${c.pc.ex?' [EXTRAPOLATED]':''}\nLatent heat @ evaporator: ${fmt(c.h/1000,2)} kJ/kg\nRequired vapour mass flow: ${fmt(inp.Q/c.h*1000,4)} g/s\nVapour velocity: ${fmt(c.vp.v,3)} m/s | Mach ${fmt(c.mach,4)}\n\nTRANSPORT SCREENS\nSonic limit: ${fmt(c.qs,1)} W\n${transportName(inp)[0].toUpperCase()+transportName(inp).slice(1)} limit: ${fmt(c.q2,1)} W\nGoverning limit: ${fmt(c.governing,1)} W = ${fmt(c.governing/inp.Q,2)}x load\n\nINVENTORY\nFill: ${inp.fill}% of ${inp.fillBasis==='evap'?'evaporator':'total internal'} volume\nApprox liquid volume: ${fmt(inv.V*1e6,2)} mL\nApprox charge mass @ ${inp.Tcharge} °C: ${fmt(inv.m*1000,2)} g\n\nMECHANICAL SCREEN\nMax-temperature saturation pressure: ${fmt(c.pmax.p,4)} bar abs\nThin-wall positive-gauge hoop stress: ${fmt(c.hoop,3)} MPa\nEntered design-stress screen: ${fmt(inp.allowStress,1)} MPa\nNegative gauge pressure is not checked for collapse.\n\nAUTOSIZE\n${scan.pass?`Smallest scanned OD clearing requested margin: ${scan.pass.od} mm`:'No common scanned OD clears all screens.'}\n\nLIMITATIONS\nReduced-order concept calculator only. No pressure-vessel certification, joint strength, fire/exposure analysis, non-condensable-gas model, detailed boiling/condensation HTC, startup/transient model, or manufacturing procedure.`}
+function update(){
+  const inp=input(),f=getFluid();$('wickSection').classList.toggle('hidden',inp.mode!=='wicked');const c=calcFor(f,inp),inv=inventory(f,inp),scan=findSize(f,inp),rec=recommendation(f,inp,c,scan);
+  $('heroTitle').textContent=rec.title;$('heroText').textContent=rec.text;$('scoreVal').textContent=Number.isFinite(rec.ratio)?fmt(rec.ratio,2)+'×':'—';$('scoreText').textContent='governing capacity / target load';
+  $('kPev').textContent=Number.isFinite(c.pe.p)?fmt(c.pe.p,3)+' bar':'—';$('kPcond').textContent=Number.isFinite(c.pc.p)?fmt(c.pc.p,3)+' bar':'—';$('kCharge').textContent=fmt(inv.m*1000,1)+' g';$('kChargeNote').textContent=`${fmt(inv.V*1e6,1)} mL @ ${inp.Tcharge} °C`;
+  $('kLimit').textContent=fmt(c.governing,0)+' W';$('kLimitNote').textContent=`min(sonic, ${transportName(inp)})`;$('kVel').textContent=fmt(c.vp.v,2)+' m/s';$('kMach').textContent=`Mach ${fmt(c.mach,4)}`;$('kRth').textContent=inp.Q>0?fmt((inp.Te-inp.Tc)/inp.Q,4)+' K/W':'—';
+  renderPressure();renderCapacity(inp,scan);renderSizes(inp,scan);renderProps(f,inp,c);renderWarnings(f,inp,c,inv);renderFill(f,inp);$('report').textContent=makeReport(f,inp,c,scan,inv);
+}
+function exportConfig(){const data=input();const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='thermopipe-config.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+function importConfig(obj){for(const id of ids){if(!(id in obj))continue;const el=$(id);if(el.type==='checkbox')el.checked=!!obj[id];else el.value=obj[id]}update()}
+ids.forEach(id=>$(id).addEventListener('input',update));$('mode').addEventListener('change',update);$('fluid').addEventListener('change',update);$('fillBasis').addEventListener('change',update);
+$('autosize').addEventListener('click',()=>{const inp=input(),s=findSize(getFluid(),inp);if(s.pass){$('OD').value=s.pass.od;update()}else update()});
+$('compare').addEventListener('click',()=>{const inp=input(),a=fluidScore(FLUIDS.pentane,inp),b=fluidScore(FLUIDS.hexane,inp);const winner=a.score===b.score?'Tie':a.score>b.score?'n-Pentane':'n-Hexane';alert(`Concept suitability score (heuristic, not safety rating)\n\nn-Pentane: ${a.score}/100\nn-Hexane: ${b.score}/100\n\nHigher score: ${winner}\n\nThe score mainly rewards valid property range, moderate saturation pressure, transport margin and gravity suitability.`)});
+$('save').addEventListener('click',exportConfig);$('load').addEventListener('click',()=>$('fileIn').click());$('fileIn').addEventListener('change',async e=>{const file=e.target.files[0];if(!file)return;try{importConfig(JSON.parse(await file.text()))}catch(err){alert('Could not parse config: '+err.message)}e.target.value=''});
+$('copyReport').addEventListener('click',async()=>{try{await navigator.clipboard.writeText($('report').textContent);$('copyReport').textContent='Copied';setTimeout(()=>$('copyReport').textContent='Copy report',1200)}catch{alert('Clipboard access was blocked. Select the report text manually.')}});
+window.addEventListener('resize',()=>{clearTimeout(window.__rz);window.__rz=setTimeout(update,120)});
+update();
+</script>
+</body>
+</html>
