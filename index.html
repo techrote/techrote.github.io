@@ -3,81 +3,98 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="A gallery of browser demos by techrote.">
-  <title>techrote demos</title>
+  <meta name="description" content="Public projects and browser tools by techrote.">
+  <title>techrote // workbench</title>
+  <link rel="stylesheet" href="site.css">
 </head>
 <body>
-  <main>
-    <h1>Demos</h1>
-    <p>Small browser experiments and tools.</p>
+  <header class="topbar">
+    <div class="shell">
+      <a class="brand" href="./">TECHROTE<span>//</span></a>
+      <nav class="nav" aria-label="Primary">
+        <a href="#projects">PROJECTS</a>
+        <a href="https://github.com/techrote">GITHUB</a>
+      </nav>
+    </div>
+  </header>
 
-    <section aria-labelledby="demo-list">
-      <h2 id="demo-list">Available demos</h2>
+  <main class="shell">
+    <section class="hero">
+      <div>
+        <div class="eyebrow">PUBLIC WORKBENCH</div>
+        <h1>TOOLS / GRAPHICS / R&amp;D</h1>
+        <p>Small software, browser experiments and engineering tools. Some polished, some still carrying grinder marks.</p>
+      </div>
+      <div class="hero-mark">
+        <span class="live">ONLINE</span><br>
+        STATIC / PLAIN HTML<br>
+        NO SITE JS
+      </div>
+    </section>
 
-
-        <article>
-        <h3>PlasmaTerm web-v0.2b</h3>
-        <p>
-          Explore a 36×24 Python/WASM plasma renderer inside draggable faux-terminal windows.<br>
-          Includes a clickable keybed, Energy modulation, live palette editing, and smooth LUT randomisation.
-        </p>
-        <p>
-          <a href="plasmaterm/">Open demo</a>
-          ·
-          <a href="https://github.com/techrote/PlasmaTerm/tree/web-v0.1a">Source</a>
-        </p>
-      </article>
-
-      <article>
-        <h3>ThermoPipeParameter</h3>
-        <p>Parameter suggestion suite for calculating optimal/reasonable values for building heatpipes/thermosyphons using copper pipe and pentane/hexane as the working fluid.
-        </p>
-        <p>
-          <a href="thermopipe_parameter_suite.html">Open demo</a>
-          ·
-          <a href="https://github.com/techrote/ThermoPipeParameter">Source</a>
-        </p>
-      </article>
-
-      <article>
-        <h3>PNG2ANSI</h3>
-        <p>
-          Convert local images into classic 16-colour CP437 ANSI artwork.<br>
-          Includes live preview, photographic and industrial fitting, reusable profiles, ANSI reference vocabularies, and a bundled sample.
-        </p>
-        <p>
-          <a href="PNG2ANSI-web.html">Open demo</a>
-          ·
-          <a href="https://github.com/techrote/PNG2ANSI">Source</a>
-        </p>
-      </article>     
-
-      <article>
-        <h3>EdgeCraft v2</h3>
-        <p>
-          Edit STL triangle meshes with chamfer, fillet, Flatillet, and Chamfillet tools.<br>
-          Includes a modular backend API for browser, worker, Node, and CAD integrations.
-        </p>
-        <p>
-          <a href="edgecraft-stl.html">Open demo</a>
-          ·
-          <a href="https://github.com/techrote/EdgeCraft">Docs</a>
-        </p>
-      </article>
-
-      
-      <article>
-        <h3>Brachistochrone Lab</h3>
-        <p>Race a cycloid, a straight ramp, and an adjustable curve under configurable physics.</p>
-        <p>
-          <a href="brachistochrone-lab-v2.html">Open demo</a>
-          ·
-          <a href="https://github.com/techrote/Brachistochrone-Lab">Source</a>
-        </p>
-      </article>
-
-
+    <section id="projects" aria-labelledby="projects-title">
+      <div class="section-head">
+        <h2 id="projects-title">Projects</h2>
+        <span>08 PROJECT ENTRIES</span>
+      </div>
+      <div class="grid">
+        <article class="card">
+          <div class="card-head"><span class="index">01</span><span class="status">WEB BUILD</span></div>
+          <h3>PlasmaTerm</h3>
+          <p>Real-time generative plasma for Windows Terminal, with a browser build for portable hands-on use.</p>
+          <div class="actions"><a href="plasmaterm/">OPEN</a><a href="projects/plasmaterm.html">INFO</a><a href="https://github.com/techrote/PlasmaTerm">GITHUB</a></div>
+        </article>
+        <article class="card">
+          <div class="card-head"><span class="index">02</span><span class="status">LIVE</span></div>
+          <h3>PNG2ANSI</h3>
+          <p>Offline single-file browser converter for classic 16-colour CP437 ANSI artwork.</p>
+          <div class="actions"><a href="PNG2ANSI-web.html">OPEN</a><a href="projects/png2ansi.html">INFO</a><a href="https://github.com/techrote/PNG2ANSI">GITHUB</a></div>
+        </article>
+        <article class="card">
+          <div class="card-head"><span class="index">03</span><span class="status">SOURCE</span></div>
+          <h3>pyANSI</h3>
+          <p>Python reference converter behind PNG2ANSI-web.</p>
+          <div class="actions"><a href="projects/pyansi.html">INFO</a><a href="https://github.com/techrote/pyANSI">GITHUB</a></div>
+        </article>
+        <article class="card">
+          <div class="card-head"><span class="index">04</span><span class="status">LIVE</span></div>
+          <h3>EdgeCraft</h3>
+          <p>Triangle-mesh finishing kernel and browser STL editor.</p>
+          <div class="actions"><a href="edgecraft-stl.html">OPEN</a><a href="projects/edgecraft.html">INFO</a><a href="https://github.com/techrote/EdgeCraft">GITHUB</a></div>
+        </article>
+        <article class="card">
+          <div class="card-head"><span class="index">05</span><span class="status">LIVE</span></div>
+          <h3>ThermoPipe Parameter Suite</h3>
+          <p>Reduced-order exploration tool for copper heat pipes and gravity thermosyphons.</p>
+          <div class="actions"><a href="thermopipe_parameter_suite.html">OPEN</a><a href="projects/thermopipe.html">INFO</a><a href="https://github.com/techrote/ThermoPipeParameter">GITHUB</a></div>
+        </article>
+        <article class="card">
+          <div class="card-head"><span class="index">06</span><span class="status">LIVE</span></div>
+          <h3>Brachistochrone Lab</h3>
+          <p>Browser experiment racing a cycloid, a straight ramp and an adjustable curve.</p>
+          <div class="actions"><a href="brachistochrone-lab-v2.html">OPEN</a><a href="projects/brachistochrone.html">INFO</a><a href="https://github.com/techrote/Brachistochrone-Lab">GITHUB</a></div>
+        </article>
+        <article class="card">
+          <div class="card-head"><span class="index">07</span><span class="status dev">ARCHIVE</span></div>
+          <h3>scratchpad</h3>
+          <p>Loose public archive for experimental code, art and in-progress material.</p>
+          <div class="actions"><a href="projects/scratchpad.html">INFO</a><a href="https://github.com/techrote/scratchpad">GITHUB</a></div>
+        </article>
+        <article class="card">
+          <div class="card-head"><span class="index">08</span><span class="status empty">EMPTY</span></div>
+          <h3>GlyphPaint</h3>
+          <p>Public repository reserved for GlyphPaint. No public files yet.</p>
+          <div class="actions"><a href="projects/glyphpaint.html">INFO</a><a href="https://github.com/techrote/GlyphPaint">GITHUB</a></div>
+        </article>
+      </div>
     </section>
   </main>
+
+  <footer class="footer">
+    <div class="shell">
+      <span>TECHROTE // PUBLIC WORKBENCH</span>
+      <a href="https://github.com/techrote">github.com/techrote</a>
+    </div>
+  </footer>
 </body>
 </html>
