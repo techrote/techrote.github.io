@@ -1,0 +1,153 @@
+name: Pages + PR previews
+
+on:
+  push:
+    branches:
+      - main
+  pull_request_target:
+    branches:
+      - main
+    types: [opened, synchronize, reopened, closed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+  issues: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    # PR previews are intentionally limited to branches in this repository.
+    # Fork PRs are never published under the techrote.github.io origin.
+    if: >-
+      github.event_name != 'pull_request_target' ||
+      github.event.action == 'closed' ||
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Checkout production site
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          path: _site
+
+      - name: Checkout PR site
+        if: github.event_name == 'pull_request_target' && github.event.action != 'closed'
+        uses: actions/checkout@v6
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.sha }}
+          path: _preview
+          persist-credentials: false
+
+      - name: Assemble site
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_ACTION: ${{ github.event.action }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+
+          rm -rf _site/.git _site/.github
+          touch _site/.nojekyll
+
+          if [[ "$EVENT_NAME" == "pull_request_target" && "$EVENT_ACTION" != "closed" ]]; then
+            target="_site/pr-preview/pr-${PR_NUMBER}"
+            mkdir -p "$target"
+
+            # Pages artifacts reject symlinks. Do not dereference them.
+            find _preview -type l -delete
+            rsync -a --delete \
+              --exclude='.git' \
+              --exclude='.github' \
+              _preview/ "$target/"
+
+            touch "$target/.nojekyll"
+          fi
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+
+      - name: Deploy Pages artifact
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Post preview link
+        if: github.event_name == 'pull_request_target' && github.event.action != 'closed'
+        uses: actions/github-script@v8
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+        with:
+          script: |
+            const marker = '<!-- techrote-pages-preview -->';
+            const root = process.env.PAGE_URL.replace(/\/?$/, '/');
+            const preview = `${root}pr-preview/pr-${context.issue.number}/`;
+            const body = `${marker}\n**Pages preview:** ${preview}\n\nUpdated from commit \`${context.payload.pull_request.head.sha.slice(0, 7)}\`.`;
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              per_page: 100
+            });
+
+            const previous = comments.find(comment =>
+              comment.user?.type === 'Bot' && comment.body?.includes(marker)
+            );
+
+            if (previous) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: previous.id,
+                body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body
+              });
+            }
+
+      - name: Mark closed preview removed
+        if: github.event_name == 'pull_request_target' && github.event.action == 'closed'
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const marker = '<!-- techrote-pages-preview -->';
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              per_page: 100
+            });
+
+            const previous = comments.find(comment =>
+              comment.user?.type === 'Bot' && comment.body?.includes(marker)
+            );
+
+            if (previous) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: previous.id,
+                body: `${marker}\nPages preview removed because this pull request is closed.`
+              });
+            }
