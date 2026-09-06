@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Offline single-file browser converter for classic 16-colour CP437 ANSI artwork.">
+  <title>PNG2ANSI // techrote</title>
+  <link rel="stylesheet" href="../site.css">
+</head>
+<body>
+  <header class="topbar"><div class="shell"><a class="brand" href="../">TECHROTE<span>//</span></a><nav class="nav" aria-label="Primary"><a href="../">PROJECTS</a><a href="https://github.com/techrote">GITHUB</a></nav></div></header>
+  <main class="shell product">
+    <article class="product-copy">
+      <div class="kicker">ANSI TOOLING / 02</div>
+      <h1>PNG2ANSI</h1>
+      <p class="lede">An offline browser port of pyANSI. Load an image, fit it to CP437 cells and the classic Windows Terminal palette, then download ANSI, PNG preview or a reusable JSON profile.</p>
+      <div class="actions"><a href="../PNG2ANSI-web.html">OPEN</a><a href="https://github.com/techrote/PNG2ANSI">GITHUB</a></div>
+      <h2>Output</h2>
+      <p>The default canvas is 80×40 cells. Output uses CP437 cell bytes, 16 foreground colours and eight classic background colours; no SAUCE footer is added.</p>
+      <h2>Fitting</h2>
+      <p>Photographic and industrial fitting modes are available. Local ANSI references can replace the built-in glyph vocabulary with a frequency-ordered union.</p>
+      <h2>Packaging</h2>
+      <p>The release artifact is one HTML file and makes no network requests. Conversion runs in a worker and stale jobs are rejected when settings change.</p>
+    </article>
+    <aside class="factbox" aria-label="Project facts"><dl><div><dt>TYPE</dt><dd>image → ANSI</dd></div><div><dt>FORMAT</dt><dd>CP437 / SGR</dd></div><div><dt>PACKAGE</dt><dd>single HTML</dd></div><div><dt>LICENSE</dt><dd>MIT code</dd></div></dl></aside>
+  </main>
+  <footer class="footer"><div class="shell"><span>TECHROTE // PUBLIC WORKBENCH</span><a href="../">BACK TO INDEX</a></div></footer>
+</body>
+</html>
