@@ -1,0 +1,66 @@
+name: Sync GlyphPoint hosted mirror
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 4 * * *'
+  push:
+    paths:
+      - '.github/workflows/sync-glyphpoint.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-glyphpoint
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out site
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Fetch canonical GlyphPoint build
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p glyphpoint
+          curl --fail --location --silent --show-error \
+            'https://raw.githubusercontent.com/techrote/GlyphPoint/main/GlyphPoint-v1a.html' \
+            --output glyphpoint/index.html.tmp
+          test "$(wc -c < glyphpoint/index.html.tmp)" -gt 100000
+          grep -q 'Precision Glyph Grid Editor' glyphpoint/index.html.tmp
+          mv glyphpoint/index.html.tmp glyphpoint/index.html
+
+      - name: Ensure homepage OPEN link
+        shell: python
+        run: |
+          from pathlib import Path
+
+          path = Path('index.html')
+          text = path.read_text(encoding='utf-8')
+          old = '<div class="actions"><a href="https://github.com/techrote/GlyphPoint#readme">INFO</a><a href="https://github.com/techrote/GlyphPoint">GITHUB</a></div>'
+          new = '<div class="actions"><a href="glyphpoint/">OPEN</a><a href="https://github.com/techrote/GlyphPoint#readme">INFO</a><a href="https://github.com/techrote/GlyphPoint">GITHUB</a></div>'
+          if new not in text:
+              if old not in text:
+                  raise SystemExit('GlyphPoint action block not found; refusing an ambiguous edit')
+              path.write_text(text.replace(old, new, 1), encoding='utf-8')
+
+      - name: Commit mirror when changed
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add glyphpoint/index.html index.html
+          if git diff --cached --quiet; then
+            echo 'GlyphPoint mirror already current.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Sync GlyphPoint hosted mirror'
+          git push origin HEAD:main
