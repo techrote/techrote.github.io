@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="index,follow">
+  <title>GlyphPoint — loading hosted build</title>
+  <style>
+    html,body{height:100%;margin:0;background:#111;color:#dce9ee;font:13px/1.5 Consolas,"Cascadia Mono",monospace}
+    main{height:100%;display:grid;place-items:center;padding:24px;text-align:center}
+    a{color:#4ddcf4}
+  </style>
+</head>
+<body>
+  <main id="status">
+    <div>GLYPHPOINT // LOADING HOSTED BUILD<br><small>techrote.github.io/glyphpoint/</small></div>
+  </main>
+  <noscript><p>GlyphPoint requires JavaScript. <a href="https://github.com/techrote/GlyphPoint/blob/main/GlyphPoint-v1a.html">View the source on GitHub.</a></p></noscript>
+  <script>
+    (() => {
+      const source = "https://raw.githubusercontent.com/techrote/GlyphPoint/main/GlyphPoint-v1a.html";
+      fetch(source, {cache: "no-cache"})
+        .then(response => {
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          return response.text();
+        })
+        .then(html => {
+          document.open();
+          document.write(html);
+          document.close();
+        })
+        .catch(error => {
+          document.getElementById("status").innerHTML =
+            `<div>GLYPHPOINT // LOAD FAILED<br><small>${String(error)}</small><br><br>` +
+            `<a href="https://github.com/techrote/GlyphPoint/blob/main/GlyphPoint-v1a.html">OPEN SOURCE ON GITHUB</a></div>`;
+        });
+    })();
+  </script>
+</body>
+</html>
