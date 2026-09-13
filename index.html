@@ -6,6 +6,43 @@
   <meta name="description" content="Public projects and browser tools by techrote.">
   <title>techrote // workbench</title>
   <link rel="stylesheet" href="site.css">
+  <style>
+    /* Home-only density pass: keep project/info pages on the shared stylesheet unchanged. */
+    .home-shell { width: min(calc(100% - 32px), 1480px); }
+    .grid {
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 10px;
+      padding-bottom: 44px;
+    }
+    .card {
+      min-height: 176px;
+      padding: 14px;
+    }
+    .card::before {
+      right: 14px;
+      width: 40px;
+    }
+    .card-head {
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .card h3 {
+      margin-bottom: 8px;
+      font-size: 17px;
+    }
+    .card p {
+      margin-bottom: 16px;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+    .actions {
+      gap: 7px 12px;
+      font-size: 11px;
+    }
+    @media (max-width: 760px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
 </head>
 <body>
   <header class="topbar">
@@ -18,7 +55,7 @@
     </div>
   </header>
 
-  <main class="shell">
+  <main class="shell home-shell">
     <section class="hero">
       <div>
         <div class="eyebrow">PUBLIC WORKBENCH</div>
@@ -35,7 +72,7 @@
     <section id="projects" aria-labelledby="projects-title">
       <div class="section-head">
         <h2 id="projects-title">Projects</h2>
-        <span>09 PROJECT ENTRIES</span>
+        <span>10 PROJECT ENTRIES</span>
       </div>
       <div class="grid">
         <article class="card">
@@ -45,28 +82,28 @@
           <div class="actions"><a href="glyphpaint/">OPEN</a><a href="projects/glyphpaint.html">INFO</a><a href="https://github.com/techrote/GlyphPaint">GITHUB</a></div>
         </article>
         <article class="card">
-          <div class="card-head"><span class="index">02</span><span class="status">LIVE</span></div>
+          <div class="card-head"><span class="index">02</span><span class="status">BROWSER APP</span></div>
+          <h3>GlyphPoint</h3>
+          <p>Precision glyph-grid editor for browser-based character art, with local file import/export, palette tools and selection transforms.</p>
+          <div class="actions"><a href="https://github.com/techrote/GlyphPoint#readme">INFO</a><a href="https://github.com/techrote/GlyphPoint">GITHUB</a></div>
+        </article>
+        <article class="card">
+          <div class="card-head"><span class="index">03</span><span class="status">LIVE</span></div>
           <h3>XenoField</h3>
           <p>WebGPU visual synthesis with spectral surfaces, alien planets, procedural clouds and volumetric effects.</p>
           <div class="actions"><a href="xenofield/">OPEN</a><a href="https://github.com/techrote/XenosField#readme">INFO</a><a href="https://github.com/techrote/XenosField">GITHUB</a></div>
         </article>
         <article class="card">
-          <div class="card-head"><span class="index">03</span><span class="status">WEB BUILD</span></div>
+          <div class="card-head"><span class="index">04</span><span class="status">WEB BUILD</span></div>
           <h3>PlasmaTerm</h3>
           <p>Real-time generative plasma for Windows Terminal, with a browser build for portable hands-on use.</p>
           <div class="actions"><a href="plasmaterm/">OPEN</a><a href="projects/plasmaterm.html">INFO</a><a href="https://github.com/techrote/PlasmaTerm">GITHUB</a></div>
         </article>
         <article class="card">
-          <div class="card-head"><span class="index">04</span><span class="status">LIVE</span></div>
+          <div class="card-head"><span class="index">05</span><span class="status">LIVE</span></div>
           <h3>PNG2ANSI</h3>
           <p>Offline single-file browser converter for classic 16-colour CP437 ANSI artwork.</p>
           <div class="actions"><a href="PNG2ANSI-web.html">OPEN</a><a href="projects/png2ansi.html">INFO</a><a href="https://github.com/techrote/PNG2ANSI">GITHUB</a></div>
-        </article>
-        <article class="card">
-          <div class="card-head"><span class="index">05</span><span class="status">SOURCE</span></div>
-          <h3>pyANSI</h3>
-          <p>Python reference converter behind PNG2ANSI-web.</p>
-          <div class="actions"><a href="projects/pyansi.html">INFO</a><a href="https://github.com/techrote/pyANSI">GITHUB</a></div>
         </article>
         <article class="card">
           <div class="card-head"><span class="index">06</span><span class="status">LIVE</span></div>
@@ -75,19 +112,25 @@
           <div class="actions"><a href="edgecraft-stl.html">OPEN</a><a href="projects/edgecraft.html">INFO</a><a href="https://github.com/techrote/EdgeCraft">GITHUB</a></div>
         </article>
         <article class="card">
-          <div class="card-head"><span class="index">07</span><span class="status">LIVE</span></div>
+          <div class="card-head"><span class="index">07</span><span class="status">SOURCE</span></div>
+          <h3>pyANSI</h3>
+          <p>Python reference converter behind PNG2ANSI-web.</p>
+          <div class="actions"><a href="projects/pyansi.html">INFO</a><a href="https://github.com/techrote/pyANSI">GITHUB</a></div>
+        </article>
+        <article class="card">
+          <div class="card-head"><span class="index">08</span><span class="status">LIVE</span></div>
           <h3>ThermoPipe Parameter Suite</h3>
           <p>Reduced-order exploration tool for copper heat pipes and gravity thermosyphons.</p>
           <div class="actions"><a href="thermopipe_parameter_suite.html">OPEN</a><a href="projects/thermopipe.html">INFO</a><a href="https://github.com/techrote/ThermoPipeParameter">GITHUB</a></div>
         </article>
         <article class="card">
-          <div class="card-head"><span class="index">08</span><span class="status">LIVE</span></div>
+          <div class="card-head"><span class="index">09</span><span class="status">LIVE</span></div>
           <h3>Brachistochrone Lab</h3>
           <p>Browser experiment racing a cycloid, a straight ramp and an adjustable curve.</p>
           <div class="actions"><a href="brachistochrone-lab-v2.html">OPEN</a><a href="projects/brachistochrone.html">INFO</a><a href="https://github.com/techrote/Brachistochrone-Lab">GITHUB</a></div>
         </article>
         <article class="card">
-          <div class="card-head"><span class="index">09</span><span class="status dev">ARCHIVE</span></div>
+          <div class="card-head"><span class="index">10</span><span class="status dev">ARCHIVE</span></div>
           <h3>scratchpad</h3>
           <p>Loose public archive for experimental code, art and in-progress material.</p>
           <div class="actions"><a href="projects/scratchpad.html">INFO</a><a href="https://github.com/techrote/scratchpad">GITHUB</a></div>
