@@ -1,0 +1,69 @@
+name: Sync GlyphPaint hosted mirror
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '29 4 * * *'
+  push:
+    paths:
+      - '.github/workflows/sync-glyphpaint.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-glyphpaint
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out site
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Fetch canonical GlyphPaint build
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p glyphpaint
+          curl --fail --location --silent --show-error \
+            'https://raw.githubusercontent.com/techrote/GlyphPaint/main/GlyphPaint.html' \
+            --output glyphpaint/index.html.tmp
+          test "$(wc -c < glyphpaint/index.html.tmp)" -gt 60000
+          grep -q 'GlyphPaint — HTML/ANSI Character Paint' glyphpaint/index.html.tmp
+          grep -q "color1:'#ff7f27',color2:'#ed1c24'" glyphpaint/index.html.tmp
+          grep -q "brushType:'airbrush',brushSize:5" glyphpaint/index.html.tmp
+          grep -q 'glyphpaint.uiMode.v1' glyphpaint/index.html.tmp
+          mv glyphpaint/index.html.tmp glyphpaint/index.html
+
+      - name: Ensure homepage OPEN link
+        shell: python
+        run: |
+          from pathlib import Path
+
+          path = Path('index.html')
+          text = path.read_text(encoding='utf-8')
+          marker = '<h3>GlyphPaint</h3>'
+          link = '<a href="glyphpaint/">OPEN</a>'
+          if marker not in text:
+              raise SystemExit('GlyphPaint card not found; refusing an ambiguous edit')
+          if link not in text:
+              raise SystemExit('GlyphPaint OPEN link not found; refusing an ambiguous edit')
+
+      - name: Commit mirror when changed
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add glyphpaint/index.html
+          if git diff --cached --quiet; then
+            echo 'GlyphPaint mirror already current.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Sync GlyphPaint hosted mirror'
+          git push origin HEAD:main
