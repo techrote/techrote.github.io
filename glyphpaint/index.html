@@ -16,7 +16,7 @@ button,input,select,textarea{font:inherit}
 button{cursor:pointer}
 #app{height:100%;display:grid;grid-template-rows:auto auto 1fr auto;background:#e7e7e7}
 .titlebar{height:32px;background:#fff;display:flex;align-items:center;padding:0 10px;border-bottom:1px solid #d8d8d8;gap:10px;user-select:none}
-.appmark{font-size:18px;color:#2b78d4}.title{font-size:13px;flex:1}.quick button{border:0;background:transparent;padding:3px 7px;border-radius:3px}.quick button:hover{background:#e9eef6}
+.appmark{font-size:18px;color:#2b78d4}.title{font-size:13px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.quick{display:flex;align-items:center;gap:3px}.quick button,.modeToggle{border:0;background:transparent;padding:3px 7px;border-radius:3px;height:24px}.quick button:hover,.modeToggle:hover{background:#e9eef6}.modeToggle{display:inline-flex;align-items:center;gap:4px;font-size:11px}
 .ribbonwrap{background:#f7f7f7;border-bottom:1px solid #bfc3c8;user-select:none}
 .tabs{height:31px;display:flex;align-items:end;gap:1px;padding-left:4px;background:#fff;border-bottom:1px solid #ccc}
 .filebtn,.tab{border:0;background:transparent;padding:7px 18px 6px;font-size:12px}.filebtn{background:#2878d0;color:#fff}.tab.active{background:#f7f7f7;border:1px solid #ccc;border-bottom-color:#f7f7f7;margin-bottom:-1px}
@@ -42,7 +42,34 @@ button{cursor:pointer}
 .statusbar{height:26px;background:#f6f6f6;border-top:1px solid #bbb;display:flex;align-items:center;gap:16px;padding:0 8px;font-size:11px;user-select:none}.statusbar.hidden{display:none}.statusbar .grow{flex:1}.zoomCtl{display:flex;align-items:center;gap:6px}.zoomCtl input{width:130px}
 .dropdown{position:fixed;z-index:50;display:none;background:#fff;border:1px solid #aaa;box-shadow:2px 4px 15px #0004;padding:4px;min-width:210px}.dropdown.open{display:block}.dropdown button{display:block;width:100%;text-align:left;border:0;background:#fff;padding:7px 10px}.dropdown button:hover{background:#dceeff}.dropdown hr{border:0;border-top:1px solid #ddd;margin:4px}
 dialog{border:1px solid #888;border-radius:2px;box-shadow:0 6px 30px #0006;padding:0;max-width:min(92vw,560px)}dialog::backdrop{background:#0004}.dlgTitle{background:#f4f4f4;padding:9px 12px;border-bottom:1px solid #ccc;font-weight:600}.dlgBody{padding:14px;background:#fff}.dlgGrid{display:grid;grid-template-columns:150px 1fr;gap:9px;align-items:center}.dlgActions{padding:10px 14px;border-top:1px solid #ddd;background:#f7f7f7;display:flex;justify-content:flex-end;gap:7px}.dlgActions button{min-width:74px;padding:5px 10px}.textArea{width:100%;height:100px;font-family:Consolas,monospace}.kbd{font:10px Consolas,monospace;background:#eee;border:1px solid #ccc;border-bottom-width:2px;padding:1px 4px;border-radius:3px}.helpcols{columns:2;column-gap:25px;font-size:12px}.helpcols p{break-inside:avoid;margin:0 0 8px}
-@media(max-width:900px){.ribbon{height:126px}.group{padding-left:5px;padding-right:5px}.shapegrid{grid-template-columns:repeat(5,28px);max-width:148px}.palette{grid-template-columns:repeat(7,19px)}}
+
+/* Win98-style side-panel mode, adapted from GlyphPoint's classic layout. */
+#app.classic{grid-template-columns:260px minmax(0,1fr);grid-template-rows:32px minmax(0,1fr) 26px;background:#c0c0c0}
+#app.classic .titlebar{grid-row:1;grid-column:1/-1;height:32px;margin:0;padding:3px 4px;background:linear-gradient(90deg,#000080,#1084d0);border:2px solid;border-color:#fff #404040 #404040 #fff;color:#fff;font-family:Tahoma,"MS Sans Serif",Arial,sans-serif;gap:4px}
+#app.classic .appmark{color:#fff;width:20px;text-align:center}#app.classic .title{font-weight:700;font-size:11px;text-shadow:1px 1px #000}
+#app.classic .quick button,#app.classic .modeToggle{height:22px;min-width:24px;background:#c0c0c0;color:#000;border:2px solid;border-color:#fff #404040 #404040 #fff;border-radius:0;padding:0 5px;box-shadow:none;margin:0;font-family:Tahoma,"MS Sans Serif",Arial,sans-serif}
+#app.classic .quick button:active,#app.classic .modeToggle:active{border-color:#404040 #fff #fff #404040;padding:1px 4px 0 6px}
+#app.classic .ribbonwrap{grid-row:2;grid-column:1;min-height:0;overflow-y:auto;overflow-x:hidden;background:#c0c0c0;border-right:2px solid #808080;border-bottom:0;font-family:Tahoma,"MS Sans Serif",Arial,sans-serif}
+#app.classic .tabs{position:sticky;top:0;z-index:4;height:31px;align-items:center;gap:3px;padding:3px;background:#c0c0c0;border-bottom:1px solid #808080}
+#app.classic .filebtn,#app.classic .tab{height:24px;padding:2px 8px;background:#c0c0c0;color:#000;border:2px solid;border-color:#fff #404040 #404040 #fff;border-radius:0;font-size:11px}
+#app.classic .filebtn:active,#app.classic .tab:active,#app.classic .tab.active{border-color:#404040 #fff #fff #404040;background:#b8b8b8;margin:0}
+#app.classic .ribbon{height:auto;min-height:0;width:100%;flex-direction:column;align-items:stretch;overflow:visible;padding:4px;gap:7px;background:#c0c0c0}
+#app.classic .group{width:100%;min-width:0;flex-wrap:wrap;align-items:flex-start;align-content:flex-start;gap:4px;padding:5px 5px 18px;background:#c0c0c0;border:2px solid;border-color:#fff #808080 #808080 #fff}
+#app.classic .group::after{color:#000;font-family:Tahoma,"MS Sans Serif",Arial,sans-serif;font-size:10px}
+#app.classic .bigbtn,#app.classic .smallbtn,#app.classic .toolbtn,#app.classic .shape,#app.classic .editcolor,#app.classic .zoomCtl button{background:#c0c0c0;color:#000;border:2px solid;border-color:#fff #404040 #404040 #fff;border-radius:0;box-shadow:none}
+#app.classic .bigbtn:active,#app.classic .smallbtn:active,#app.classic .toolbtn:active,#app.classic .shape:active,#app.classic .editcolor:active,#app.classic .bigbtn.active,#app.classic .toolbtn.active,#app.classic .shape.active{border-color:#404040 #fff #fff #404040;background:#b8b8b8;outline:0}
+#app.classic .bigbtn{height:60px;min-width:72px;padding:4px}.ui-classic .ico{font-size:19px}
+#app.classic .smallcol{min-width:0;max-width:100%}#app.classic .smallbtn{height:27px}
+#app.classic select,#app.classic input[type=text],#app.classic input[type=number],#app.classic textarea{border:2px solid;border-color:#404040 #fff #fff #404040;border-radius:0;background:#fff;color:#000}
+#app.classic .toolgrid{width:100%;grid-template-columns:repeat(3,1fr);gap:4px}#app.classic .toolbtn{width:auto;height:36px;font-size:18px}
+#app.classic .shapegrid{width:100%;max-width:none;grid-template-columns:repeat(6,32px);grid-auto-rows:29px;gap:2px;overflow:visible}#app.classic .shape{width:32px;height:29px;font-size:15px}
+#app.classic .options{width:100%;grid-template-columns:50px minmax(0,1fr);gap:3px 5px}#app.classic .options select{width:100%;min-width:0;height:25px}
+#app.classic .colors{width:100%;grid-template-columns:1fr;gap:5px}#app.classic .colorboxes{justify-content:flex-start}#app.classic .palette{grid-template-columns:repeat(8,19px);width:max-content}#app.classic .editcolor{width:82px;height:31px}
+#app.classic .swatchbig{border:2px solid;border-color:#404040 #fff #fff #404040;box-shadow:none}
+#app.classic .workspace{grid-row:2;grid-column:2;background:#808080;border-top:1px solid #404040}#app.classic .scroller{padding:12px}
+#app.classic .statusbar{grid-row:3;grid-column:1/-1;height:26px;background:#c0c0c0;border-top:2px solid #fff;gap:6px;padding:2px 4px;font-family:Tahoma,"MS Sans Serif",Arial,sans-serif}#app.classic .statusbar>span{border:1px solid;border-color:#808080 #fff #fff #808080;padding:2px 4px;height:19px;display:flex;align-items:center}#app.classic .statusbar .grow{display:flex}
+.ui-classic .dropdown,.ui-classic dialog{font-family:Tahoma,"MS Sans Serif",Arial,sans-serif;background:#c0c0c0;border:2px solid;border-color:#fff #404040 #404040 #fff;border-radius:0;box-shadow:2px 2px 0 #000}.ui-classic .dropdown button,.ui-classic .dlgBody,.ui-classic .dlgActions{background:#c0c0c0}.ui-classic .dropdown button:hover{background:#000080;color:#fff}.ui-classic .dlgTitle{background:#000080;color:#fff;border-bottom:0;margin:2px;padding:4px 6px;font-weight:700}.ui-classic .dlgActions{border-top:1px solid #808080}.ui-classic .dlgActions button{background:#c0c0c0;border:2px solid;border-color:#fff #404040 #404040 #fff;border-radius:0}.ui-classic .kbd{border-radius:0;background:#fff}
+@media(max-width:900px){.ribbon{height:126px}.group{padding-left:5px;padding-right:5px}.shapegrid{grid-template-columns:repeat(5,28px);max-width:148px}.palette{grid-template-columns:repeat(7,19px)}#app.classic{grid-template-columns:236px minmax(0,1fr)}#app.classic .shapegrid{grid-template-columns:repeat(5,32px);max-width:none}#app.classic .palette{grid-template-columns:repeat(7,19px)}}
 @media print{.titlebar,.ribbonwrap,.statusbar,.rulerCorner,.hruler,.vruler{display:none!important}.workspace{display:block;background:#fff}.scroller{padding:0;overflow:visible}.canvasWrap{box-shadow:none;transform:none!important}}
 </style>
 </head>
@@ -50,7 +77,7 @@ dialog{border:1px solid #888;border-radius:2px;box-shadow:0 6px 30px #0006;paddi
 <div id="app">
   <div class="titlebar">
     <div class="appmark">▧</div><div class="title" id="docTitle">untitled - GlyphPaint</div>
-    <div class="quick"><button id="qUndo" title="Undo (Ctrl+Z)">↶</button><button id="qRedo" title="Redo (Ctrl+Y)">↷</button></div>
+    <div class="quick"><button id="qUndo" title="Undo (Ctrl+Z)">↶</button><button id="qRedo" title="Redo (Ctrl+Y)">↷</button><button id="uiModeToggle" class="modeToggle" title="Switch to Win98-style side-panel interface"><span id="uiModeIcon">◫</span><span id="uiModeLabel">Classic</span></button></div>
   </div>
 
   <div class="ribbonwrap">
@@ -101,11 +128,11 @@ dialog{border:1px solid #888;border-radius:2px;box-shadow:0 6px 30px #0006;paddi
         <div class="smallcol">
           <select id="brushType" title="Brush type">
             <option value="brush">Brush</option><option value="calligraphy1">Calligraphy brush 1</option><option value="calligraphy2">Calligraphy brush 2</option>
-            <option value="airbrush">Airbrush</option><option value="oil">Oil brush</option><option value="crayon">Crayon</option>
+            <option value="airbrush" selected>Airbrush</option><option value="oil">Oil brush</option><option value="crayon">Crayon</option>
             <option value="marker">Marker</option><option value="natural">Natural pencil</option><option value="watercolor">Watercolor</option>
           </select>
           <label>Glyph <input id="glyphInput" value="#" maxlength="2" style="width:45px;text-align:center;font-family:Consolas,monospace"></label>
-          <label>Size <select id="brushSize"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></label>
+          <label>Size <select id="brushSize"><option>1</option><option>2</option><option>3</option><option>4</option><option selected>5</option></select></label>
         </div>
       </section>
 
@@ -227,13 +254,14 @@ const $$ = s => [...document.querySelectorAll(s)];
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const deepCell = c => ({...c});
 const makeCell=(ch=' ',fg='#ffffff',bg='#000000')=>({ch,fg,bg,font:'Cascadia Mono',bold:false,italic:false,underline:false});
+const UI_MODE_KEY='glyphpaint.uiMode.v1';
 
 const state={
-  cols:80,rows:80,cells:[],tool:'pencil',shape:'line',color1:'#ffffff',color2:'#000000',
-  defaultFg:'#ffffff',defaultBg:'#000000',brushType:'brush',brushSize:1,shapeSize:1,
+  cols:80,rows:80,cells:[],tool:'pencil',shape:'line',color1:'#ff7f27',color2:'#ed1c24',
+  defaultFg:'#ffffff',defaultBg:'#000000',brushType:'airbrush',brushSize:5,shapeSize:1,
   outlineMode:'solid',fillMode:'none',glyph:'#',zoom:1,grid:false,rulers:true,status:true,
   transparentSelect:true,selection:null,clipboard:null,history:[],future:[],drawing:false,
-  actionStart:null,lastCell:null,freePath:[],preview:new Set(),curve:null,textAnchor:null,docName:'untitled',dirty:false,els:[]
+  actionStart:null,lastCell:null,freePath:[],preview:new Set(),curve:null,textAnchor:null,docName:'untitled',dirty:false,els:[],uiMode:'ribbon'
 };
 
 const SHAPES=[
@@ -243,9 +271,22 @@ const SHAPES=[
 ];
 const PALETTE=['#000000','#ffffff','#7f7f7f','#c3c3c3','#880015','#b97a57','#ed1c24','#ffaec9','#ff7f27','#ffc90e','#fff200','#efe4b0','#22b14c','#b5e61d','#00a2e8','#99d9ea','#3f48cc','#7092be','#a349a4','#c8bfe7','#5b1a78','#8b3fb0','#d74fc7','#ff77df','#022b44','#066d9b','#12c8e8','#91f3ff','#2e3340','#6f7a86','#cbd2d9','#f7fbff'];
 
+function safeStorageGet(key){try{return localStorage.getItem(key)}catch{return null}}
+function safeStorageSet(key,value){try{localStorage.setItem(key,value);return true}catch{return false}}
+function setUiMode(mode,persist=true){
+  state.uiMode=mode==='classic'?'classic':'ribbon';
+  const classic=state.uiMode==='classic';
+  $('#app').classList.toggle('classic',classic);document.body.classList.toggle('ui-classic',classic);
+  $('#uiModeLabel').textContent=classic?'Ribbon':'Classic';$('#uiModeIcon').textContent=classic?'▰':'◫';
+  $('#uiModeToggle').title=classic?'Switch to ribbon interface':'Switch to Win98-style side-panel interface';
+  if(persist)safeStorageSet(UI_MODE_KEY,state.uiMode);
+  requestAnimationFrame(()=>{renderRulers();setZoom(state.zoom)});
+}
+
 function init(){
+  const savedMode=safeStorageGet(UI_MODE_KEY);if(savedMode==='classic'||savedMode==='ribbon')state.uiMode=savedMode;
   newDocument(80,80,false);
-  buildPalette();buildShapes();bindUI();updateColors();setZoom(1);setTool('pencil');renderRulers();setMessage('Ready');
+  buildPalette();buildShapes();bindUI();setUiMode(state.uiMode,false);updateColors();$('#brushType').value=state.brushType;$('#brushSize').value=String(state.brushSize);setZoom(1);setTool('pencil');renderRulers();setMessage('Ready');
 }
 function newDocument(cols=80,rows=80,push=true){
   if(push) snapshot();state.cols=cols;state.rows=rows;state.cells=Array.from({length:cols*rows},()=>makeCell(' ',state.defaultFg,state.defaultBg));
@@ -290,7 +331,7 @@ function bindUI(){
   $('#fileBtn').onclick=e=>{const m=$('#fileMenu');const r=e.target.getBoundingClientRect();m.style.left=r.left+'px';m.style.top=r.bottom+'px';m.classList.toggle('open')};
   document.addEventListener('pointerdown',e=>{if(!e.target.closest('#fileMenu')&&!e.target.closest('#fileBtn'))$('#fileMenu').classList.remove('open')});
   $$('.tab').forEach(t=>t.onclick=()=>{ $$('.tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');const home=t.dataset.tab==='home';$('#homeRibbon').classList.toggle('hidden',!home);$('#viewRibbon').classList.toggle('active',!home)});
-  $('#qUndo').onclick=undo;$('#qRedo').onclick=redo;
+  $('#qUndo').onclick=undo;$('#qRedo').onclick=redo;$('#uiModeToggle').onclick=()=>setUiMode(state.uiMode==='classic'?'ribbon':'classic');
   $$('[data-tool]').forEach(b=>b.onclick=()=>setTool(b.dataset.tool));$('#selectBtn').onclick=()=>setTool('select');
   $('#brushType').onchange=e=>state.brushType=e.target.value;$('#brushSize').onchange=e=>state.brushSize=+e.target.value;$('#shapeSize').onchange=e=>state.shapeSize=+e.target.value;$('#outlineMode').onchange=e=>state.outlineMode=e.target.value;$('#fillMode').onchange=e=>state.fillMode=e.target.value;$('#glyphInput').oninput=e=>state.glyph=[...e.target.value][0]||'#';
   $('#cutBtn').onclick=cutSelection;$('#copyBtn').onclick=copySelection;$('#pasteBtn').onclick=pasteSelection;$('#cropBtn').onclick=cropSelection;$('#resizeBtn').onclick=openResize;
@@ -311,7 +352,7 @@ function bindUI(){
   $$('dialog button[value="cancel"]').forEach(b=>b.onclick=()=>b.closest('dialog').close());
   $('#openProjectInput').onchange=openProjectFile;$('#openHtmlInput').onchange=openHtmlFile;$('#openImageInput').onchange=openImageFile;
   $$('#fileMenu [data-file]').forEach(b=>b.onclick=()=>handleFile(b.dataset.file));
-  window.addEventListener('keydown',keyboard);
+  window.addEventListener('keydown',keyboard);window.addEventListener('resize',()=>{if(state.uiMode==='classic')requestAnimationFrame(()=>setZoom(state.zoom))});
 }
 
 function pointerDown(e){
@@ -467,7 +508,7 @@ function exportBmp(){const w=state.cols*8,h=state.rows*10,cv=document.createElem
 function downloadBlob(data,type,name){const blob=data instanceof Blob?data:new Blob([data],{type}),u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),2000)}
 function openProperties(){const d=$('#propertiesDialog');$('#propW').value=state.cols;$('#propH').value=state.rows;$('#propFg').value=state.defaultFg;$('#propBg').value=state.defaultBg;$('#transparentSelect').checked=state.transparentSelect;d.showModal()}
 function applyProperties(){const w=+$(`#propW`).value,h=+$(`#propH`).value;state.defaultFg=$('#propFg').value;state.defaultBg=$('#propBg').value;state.transparentSelect=$('#transparentSelect').checked;$('#transparentRibbon').checked=state.transparentSelect;if(w!==state.cols||h!==state.rows){snapshot();const old=state.cells,oc=state.cols,or=state.rows;state.cols=w;state.rows=h;state.cells=Array.from({length:w*h},(_,i)=>{const [x,y]=[i%w,Math.floor(i/w)];return x<oc&&y<or?deepCell(old[y*oc+x]):makeCell(' ',state.defaultFg,state.defaultBg)});state.selection=null;rebuildGrid();markDirty()}$('#propertiesDialog').close()}
-function openHelp(){const h=$('#helpBody');h.innerHTML=`<p><b>Tools</b><br>Pencil/brushes, fill, text, eraser, picker, magnifier, rectangular/free-form selection, crop, resize/skew, rotate/flip, shapes, outline/fill, Color 1/2 and custom colors.</p><p><b>Clipboard</b><br><span class="kbd">Ctrl+C</span> copy &nbsp; <span class="kbd">Ctrl+X</span> cut &nbsp; <span class="kbd">Ctrl+V</span> paste &nbsp; <span class="kbd">Delete</span> clear selection.</p><p><b>History</b><br><span class="kbd">Ctrl+Z</span> undo &nbsp; <span class="kbd">Ctrl+Y</span> redo.</p><p><b>Files</b><br>Open/save GlyphPaint JSON, import coloured HTML, convert images to glyphs, export standalone HTML/TXT/PNG/JPEG/BMP/GIF, browser-safe wallpaper PNG, and print.</p><p><b>View</b><br>Zoom 25–800%, gridlines, rulers, status bar, full screen.</p><p><b>Mouse</b><br>Left button uses Color 1. Right button uses Color 2 as the active foreground.</p><p><b>HTML import</b><br>Understands the cybertree-style <code>&lt;pre id="art"&gt;</code> format and inline span foreground/background colors.</p><p><b>Character model</b><br>Every cell stores a character, foreground, background, and text formatting. This is HTML/ANSI-like art, not a bitmap canvas.</p>`;$('#helpDialog').showModal()}
+function openHelp(){const h=$('#helpBody');h.innerHTML=`<p><b>Tools</b><br>Pencil/brushes, fill, text, eraser, picker, magnifier, rectangular/free-form selection, crop, resize/skew, rotate/flip, shapes, outline/fill, Color 1/2 and custom colors.</p><p><b>Clipboard</b><br><span class="kbd">Ctrl+C</span> copy &nbsp; <span class="kbd">Ctrl+X</span> cut &nbsp; <span class="kbd">Ctrl+V</span> paste &nbsp; <span class="kbd">Delete</span> clear selection.</p><p><b>History</b><br><span class="kbd">Ctrl+Z</span> undo &nbsp; <span class="kbd">Ctrl+Y</span> redo.</p><p><b>Files</b><br>Open/save GlyphPaint JSON, import coloured HTML, convert images to glyphs, export standalone HTML/TXT/PNG/JPEG/BMP/GIF, browser-safe wallpaper PNG, and print.</p><p><b>View</b><br>Zoom 25–800%, gridlines, rulers, status bar, full screen, plus the persistent Ribbon/Classic interface toggle.</p><p><b>Mouse</b><br>Left button uses Color 1. Right button uses Color 2 as the active foreground.</p><p><b>HTML import</b><br>Understands the cybertree-style <code>&lt;pre id="art"&gt;</code> format and inline span foreground/background colors.</p><p><b>Character model</b><br>Every cell stores a character, foreground, background, and text formatting. This is HTML/ANSI-like art, not a bitmap canvas.</p>`;$('#helpDialog').showModal()}
 
 function keyboard(e){const mod=e.ctrlKey||e.metaKey;if(mod&&e.key.toLowerCase()==='z'){e.preventDefault();undo()}else if(mod&&e.key.toLowerCase()==='y'){e.preventDefault();redo()}else if(mod&&e.key.toLowerCase()==='c'){e.preventDefault();copySelection()}else if(mod&&e.key.toLowerCase()==='x'){e.preventDefault();cutSelection()}else if(mod&&e.key.toLowerCase()==='v'){e.preventDefault();pasteSelection()}else if(mod&&e.key.toLowerCase()==='n'){e.preventDefault();handleFile('new')}else if(mod&&e.key.toLowerCase()==='s'){e.preventDefault();saveProject()}else if(mod&&e.key.toLowerCase()==='p'){e.preventDefault();window.print()}else if(e.key==='Delete'&&state.selection){deleteSelection()}else if(e.key==='+'||e.key==='='){setZoom(state.zoom+.25)}else if(e.key==='-'){setZoom(state.zoom-.25)}}
 
