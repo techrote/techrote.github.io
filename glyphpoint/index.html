@@ -152,14 +152,14 @@ dialog{border:1px solid #888;border-radius:2px;box-shadow:0 6px 30px #0006;paddi
 #app.classic .grp-tools .toolbtn svg{width:22px;height:22px}
 
 /* Palette: primary/secondary and edit controls share one compact row; palette remains 34 px per cell. */
-#app.classic .glyphstack{width:214px;display:grid;grid-template-columns:70px 142px;grid-template-areas:"slots slots" "palette palette" "controls controls" "brush brush";gap:2px}
+#app.classic .glyphstack{width:214px;display:grid;grid-template-columns:70px 142px;grid-template-areas:"slots controls" "palette palette" "brush brush";gap:2px}
 #app.classic .gp-top{display:contents}
 #app.classic .gp-slots{grid-area:slots;display:flex;flex-direction:row;gap:2px;width:70px}
 #app.classic .gp-slot{width:34px;height:30px;grid-template-columns:8px 1fr;padding:1px}
 #app.classic .gp-slot-char{font-size:15px}
 #app.classic .gp-grid{grid-area:palette;width:214px;grid-template-columns:repeat(6,34px);grid-auto-rows:34px;gap:2px;max-height:none;overflow:visible}
 #app.classic .gp-btn{width:34px;height:34px;font-size:16px}
-#app.classic .gp-ctrl{grid-area:controls;width:214px;height:30px;gap:2px;display:flex;align-items:center}
+#app.classic .gp-ctrl{grid-area:controls;width:142px;height:30px;gap:2px;align-items:center}
 #app.classic .gp-ctrl button{height:30px;padding:1px 7px;font-size:10px}
 #app.classic #gpEditBtn,#app.classic #gpResetBtn{min-width:38px}.ui-classic .palette-bgctl{font-size:0;gap:0}.ui-classic .palette-bgctl input{width:30px;height:30px;border:2px solid;border-color:#404040 #fff #fff #404040;background:#c0c0c0}
 #app.classic #gpBgBtn{width:30px;min-width:30px;padding:0;font-size:14px}
@@ -201,10 +201,10 @@ dialog{border:1px solid #888;border-radius:2px;box-shadow:0 6px 30px #0006;paddi
 #app.classic .grp-transform .xformbtn:nth-child(4),#app.classic .grp-transform .xformbtn:nth-child(5){font-size:14px}
 
 /* View uses four equal buttons across the same 214 px lattice, then a terse status/options row. */
-#app.classic .viewcompact{width:214px;display:grid;grid-template-columns:1fr;grid-template-rows:auto auto auto auto;gap:2px;align-items:center}
+#app.classic .viewcompact{width:214px;display:grid;grid-template-columns:1fr;grid-template-rows:26px 16px 24px;gap:2px;align-items:center}
 #app.classic .viewbuttons{grid-column:1;grid-row:1;display:grid;grid-template-columns:repeat(4,52px);grid-template-rows:26px;gap:2px;width:214px}
 #app.classic .viewbtn,#app.classic .viewbtn.textwide{width:52px;height:26px;padding:2px}
-#app.classic .viewopts{grid-column:1;grid-row:2;width:214px;display:flex;flex-wrap:wrap;gap:4px;align-items:center;font-size:9px}#app.classic .viewopts label{width:64px}.ui-classic .squarebtn{height:22px;background:#c0c0c0;border:2px solid;border-color:#fff #404040 #404040 #fff;border-radius:0}
+#app.classic .viewopts{grid-column:1;grid-row:2;display:grid;grid-template-columns:repeat(3,52px) 56px;gap:2px;width:214px;font-size:9px}.ui-classic .squarebtn{height:22px;background:#c0c0c0;border:2px solid;border-color:#fff #404040 #404040 #fff;border-radius:0}
 #app.classic .viewopts label{gap:1px;justify-content:flex-start}
 #app.classic .viewopts input{margin:0 1px 0 0}
 #app.classic .bgctl{grid-column:1;grid-row:3;height:24px;font-size:9px;gap:4px}
