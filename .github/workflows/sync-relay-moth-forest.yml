@@ -1,0 +1,127 @@
+name: Sync Relay Moth Forest hosted mirror
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '41 4 * * *'
+  push:
+    paths:
+      - '.github/workflows/sync-relay-moth-forest.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-relay-moth-forest
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out site
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Resolve canonical source revision
+        id: source
+        shell: bash
+        run: |
+          set -euo pipefail
+          sha="$(git ls-remote https://github.com/techrote/Relay-Moth-Forest.git refs/heads/main | cut -f1)"
+          test -n "$sha"
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+
+      - name: Fetch canonical web runtime
+        shell: bash
+        env:
+          SOURCE_SHA: ${{ steps.source.outputs.sha }}
+        run: |
+          set -euo pipefail
+          rm -rf relay-moth-forest.sync
+          mkdir -p relay-moth-forest.sync
+          files=(index.html style.css surfacefx.js sprite_material.js foliagefx.js editor.js game.js relay_moth_maps.json relay_moth_story.json relay_moth_sprites.json relay_moth_pixel_luts.json relay_moth_effects.json hd_remake_atlas.json VERSION.txt)
+          for file in "${files[@]}"; do
+            curl --fail --location --silent --show-error "https://raw.githubusercontent.com/techrote/Relay-Moth-Forest/${SOURCE_SHA}/${file}" --output "relay-moth-forest.sync/${file}"
+          done
+
+      - name: Adapt runtime for GitHub Pages
+        shell: python
+        env:
+          SOURCE_SHA: ${{ steps.source.outputs.sha }}
+        run: |
+          from pathlib import Path
+          import json, os
+          root=Path('relay-moth-forest.sync')
+          sha=os.environ['SOURCE_SHA']
+          raw=f'https://raw.githubusercontent.com/techrote/Relay-Moth-Forest/{sha}/'
+          hd_path=root/'hd_remake_atlas.json'
+          hd=json.loads(hd_path.read_text())
+          for key in ('image','bump_image','normal_image','specular_image'):
+              if hd.get(key): hd[key]=raw+hd[key]
+          hd_path.write_text(json.dumps(hd,indent=2)+'\n')
+          gp=root/'game.js'; game=gp.read_text()
+          old="const img=new Image();img.onload=()=>resolve(img);img.onerror=reject;img.src=url"
+          new="const img=new Image();img.crossOrigin='anonymous';img.onload=()=>resolve(img);img.onerror=reject;img.src=url"
+          if old not in game: raise SystemExit('loadImage pattern changed upstream')
+          gp.write_text(game.replace(old,new).replace('Run through the supplied Python launcher','Reload this hosted page or open the source repository'))
+          ep=root/'editor.js'; editor=ep.read_text()
+          old="async saveProject(){try{const res=await fetch('/__editor/save_maps'"
+          new="async saveProject(){if(location.hostname.endsWith('.github.io')){this.downloadMaps();return}try{const res=await fetch('/__editor/save_maps'"
+          if old not in editor: raise SystemExit('editor save pattern changed upstream')
+          ep.write_text(editor.replace(old,new))
+          ip=root/'index.html'; index=ip.read_text()
+          index=index.replace('<button id="editorSave" title="Write relay_moth_maps.json through the localhost launcher">SAVE TO PROJECT</button>','<button id="editorSave" title="On GitHub Pages this downloads relay_moth_maps.json; local launcher builds can save directly">SAVE / DOWNLOAD MAP</button>')
+          ip.write_text(index)
+          version=(root/'VERSION.txt').read_text().strip()
+          (root/'source.json').write_text(json.dumps({'source_repository':'techrote/Relay-Moth-Forest','source_revision':sha,'version':version,'large_assets':'served from raw.githubusercontent.com with anonymous CORS'},indent=2)+'\n')
+          (root/'README.md').write_text(f'# Relay Moth Forest web mirror\n\nGenerated from [techrote/Relay-Moth-Forest](https://github.com/techrote/Relay-Moth-Forest) at commit `{sha}`.\n\nRuntime text/data is mirrored here; large sprite/material PNGs remain canonical in the source repository.\n')
+
+      - name: Verify mirror and asset CORS
+        shell: bash
+        env:
+          SOURCE_SHA: ${{ steps.source.outputs.sha }}
+        run: |
+          set -euo pipefail
+          grep -q 'Pretty Graphics Edition 4.14' relay-moth-forest.sync/VERSION.txt
+          grep -q "crossOrigin='anonymous'" relay-moth-forest.sync/game.js
+          grep -q 'SAVE / DOWNLOAD MAP' relay-moth-forest.sync/index.html
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          hd=json.loads(Path('relay-moth-forest.sync/hd_remake_atlas.json').read_text())
+          for key in ('image','normal_image','specular_image'):
+              assert hd[key].startswith('https://raw.githubusercontent.com/techrote/Relay-Moth-Forest/')
+          json.loads(Path('relay-moth-forest.sync/relay_moth_maps.json').read_text())
+          json.loads(Path('relay-moth-forest.sync/relay_moth_story.json').read_text())
+          PY
+          for asset in sprite_runtime_atlas.png sprite_normalmap.png sprite_specularmap.png; do
+            headers="$(curl --fail --location --silent --show-error --head "https://raw.githubusercontent.com/techrote/Relay-Moth-Forest/${SOURCE_SHA}/assets/${asset}" | tr -d '\r')"
+            grep -qi '^access-control-allow-origin: \*$' <<<"$headers"
+          done
+          rm -rf relay-moth-forest
+          mv relay-moth-forest.sync relay-moth-forest
+
+      - name: Ensure homepage PLAY link
+        shell: python
+        run: |
+          from pathlib import Path
+          text=Path('index.html').read_text()
+          assert '<h3>Relay Moth Forest</h3>' in text
+          assert '<a href="relay-moth-forest/">PLAY</a>' in text
+
+      - name: Commit mirror when changed
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add relay-moth-forest
+          if git diff --cached --quiet; then
+            echo 'Relay Moth Forest mirror already current.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Sync Relay Moth Forest hosted mirror'
+          git push origin HEAD:main
