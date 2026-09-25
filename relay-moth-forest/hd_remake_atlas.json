@@ -4346,7 +4346,7 @@
     "lut": "Source artwork remains full-colour; semantic LUT channels control world bases, blockers, glows, UI and grading.",
     "generated_blocker_variants": "48 deterministic foliage/rock/mixed/tree variations composited from the user-supplied HD remake sheet; every variation is tagged to the BLOCKERS LUT channel.",
     "world_scale": "All HD sprites use a common source-pixel to logical-world scale (0.18) unless an explicit role multiplier is applied.",
-    "robot_variants": "Eight robot designs × four animation frames cropped from the user-supplied transparent robot sheet.",
+    "robot_variants": "Eight robot designs \u00d7 four animation frames cropped from the user-supplied transparent robot sheet.",
     "canopy_occlusion": "Large blocking trees render full sprite in static layer and canopy crop again over moths/robots.",
     "robot_animation": "8 supplied robot designs, each with idle/blink/walk_a/walk_b frames; source preserved in assets/robot_variants_source.png.",
     "v39_repack": "Runtime atlas repacked from cleaned regions to remove edge bleed / alignment artifacts.",
@@ -4398,25 +4398,25 @@
       "channel": "FOREST",
       "element": "tree_metal",
       "tint_strength": 0.08,
-      "world_scale": 1
+      "world_scale": 1.0
     },
     "tree_purple": {
       "channel": "FOREST",
       "element": "tree_metal",
       "tint_strength": 0.08,
-      "world_scale": 1
+      "world_scale": 1.0
     },
     "tree_green": {
       "channel": "FOREST",
       "element": "tree_metal",
       "tint_strength": 0.08,
-      "world_scale": 1
+      "world_scale": 1.0
     },
     "grass_patch": {
       "channel": "FOREST",
       "element": "far_forest",
       "tint_strength": 0.08,
-      "world_scale": 1,
+      "world_scale": 1.0,
       "foliage_fx": {
         "category": "SHORT_GRASS",
         "root_cutoff": 0.3,
@@ -4435,7 +4435,7 @@
       "channel": "FOREST",
       "element": "far_forest",
       "tint_strength": 0.08,
-      "world_scale": 1,
+      "world_scale": 1.0,
       "foliage_fx": {
         "category": "FLOWER_CLUSTER",
         "root_cutoff": 0.4,
@@ -4446,15 +4446,15 @@
         "interaction_scale": 0.14,
         "shadow_scale": 0.6,
         "bend_exponent": 1.85,
-        "width_scale": 1,
-        "height_scale": 1
+        "width_scale": 1.0,
+        "height_scale": 1.0
       }
     },
     "flower_pink": {
       "channel": "FOREST",
       "element": "far_forest",
       "tint_strength": 0.08,
-      "world_scale": 1,
+      "world_scale": 1.0,
       "foliage_fx": {
         "category": "FLOWER_CLUSTER",
         "root_cutoff": 0.4,
@@ -4465,15 +4465,15 @@
         "interaction_scale": 0.14,
         "shadow_scale": 0.6,
         "bend_exponent": 1.85,
-        "width_scale": 1,
-        "height_scale": 1
+        "width_scale": 1.0,
+        "height_scale": 1.0
       }
     },
     "flower_blue": {
       "channel": "FOREST",
       "element": "far_forest",
       "tint_strength": 0.08,
-      "world_scale": 1,
+      "world_scale": 1.0,
       "foliage_fx": {
         "category": "FLOWER_CLUSTER",
         "root_cutoff": 0.4,
@@ -4484,15 +4484,15 @@
         "interaction_scale": 0.14,
         "shadow_scale": 0.6,
         "bend_exponent": 1.85,
-        "width_scale": 1,
-        "height_scale": 1
+        "width_scale": 1.0,
+        "height_scale": 1.0
       }
     },
     "flower_white": {
       "channel": "FOREST",
       "element": "far_forest",
       "tint_strength": 0.08,
-      "world_scale": 1,
+      "world_scale": 1.0,
       "foliage_fx": {
         "category": "FLOWER_CLUSTER",
         "root_cutoff": 0.4,
@@ -4503,15 +4503,15 @@
         "interaction_scale": 0.14,
         "shadow_scale": 0.6,
         "bend_exponent": 1.85,
-        "width_scale": 1,
-        "height_scale": 1
+        "width_scale": 1.0,
+        "height_scale": 1.0
       }
     },
     "leaf_plant": {
       "channel": "FOREST",
       "element": "far_forest",
       "tint_strength": 0.08,
-      "world_scale": 1,
+      "world_scale": 1.0,
       "foliage_fx": {
         "category": "BROAD_LEAF",
         "root_cutoff": 0.35,
@@ -4530,7 +4530,7 @@
       "channel": "FOREST",
       "element": "far_forest",
       "tint_strength": 0.08,
-      "world_scale": 1,
+      "world_scale": 1.0,
       "foliage_fx": {
         "category": "FLOWER_CLUSTER",
         "root_cutoff": 0.4,
@@ -4541,130 +4541,130 @@
         "interaction_scale": 0.14,
         "shadow_scale": 0.6,
         "bend_exponent": 1.85,
-        "width_scale": 1,
-        "height_scale": 1
+        "width_scale": 1.0,
+        "height_scale": 1.0
       }
     },
     "mushroom": {
       "channel": "FOREST",
       "element": "far_forest",
       "tint_strength": 0.08,
-      "world_scale": 1
+      "world_scale": 1.0
     },
     "stump": {
       "channel": "FOREST",
       "element": "far_forest",
       "tint_strength": 0.08,
-      "world_scale": 1
+      "world_scale": 1.0
     },
     "lamp_blue": {
       "channel": "FOREST",
       "element": "tree_lights",
       "tint_strength": 0.05,
-      "world_scale": 1
+      "world_scale": 1.0
     },
     "lamp_pink": {
       "channel": "FOREST",
       "element": "tree_lights",
       "tint_strength": 0.05,
-      "world_scale": 1
+      "world_scale": 1.0
     },
     "lamp_orange": {
       "channel": "FOREST",
       "element": "tree_lights",
       "tint_strength": 0.05,
-      "world_scale": 1
+      "world_scale": 1.0
     },
     "lantern_cluster": {
       "channel": "FOREST",
       "element": "tree_lights",
       "tint_strength": 0.05,
-      "world_scale": 1
+      "world_scale": 1.0
     },
     "lantern_blue": {
       "channel": "FOREST",
       "element": "tree_lights",
       "tint_strength": 0.05,
-      "world_scale": 1
+      "world_scale": 1.0
     },
     "lantern_cyan": {
       "channel": "FOREST",
       "element": "tree_lights",
       "tint_strength": 0.05,
-      "world_scale": 1
+      "world_scale": 1.0
     },
     "candelabra_wide": {
       "channel": "FOREST",
       "element": "tree_lights",
       "tint_strength": 0.05,
-      "world_scale": 1
+      "world_scale": 1.0
     },
     "candelabra_small": {
       "channel": "FOREST",
       "element": "tree_lights",
       "tint_strength": 0.05,
-      "world_scale": 1
+      "world_scale": 1.0
     },
     "moth_orange": {
       "channel": "MOTHS",
       "element": "moth_wings",
       "tint_strength": 0.05,
-      "world_scale": 1
+      "world_scale": 1.0
     },
     "moth_purple": {
       "channel": "MOTHS",
       "element": "moth_wings",
       "tint_strength": 0.05,
-      "world_scale": 1
+      "world_scale": 1.0
     },
     "moth_bluepink": {
       "channel": "MOTHS",
       "element": "moth_wings",
       "tint_strength": 0.05,
-      "world_scale": 1
+      "world_scale": 1.0
     },
     "moth_lilac": {
       "channel": "MOTHS",
       "element": "moth_wings",
       "tint_strength": 0.05,
-      "world_scale": 1
+      "world_scale": 1.0
     },
     "moth_mint": {
       "channel": "MOTHS",
       "element": "moth_wings",
       "tint_strength": 0.05,
-      "world_scale": 1
+      "world_scale": 1.0
     },
     "moth_cyan": {
       "channel": "MOTHS",
       "element": "moth_wings",
       "tint_strength": 0.05,
-      "world_scale": 1
+      "world_scale": 1.0
     },
     "robot_warm": {
       "channel": "FOREST",
       "element": "robot_faces",
       "tint_strength": 0.05,
-      "world_scale": 1
+      "world_scale": 1.0
     },
     "robot_green": {
       "channel": "FOREST",
       "element": "robot_faces",
       "tint_strength": 0.05,
-      "world_scale": 1
+      "world_scale": 1.0
     },
     "canopy_tree_pair": {
-      "world_scale": 1,
+      "world_scale": 1.0,
       "element": "far_forest",
       "tint_strength": 0.06
     },
     "canopy_tree_purple": {
-      "world_scale": 1,
+      "world_scale": 1.0,
       "element": "far_forest",
       "tint_strength": 0.06
     },
     "canopy_tree_green": {
-      "world_scale": 1,
+      "world_scale": 1.0,
       "element": "far_forest",
       "tint_strength": 0.06
     },
@@ -5024,7 +5024,7 @@
       "channel": "FOREST",
       "element": "tree_metal",
       "tint_strength": 0.06,
-      "world_scale": 1,
+      "world_scale": 1.0,
       "canopy_of": "tree_purple",
       "crop_fraction": 0.64,
       "aligned_trunk": "tree_purple_trunk",
@@ -5036,7 +5036,7 @@
       "channel": "FOREST",
       "element": "tree_metal",
       "tint_strength": 0.06,
-      "world_scale": 1,
+      "world_scale": 1.0,
       "canopy_of": "tree_green",
       "crop_fraction": 0.64,
       "aligned_trunk": "tree_green_trunk",
@@ -5048,343 +5048,343 @@
       "channel": "BLOCKERS",
       "element": "blockers",
       "tint_strength": 0.18,
-      "world_scale": 1,
+      "world_scale": 1.0,
       "family": "foliage"
     },
     "blocker_foliage_01": {
       "channel": "BLOCKERS",
       "element": "blockers",
       "tint_strength": 0.18,
-      "world_scale": 1,
+      "world_scale": 1.0,
       "family": "foliage"
     },
     "blocker_foliage_02": {
       "channel": "BLOCKERS",
       "element": "blockers",
       "tint_strength": 0.18,
-      "world_scale": 1,
+      "world_scale": 1.0,
       "family": "foliage"
     },
     "blocker_foliage_03": {
       "channel": "BLOCKERS",
       "element": "blockers",
       "tint_strength": 0.18,
-      "world_scale": 1,
+      "world_scale": 1.0,
       "family": "foliage"
     },
     "blocker_foliage_04": {
       "channel": "BLOCKERS",
       "element": "blockers",
       "tint_strength": 0.18,
-      "world_scale": 1,
+      "world_scale": 1.0,
       "family": "foliage"
     },
     "blocker_foliage_05": {
       "channel": "BLOCKERS",
       "element": "blockers",
       "tint_strength": 0.18,
-      "world_scale": 1,
+      "world_scale": 1.0,
       "family": "foliage"
     },
     "blocker_foliage_06": {
       "channel": "BLOCKERS",
       "element": "blockers",
       "tint_strength": 0.18,
-      "world_scale": 1,
+      "world_scale": 1.0,
       "family": "foliage"
     },
     "blocker_foliage_07": {
       "channel": "BLOCKERS",
       "element": "blockers",
       "tint_strength": 0.18,
-      "world_scale": 1,
+      "world_scale": 1.0,
       "family": "foliage"
     },
     "blocker_foliage_08": {
       "channel": "BLOCKERS",
       "element": "blockers",
       "tint_strength": 0.18,
-      "world_scale": 1,
+      "world_scale": 1.0,
       "family": "foliage"
     },
     "blocker_foliage_09": {
       "channel": "BLOCKERS",
       "element": "blockers",
       "tint_strength": 0.18,
-      "world_scale": 1,
+      "world_scale": 1.0,
       "family": "foliage"
     },
     "blocker_foliage_10": {
       "channel": "BLOCKERS",
       "element": "blockers",
       "tint_strength": 0.18,
-      "world_scale": 1,
+      "world_scale": 1.0,
       "family": "foliage"
     },
     "blocker_foliage_11": {
       "channel": "BLOCKERS",
       "element": "blockers",
       "tint_strength": 0.18,
-      "world_scale": 1,
+      "world_scale": 1.0,
       "family": "foliage"
     },
     "blocker_rock_12": {
       "channel": "BLOCKERS",
       "element": "blockers",
       "tint_strength": 0.18,
-      "world_scale": 1,
+      "world_scale": 1.0,
       "family": "rock"
     },
     "blocker_rock_13": {
       "channel": "BLOCKERS",
       "element": "blockers",
       "tint_strength": 0.18,
-      "world_scale": 1,
+      "world_scale": 1.0,
       "family": "rock"
     },
     "blocker_rock_14": {
       "channel": "BLOCKERS",
       "element": "blockers",
       "tint_strength": 0.18,
-      "world_scale": 1,
+      "world_scale": 1.0,
       "family": "rock"
     },
     "blocker_rock_15": {
       "channel": "BLOCKERS",
       "element": "blockers",
       "tint_strength": 0.18,
-      "world_scale": 1,
+      "world_scale": 1.0,
       "family": "rock"
     },
     "blocker_rock_16": {
       "channel": "BLOCKERS",
       "element": "blockers",
       "tint_strength": 0.18,
-      "world_scale": 1,
+      "world_scale": 1.0,
       "family": "rock"
     },
     "blocker_rock_17": {
       "channel": "BLOCKERS",
       "element": "blockers",
       "tint_strength": 0.18,
-      "world_scale": 1,
+      "world_scale": 1.0,
       "family": "rock"
     },
     "blocker_rock_18": {
       "channel": "BLOCKERS",
       "element": "blockers",
       "tint_strength": 0.18,
-      "world_scale": 1,
+      "world_scale": 1.0,
       "family": "rock"
     },
     "blocker_rock_19": {
       "channel": "BLOCKERS",
       "element": "blockers",
       "tint_strength": 0.18,
-      "world_scale": 1,
+      "world_scale": 1.0,
       "family": "rock"
     },
     "blocker_rock_20": {
       "channel": "BLOCKERS",
       "element": "blockers",
       "tint_strength": 0.18,
-      "world_scale": 1,
+      "world_scale": 1.0,
       "family": "rock"
     },
     "blocker_rock_21": {
       "channel": "BLOCKERS",
       "element": "blockers",
       "tint_strength": 0.18,
-      "world_scale": 1,
+      "world_scale": 1.0,
       "family": "rock"
     },
     "blocker_rock_22": {
       "channel": "BLOCKERS",
       "element": "blockers",
       "tint_strength": 0.18,
-      "world_scale": 1,
+      "world_scale": 1.0,
       "family": "rock"
     },
     "blocker_rock_23": {
       "channel": "BLOCKERS",
       "element": "blockers",
       "tint_strength": 0.18,
-      "world_scale": 1,
+      "world_scale": 1.0,
       "family": "rock"
     },
     "blocker_mixed_24": {
       "channel": "BLOCKERS",
       "element": "blockers",
       "tint_strength": 0.18,
-      "world_scale": 1,
+      "world_scale": 1.0,
       "family": "mixed"
     },
     "blocker_mixed_25": {
       "channel": "BLOCKERS",
       "element": "blockers",
       "tint_strength": 0.18,
-      "world_scale": 1,
+      "world_scale": 1.0,
       "family": "mixed"
     },
     "blocker_mixed_26": {
       "channel": "BLOCKERS",
       "element": "blockers",
       "tint_strength": 0.18,
-      "world_scale": 1,
+      "world_scale": 1.0,
       "family": "mixed"
     },
     "blocker_mixed_27": {
       "channel": "BLOCKERS",
       "element": "blockers",
       "tint_strength": 0.18,
-      "world_scale": 1,
+      "world_scale": 1.0,
       "family": "mixed"
     },
     "blocker_mixed_28": {
       "channel": "BLOCKERS",
       "element": "blockers",
       "tint_strength": 0.18,
-      "world_scale": 1,
+      "world_scale": 1.0,
       "family": "mixed"
     },
     "blocker_mixed_29": {
       "channel": "BLOCKERS",
       "element": "blockers",
       "tint_strength": 0.18,
-      "world_scale": 1,
+      "world_scale": 1.0,
       "family": "mixed"
     },
     "blocker_mixed_30": {
       "channel": "BLOCKERS",
       "element": "blockers",
       "tint_strength": 0.18,
-      "world_scale": 1,
+      "world_scale": 1.0,
       "family": "mixed"
     },
     "blocker_mixed_31": {
       "channel": "BLOCKERS",
       "element": "blockers",
       "tint_strength": 0.18,
-      "world_scale": 1,
+      "world_scale": 1.0,
       "family": "mixed"
     },
     "blocker_mixed_32": {
       "channel": "BLOCKERS",
       "element": "blockers",
       "tint_strength": 0.18,
-      "world_scale": 1,
+      "world_scale": 1.0,
       "family": "mixed"
     },
     "blocker_mixed_33": {
       "channel": "BLOCKERS",
       "element": "blockers",
       "tint_strength": 0.18,
-      "world_scale": 1,
+      "world_scale": 1.0,
       "family": "mixed"
     },
     "blocker_mixed_34": {
       "channel": "BLOCKERS",
       "element": "blockers",
       "tint_strength": 0.18,
-      "world_scale": 1,
+      "world_scale": 1.0,
       "family": "mixed"
     },
     "blocker_mixed_35": {
       "channel": "BLOCKERS",
       "element": "blockers",
       "tint_strength": 0.18,
-      "world_scale": 1,
+      "world_scale": 1.0,
       "family": "mixed"
     },
     "blocker_tree_36": {
       "channel": "BLOCKERS",
       "element": "blockers",
       "tint_strength": 0.18,
-      "world_scale": 1,
+      "world_scale": 1.0,
       "family": "tree"
     },
     "blocker_tree_37": {
       "channel": "BLOCKERS",
       "element": "blockers",
       "tint_strength": 0.18,
-      "world_scale": 1,
+      "world_scale": 1.0,
       "family": "tree"
     },
     "blocker_tree_38": {
       "channel": "BLOCKERS",
       "element": "blockers",
       "tint_strength": 0.18,
-      "world_scale": 1,
+      "world_scale": 1.0,
       "family": "tree"
     },
     "blocker_tree_39": {
       "channel": "BLOCKERS",
       "element": "blockers",
       "tint_strength": 0.18,
-      "world_scale": 1,
+      "world_scale": 1.0,
       "family": "tree"
     },
     "blocker_tree_40": {
       "channel": "BLOCKERS",
       "element": "blockers",
       "tint_strength": 0.18,
-      "world_scale": 1,
+      "world_scale": 1.0,
       "family": "tree"
     },
     "blocker_tree_41": {
       "channel": "BLOCKERS",
       "element": "blockers",
       "tint_strength": 0.18,
-      "world_scale": 1,
+      "world_scale": 1.0,
       "family": "tree"
     },
     "blocker_tree_42": {
       "channel": "BLOCKERS",
       "element": "blockers",
       "tint_strength": 0.18,
-      "world_scale": 1,
+      "world_scale": 1.0,
       "family": "tree"
     },
     "blocker_tree_43": {
       "channel": "BLOCKERS",
       "element": "blockers",
       "tint_strength": 0.18,
-      "world_scale": 1,
+      "world_scale": 1.0,
       "family": "tree"
     },
     "blocker_tree_44": {
       "channel": "BLOCKERS",
       "element": "blockers",
       "tint_strength": 0.18,
-      "world_scale": 1,
+      "world_scale": 1.0,
       "family": "tree"
     },
     "blocker_tree_45": {
       "channel": "BLOCKERS",
       "element": "blockers",
       "tint_strength": 0.18,
-      "world_scale": 1,
+      "world_scale": 1.0,
       "family": "tree"
     },
     "blocker_tree_46": {
       "channel": "BLOCKERS",
       "element": "blockers",
       "tint_strength": 0.18,
-      "world_scale": 1,
+      "world_scale": 1.0,
       "family": "tree"
     },
     "blocker_tree_47": {
       "channel": "BLOCKERS",
       "element": "blockers",
       "tint_strength": 0.18,
-      "world_scale": 1,
+      "world_scale": 1.0,
       "family": "tree"
     },
     "tree_purple_trunk": {
       "channel": "BLOCKERS",
       "element": "blockers",
       "tint_strength": 0.1,
-      "world_scale": 1,
+      "world_scale": 1.0,
       "trunk_of": "tree_purple",
       "split_source_y": 223,
       "material_parent": "tree_purple",
@@ -5394,7 +5394,7 @@
       "channel": "BLOCKERS",
       "element": "blockers",
       "tint_strength": 0.1,
-      "world_scale": 1,
+      "world_scale": 1.0,
       "trunk_of": "tree_green",
       "split_source_y": 221,
       "material_parent": "tree_green",
@@ -5980,109 +5980,109 @@
       "channel": "FOREST",
       "element": "far_forest",
       "tint_strength": 0.03,
-      "world_scale": 1
+      "world_scale": 1.0
     },
     "foliage_extra_0_1": {
       "channel": "FOREST",
       "element": "far_forest",
       "tint_strength": 0.03,
-      "world_scale": 1
+      "world_scale": 1.0
     },
     "foliage_extra_1_0": {
       "channel": "FOREST",
       "element": "far_forest",
       "tint_strength": 0.03,
-      "world_scale": 1
+      "world_scale": 1.0
     },
     "foliage_extra_1_1": {
       "channel": "FOREST",
       "element": "far_forest",
       "tint_strength": 0.03,
-      "world_scale": 1
+      "world_scale": 1.0
     },
     "foliage_extra_2_0": {
       "channel": "FOREST",
       "element": "far_forest",
       "tint_strength": 0.03,
-      "world_scale": 1
+      "world_scale": 1.0
     },
     "foliage_extra_2_1": {
       "channel": "FOREST",
       "element": "far_forest",
       "tint_strength": 0.03,
-      "world_scale": 1
+      "world_scale": 1.0
     },
     "foliage_extra_3_0": {
       "channel": "FOREST",
       "element": "far_forest",
       "tint_strength": 0.03,
-      "world_scale": 1
+      "world_scale": 1.0
     },
     "foliage_extra_3_1": {
       "channel": "FOREST",
       "element": "far_forest",
       "tint_strength": 0.03,
-      "world_scale": 1
+      "world_scale": 1.0
     },
     "foliage_extra_4_0": {
       "channel": "FOREST",
       "element": "far_forest",
       "tint_strength": 0.03,
-      "world_scale": 1
+      "world_scale": 1.0
     },
     "foliage_extra_4_1": {
       "channel": "FOREST",
       "element": "far_forest",
       "tint_strength": 0.03,
-      "world_scale": 1
+      "world_scale": 1.0
     },
     "foliage_extra_5_0": {
       "channel": "FOREST",
       "element": "far_forest",
       "tint_strength": 0.03,
-      "world_scale": 1
+      "world_scale": 1.0
     },
     "foliage_extra_5_1": {
       "channel": "FOREST",
       "element": "far_forest",
       "tint_strength": 0.03,
-      "world_scale": 1
+      "world_scale": 1.0
     },
     "foliage_extra_6_0": {
       "channel": "FOREST",
       "element": "far_forest",
       "tint_strength": 0.03,
-      "world_scale": 1
+      "world_scale": 1.0
     },
     "foliage_extra_6_1": {
       "channel": "FOREST",
       "element": "far_forest",
       "tint_strength": 0.03,
-      "world_scale": 1
+      "world_scale": 1.0
     },
     "foliage_extra_7_0": {
       "channel": "FOREST",
       "element": "far_forest",
       "tint_strength": 0.03,
-      "world_scale": 1
+      "world_scale": 1.0
     },
     "foliage_extra_7_1": {
       "channel": "FOREST",
       "element": "far_forest",
       "tint_strength": 0.03,
-      "world_scale": 1
+      "world_scale": 1.0
     },
     "foliage_extra_8_0": {
       "channel": "FOREST",
       "element": "far_forest",
       "tint_strength": 0.03,
-      "world_scale": 1
+      "world_scale": 1.0
     },
     "foliage_extra_8_1": {
       "channel": "FOREST",
       "element": "far_forest",
       "tint_strength": 0.03,
-      "world_scale": 1
+      "world_scale": 1.0
     },
     "foliage_v391_00": {
       "element": "far_forest",
@@ -6118,8 +6118,8 @@
         "interaction_scale": 0.7,
         "shadow_scale": 0.6,
         "bend_exponent": 1.65,
-        "width_scale": 1,
-        "height_scale": 1
+        "width_scale": 1.0,
+        "height_scale": 1.0
       }
     },
     "foliage_v391_02": {
@@ -6175,8 +6175,8 @@
         "interaction_scale": 0.7,
         "shadow_scale": 0.6,
         "bend_exponent": 1.65,
-        "width_scale": 1,
-        "height_scale": 1
+        "width_scale": 1.0,
+        "height_scale": 1.0
       }
     },
     "foliage_v391_05": {
@@ -6232,8 +6232,8 @@
         "interaction_scale": 0.7,
         "shadow_scale": 0.6,
         "bend_exponent": 1.65,
-        "width_scale": 1,
-        "height_scale": 1
+        "width_scale": 1.0,
+        "height_scale": 1.0
       }
     },
     "foliage_v391_08": {
@@ -6289,8 +6289,8 @@
         "interaction_scale": 0.7,
         "shadow_scale": 0.6,
         "bend_exponent": 1.65,
-        "width_scale": 1,
-        "height_scale": 1
+        "width_scale": 1.0,
+        "height_scale": 1.0
       }
     },
     "foliage_v391_11": {
@@ -6346,8 +6346,8 @@
         "interaction_scale": 0.7,
         "shadow_scale": 0.6,
         "bend_exponent": 1.65,
-        "width_scale": 1,
-        "height_scale": 1
+        "width_scale": 1.0,
+        "height_scale": 1.0
       }
     },
     "foliage_v391_14": {
@@ -6403,8 +6403,8 @@
         "interaction_scale": 0.7,
         "shadow_scale": 0.6,
         "bend_exponent": 1.65,
-        "width_scale": 1,
-        "height_scale": 1
+        "width_scale": 1.0,
+        "height_scale": 1.0
       }
     },
     "foliage_v391_17": {
@@ -6460,8 +6460,8 @@
         "interaction_scale": 0.7,
         "shadow_scale": 0.6,
         "bend_exponent": 1.65,
-        "width_scale": 1,
-        "height_scale": 1
+        "width_scale": 1.0,
+        "height_scale": 1.0
       }
     },
     "foliage_v391_20": {
@@ -6517,8 +6517,8 @@
         "interaction_scale": 0.7,
         "shadow_scale": 0.6,
         "bend_exponent": 1.65,
-        "width_scale": 1,
-        "height_scale": 1
+        "width_scale": 1.0,
+        "height_scale": 1.0
       }
     },
     "foliage_v391_23": {
@@ -6936,8 +6936,8 @@
         "interaction_scale": 0.14,
         "shadow_scale": 0.6,
         "bend_exponent": 1.85,
-        "width_scale": 1,
-        "height_scale": 1
+        "width_scale": 1.0,
+        "height_scale": 1.0
       }
     },
     "flower_hd_star": {
@@ -6957,8 +6957,8 @@
         "interaction_scale": 0.14,
         "shadow_scale": 0.6,
         "bend_exponent": 1.85,
-        "width_scale": 1,
-        "height_scale": 1
+        "width_scale": 1.0,
+        "height_scale": 1.0
       }
     },
     "flower_hd_circuit": {
@@ -6978,8 +6978,8 @@
         "interaction_scale": 0.14,
         "shadow_scale": 0.6,
         "bend_exponent": 1.85,
-        "width_scale": 1,
-        "height_scale": 1
+        "width_scale": 1.0,
+        "height_scale": 1.0
       }
     },
     "foliage_hd_fern": {
@@ -7014,8 +7014,8 @@
         "category": "GROUND_MOSS",
         "root_cutoff": 0.45,
         "bend_scale": 0.34,
-        "flutter_scale": 0,
-        "stiffness": 9,
+        "flutter_scale": 0.0,
+        "stiffness": 9.0,
         "damping": 0.84,
         "interaction_scale": 0.42,
         "shadow_scale": 0.48,
@@ -7058,7 +7058,7 @@
         "root_cutoff": 0.35,
         "bend_scale": 0.58,
         "flutter_scale": 0.08,
-        "stiffness": 6,
+        "stiffness": 6.0,
         "damping": 0.91,
         "interaction_scale": 0.46,
         "shadow_scale": 0.76,
@@ -7080,7 +7080,7 @@
         "root_cutoff": 0.35,
         "bend_scale": 0.58,
         "flutter_scale": 0.08,
-        "stiffness": 6,
+        "stiffness": 6.0,
         "damping": 0.91,
         "interaction_scale": 0.46,
         "shadow_scale": 0.76,
@@ -7102,7 +7102,7 @@
         "root_cutoff": 0.35,
         "bend_scale": 0.58,
         "flutter_scale": 0.08,
-        "stiffness": 6,
+        "stiffness": 6.0,
         "damping": 0.91,
         "interaction_scale": 0.46,
         "shadow_scale": 0.76,
@@ -7124,7 +7124,7 @@
         "root_cutoff": 0.35,
         "bend_scale": 0.58,
         "flutter_scale": 0.08,
-        "stiffness": 6,
+        "stiffness": 6.0,
         "damping": 0.91,
         "interaction_scale": 0.46,
         "shadow_scale": 0.76,
@@ -7146,7 +7146,7 @@
         "root_cutoff": 0.35,
         "bend_scale": 0.58,
         "flutter_scale": 0.08,
-        "stiffness": 6,
+        "stiffness": 6.0,
         "damping": 0.91,
         "interaction_scale": 0.46,
         "shadow_scale": 0.76,
@@ -7168,7 +7168,7 @@
         "root_cutoff": 0.35,
         "bend_scale": 0.58,
         "flutter_scale": 0.08,
-        "stiffness": 6,
+        "stiffness": 6.0,
         "damping": 0.91,
         "interaction_scale": 0.46,
         "shadow_scale": 0.76,
@@ -7190,7 +7190,7 @@
         "root_cutoff": 0.35,
         "bend_scale": 0.58,
         "flutter_scale": 0.08,
-        "stiffness": 6,
+        "stiffness": 6.0,
         "damping": 0.91,
         "interaction_scale": 0.46,
         "shadow_scale": 0.76,
@@ -7212,7 +7212,7 @@
         "root_cutoff": 0.35,
         "bend_scale": 0.58,
         "flutter_scale": 0.08,
-        "stiffness": 6,
+        "stiffness": 6.0,
         "damping": 0.91,
         "interaction_scale": 0.46,
         "shadow_scale": 0.76,
@@ -7234,7 +7234,7 @@
         "root_cutoff": 0.35,
         "bend_scale": 0.58,
         "flutter_scale": 0.08,
-        "stiffness": 6,
+        "stiffness": 6.0,
         "damping": 0.91,
         "interaction_scale": 0.46,
         "shadow_scale": 0.76,
@@ -7256,7 +7256,7 @@
         "root_cutoff": 0.35,
         "bend_scale": 0.58,
         "flutter_scale": 0.08,
-        "stiffness": 6,
+        "stiffness": 6.0,
         "damping": 0.91,
         "interaction_scale": 0.46,
         "shadow_scale": 0.76,
@@ -7278,7 +7278,7 @@
         "root_cutoff": 0.35,
         "bend_scale": 0.58,
         "flutter_scale": 0.08,
-        "stiffness": 6,
+        "stiffness": 6.0,
         "damping": 0.91,
         "interaction_scale": 0.46,
         "shadow_scale": 0.76,
@@ -7300,7 +7300,7 @@
         "root_cutoff": 0.35,
         "bend_scale": 0.58,
         "flutter_scale": 0.08,
-        "stiffness": 6,
+        "stiffness": 6.0,
         "damping": 0.91,
         "interaction_scale": 0.46,
         "shadow_scale": 0.76,
@@ -7322,7 +7322,7 @@
         "root_cutoff": 0.35,
         "bend_scale": 0.58,
         "flutter_scale": 0.08,
-        "stiffness": 6,
+        "stiffness": 6.0,
         "damping": 0.91,
         "interaction_scale": 0.46,
         "shadow_scale": 0.76,
@@ -7344,7 +7344,7 @@
         "root_cutoff": 0.35,
         "bend_scale": 0.58,
         "flutter_scale": 0.08,
-        "stiffness": 6,
+        "stiffness": 6.0,
         "damping": 0.91,
         "interaction_scale": 0.46,
         "shadow_scale": 0.76,
@@ -7366,7 +7366,7 @@
         "root_cutoff": 0.35,
         "bend_scale": 0.58,
         "flutter_scale": 0.08,
-        "stiffness": 6,
+        "stiffness": 6.0,
         "damping": 0.91,
         "interaction_scale": 0.46,
         "shadow_scale": 0.76,
@@ -7388,7 +7388,7 @@
         "root_cutoff": 0.35,
         "bend_scale": 0.58,
         "flutter_scale": 0.08,
-        "stiffness": 6,
+        "stiffness": 6.0,
         "damping": 0.91,
         "interaction_scale": 0.46,
         "shadow_scale": 0.76,
@@ -7410,7 +7410,7 @@
         "root_cutoff": 0.35,
         "bend_scale": 0.58,
         "flutter_scale": 0.08,
-        "stiffness": 6,
+        "stiffness": 6.0,
         "damping": 0.91,
         "interaction_scale": 0.46,
         "shadow_scale": 0.76,
@@ -7432,7 +7432,7 @@
         "root_cutoff": 0.35,
         "bend_scale": 0.58,
         "flutter_scale": 0.08,
-        "stiffness": 6,
+        "stiffness": 6.0,
         "damping": 0.91,
         "interaction_scale": 0.46,
         "shadow_scale": 0.76,
@@ -7454,7 +7454,7 @@
         "root_cutoff": 0.35,
         "bend_scale": 0.58,
         "flutter_scale": 0.08,
-        "stiffness": 6,
+        "stiffness": 6.0,
         "damping": 0.91,
         "interaction_scale": 0.46,
         "shadow_scale": 0.76,
@@ -7476,7 +7476,7 @@
         "root_cutoff": 0.35,
         "bend_scale": 0.58,
         "flutter_scale": 0.08,
-        "stiffness": 6,
+        "stiffness": 6.0,
         "damping": 0.91,
         "interaction_scale": 0.46,
         "shadow_scale": 0.76,
@@ -7723,8 +7723,8 @@
         "interaction_scale": 0.14,
         "shadow_scale": 0.6,
         "bend_exponent": 1.85,
-        "width_scale": 1,
-        "height_scale": 1
+        "width_scale": 1.0,
+        "height_scale": 1.0
       }
     },
     "foliage_v401_meadow_r3c1": {
@@ -7745,8 +7745,8 @@
         "interaction_scale": 0.14,
         "shadow_scale": 0.6,
         "bend_exponent": 1.85,
-        "width_scale": 1,
-        "height_scale": 1
+        "width_scale": 1.0,
+        "height_scale": 1.0
       }
     },
     "foliage_v401_meadow_r3c2": {
@@ -7767,8 +7767,8 @@
         "interaction_scale": 0.14,
         "shadow_scale": 0.6,
         "bend_exponent": 1.85,
-        "width_scale": 1,
-        "height_scale": 1
+        "width_scale": 1.0,
+        "height_scale": 1.0
       }
     },
     "foliage_v401_meadow_r3c3": {
@@ -7789,8 +7789,8 @@
         "interaction_scale": 0.14,
         "shadow_scale": 0.6,
         "bend_exponent": 1.85,
-        "width_scale": 1,
-        "height_scale": 1
+        "width_scale": 1.0,
+        "height_scale": 1.0
       }
     },
     "foliage_v401_meadow_r3c4": {
@@ -7811,8 +7811,8 @@
         "interaction_scale": 0.14,
         "shadow_scale": 0.6,
         "bend_exponent": 1.85,
-        "width_scale": 1,
-        "height_scale": 1
+        "width_scale": 1.0,
+        "height_scale": 1.0
       }
     },
     "foliage_v401_meadow_r3c5": {
@@ -7833,8 +7833,8 @@
         "interaction_scale": 0.14,
         "shadow_scale": 0.6,
         "bend_exponent": 1.85,
-        "width_scale": 1,
-        "height_scale": 1
+        "width_scale": 1.0,
+        "height_scale": 1.0
       }
     },
     "foliage_v401_meadow_r3c6": {
@@ -7855,8 +7855,8 @@
         "interaction_scale": 0.14,
         "shadow_scale": 0.6,
         "bend_exponent": 1.85,
-        "width_scale": 1,
-        "height_scale": 1
+        "width_scale": 1.0,
+        "height_scale": 1.0
       }
     },
     "foliage_v401_meadow_r3c7": {
@@ -7877,8 +7877,8 @@
         "interaction_scale": 0.14,
         "shadow_scale": 0.6,
         "bend_exponent": 1.85,
-        "width_scale": 1,
-        "height_scale": 1
+        "width_scale": 1.0,
+        "height_scale": 1.0
       }
     },
     "foliage_v401_meadow_r3c8": {
@@ -7899,8 +7899,8 @@
         "interaction_scale": 0.14,
         "shadow_scale": 0.6,
         "bend_exponent": 1.85,
-        "width_scale": 1,
-        "height_scale": 1
+        "width_scale": 1.0,
+        "height_scale": 1.0
       }
     },
     "foliage_v401_meadow_r3c9": {
@@ -7921,8 +7921,8 @@
         "interaction_scale": 0.14,
         "shadow_scale": 0.6,
         "bend_exponent": 1.85,
-        "width_scale": 1,
-        "height_scale": 1
+        "width_scale": 1.0,
+        "height_scale": 1.0
       }
     },
     "foliage_v401_meadow_r4c0": {
@@ -7943,8 +7943,8 @@
         "interaction_scale": 0.14,
         "shadow_scale": 0.6,
         "bend_exponent": 1.85,
-        "width_scale": 1,
-        "height_scale": 1
+        "width_scale": 1.0,
+        "height_scale": 1.0
       }
     },
     "foliage_v401_meadow_r4c1": {
@@ -7965,8 +7965,8 @@
         "interaction_scale": 0.14,
         "shadow_scale": 0.6,
         "bend_exponent": 1.85,
-        "width_scale": 1,
-        "height_scale": 1
+        "width_scale": 1.0,
+        "height_scale": 1.0
       }
     },
     "foliage_v401_meadow_r4c2": {
@@ -7987,8 +7987,8 @@
         "interaction_scale": 0.14,
         "shadow_scale": 0.6,
         "bend_exponent": 1.85,
-        "width_scale": 1,
-        "height_scale": 1
+        "width_scale": 1.0,
+        "height_scale": 1.0
       }
     },
     "foliage_v401_meadow_r4c3": {
@@ -8009,8 +8009,8 @@
         "interaction_scale": 0.14,
         "shadow_scale": 0.6,
         "bend_exponent": 1.85,
-        "width_scale": 1,
-        "height_scale": 1
+        "width_scale": 1.0,
+        "height_scale": 1.0
       }
     },
     "foliage_v401_meadow_r4c4": {
@@ -8031,8 +8031,8 @@
         "interaction_scale": 0.14,
         "shadow_scale": 0.6,
         "bend_exponent": 1.85,
-        "width_scale": 1,
-        "height_scale": 1
+        "width_scale": 1.0,
+        "height_scale": 1.0
       }
     },
     "foliage_v401_meadow_r4c5": {
@@ -8053,8 +8053,8 @@
         "interaction_scale": 0.14,
         "shadow_scale": 0.6,
         "bend_exponent": 1.85,
-        "width_scale": 1,
-        "height_scale": 1
+        "width_scale": 1.0,
+        "height_scale": 1.0
       }
     },
     "foliage_v401_meadow_r4c6": {
@@ -8075,8 +8075,8 @@
         "interaction_scale": 0.14,
         "shadow_scale": 0.6,
         "bend_exponent": 1.85,
-        "width_scale": 1,
-        "height_scale": 1
+        "width_scale": 1.0,
+        "height_scale": 1.0
       }
     },
     "foliage_v401_meadow_r4c7": {
@@ -8097,8 +8097,8 @@
         "interaction_scale": 0.14,
         "shadow_scale": 0.6,
         "bend_exponent": 1.85,
-        "width_scale": 1,
-        "height_scale": 1
+        "width_scale": 1.0,
+        "height_scale": 1.0
       }
     },
     "foliage_v401_meadow_r4c8": {
@@ -8119,8 +8119,8 @@
         "interaction_scale": 0.14,
         "shadow_scale": 0.6,
         "bend_exponent": 1.85,
-        "width_scale": 1,
-        "height_scale": 1
+        "width_scale": 1.0,
+        "height_scale": 1.0
       }
     },
     "foliage_v401_meadow_r4c9": {
@@ -8141,8 +8141,8 @@
         "interaction_scale": 0.14,
         "shadow_scale": 0.6,
         "bend_exponent": 1.85,
-        "width_scale": 1,
-        "height_scale": 1
+        "width_scale": 1.0,
+        "height_scale": 1.0
       }
     },
     "foliage_v401_grove_r0c0": {
@@ -8400,7 +8400,7 @@
         "root_cutoff": 0.35,
         "bend_scale": 0.54,
         "flutter_scale": 0.08,
-        "stiffness": 6,
+        "stiffness": 6.0,
         "damping": 0.91,
         "interaction_scale": 0.4,
         "shadow_scale": 0.76,
@@ -8422,7 +8422,7 @@
         "root_cutoff": 0.35,
         "bend_scale": 0.54,
         "flutter_scale": 0.08,
-        "stiffness": 6,
+        "stiffness": 6.0,
         "damping": 0.91,
         "interaction_scale": 0.4,
         "shadow_scale": 0.76,
@@ -8444,7 +8444,7 @@
         "root_cutoff": 0.35,
         "bend_scale": 0.54,
         "flutter_scale": 0.08,
-        "stiffness": 6,
+        "stiffness": 6.0,
         "damping": 0.91,
         "interaction_scale": 0.4,
         "shadow_scale": 0.76,
@@ -8466,7 +8466,7 @@
         "root_cutoff": 0.35,
         "bend_scale": 0.54,
         "flutter_scale": 0.08,
-        "stiffness": 6,
+        "stiffness": 6.0,
         "damping": 0.91,
         "interaction_scale": 0.4,
         "shadow_scale": 0.76,
@@ -8488,7 +8488,7 @@
         "root_cutoff": 0.35,
         "bend_scale": 0.54,
         "flutter_scale": 0.08,
-        "stiffness": 6,
+        "stiffness": 6.0,
         "damping": 0.91,
         "interaction_scale": 0.4,
         "shadow_scale": 0.76,
@@ -8510,7 +8510,7 @@
         "root_cutoff": 0.35,
         "bend_scale": 0.54,
         "flutter_scale": 0.08,
-        "stiffness": 6,
+        "stiffness": 6.0,
         "damping": 0.91,
         "interaction_scale": 0.4,
         "shadow_scale": 0.76,
@@ -8532,7 +8532,7 @@
         "root_cutoff": 0.35,
         "bend_scale": 0.54,
         "flutter_scale": 0.08,
-        "stiffness": 6,
+        "stiffness": 6.0,
         "damping": 0.91,
         "interaction_scale": 0.4,
         "shadow_scale": 0.76,
@@ -8554,7 +8554,7 @@
         "root_cutoff": 0.35,
         "bend_scale": 0.54,
         "flutter_scale": 0.08,
-        "stiffness": 6,
+        "stiffness": 6.0,
         "damping": 0.91,
         "interaction_scale": 0.4,
         "shadow_scale": 0.76,
@@ -8576,7 +8576,7 @@
         "root_cutoff": 0.35,
         "bend_scale": 0.54,
         "flutter_scale": 0.08,
-        "stiffness": 6,
+        "stiffness": 6.0,
         "damping": 0.91,
         "interaction_scale": 0.4,
         "shadow_scale": 0.76,
@@ -8598,7 +8598,7 @@
         "root_cutoff": 0.35,
         "bend_scale": 0.54,
         "flutter_scale": 0.08,
-        "stiffness": 6,
+        "stiffness": 6.0,
         "damping": 0.91,
         "interaction_scale": 0.4,
         "shadow_scale": 0.76,
@@ -8933,8 +8933,8 @@
         "interaction_scale": 0.14,
         "shadow_scale": 0.6,
         "bend_exponent": 1.85,
-        "width_scale": 1,
-        "height_scale": 1
+        "width_scale": 1.0,
+        "height_scale": 1.0
       }
     },
     "foliage_v401_grove_r4c1": {
@@ -8955,8 +8955,8 @@
         "interaction_scale": 0.14,
         "shadow_scale": 0.6,
         "bend_exponent": 1.85,
-        "width_scale": 1,
-        "height_scale": 1
+        "width_scale": 1.0,
+        "height_scale": 1.0
       }
     },
     "foliage_v401_grove_r4c2": {
@@ -8977,8 +8977,8 @@
         "interaction_scale": 0.14,
         "shadow_scale": 0.6,
         "bend_exponent": 1.85,
-        "width_scale": 1,
-        "height_scale": 1
+        "width_scale": 1.0,
+        "height_scale": 1.0
       }
     },
     "foliage_v401_grove_r4c3": {
@@ -8999,8 +8999,8 @@
         "interaction_scale": 0.14,
         "shadow_scale": 0.6,
         "bend_exponent": 1.85,
-        "width_scale": 1,
-        "height_scale": 1
+        "width_scale": 1.0,
+        "height_scale": 1.0
       }
     },
     "foliage_v401_grove_r4c4": {
@@ -9021,8 +9021,8 @@
         "interaction_scale": 0.14,
         "shadow_scale": 0.6,
         "bend_exponent": 1.85,
-        "width_scale": 1,
-        "height_scale": 1
+        "width_scale": 1.0,
+        "height_scale": 1.0
       }
     },
     "foliage_v401_grove_r4c5": {
@@ -9043,8 +9043,8 @@
         "interaction_scale": 0.14,
         "shadow_scale": 0.6,
         "bend_exponent": 1.85,
-        "width_scale": 1,
-        "height_scale": 1
+        "width_scale": 1.0,
+        "height_scale": 1.0
       }
     },
     "foliage_v401_grove_r4c6": {
@@ -9065,8 +9065,8 @@
         "interaction_scale": 0.14,
         "shadow_scale": 0.6,
         "bend_exponent": 1.85,
-        "width_scale": 1,
-        "height_scale": 1
+        "width_scale": 1.0,
+        "height_scale": 1.0
       }
     },
     "foliage_v401_ground_r0c0": {
@@ -9081,7 +9081,7 @@
         "category": "GROUND_MOSS",
         "root_cutoff": 0.45,
         "bend_scale": 0.22,
-        "flutter_scale": 0,
+        "flutter_scale": 0.0,
         "stiffness": 9.2,
         "damping": 0.85,
         "interaction_scale": 0.16,
@@ -9103,7 +9103,7 @@
         "category": "GROUND_MOSS",
         "root_cutoff": 0.45,
         "bend_scale": 0.22,
-        "flutter_scale": 0,
+        "flutter_scale": 0.0,
         "stiffness": 9.2,
         "damping": 0.85,
         "interaction_scale": 0.16,
@@ -9125,7 +9125,7 @@
         "category": "GROUND_MOSS",
         "root_cutoff": 0.45,
         "bend_scale": 0.22,
-        "flutter_scale": 0,
+        "flutter_scale": 0.0,
         "stiffness": 9.2,
         "damping": 0.85,
         "interaction_scale": 0.16,
@@ -9147,7 +9147,7 @@
         "category": "GROUND_MOSS",
         "root_cutoff": 0.45,
         "bend_scale": 0.22,
-        "flutter_scale": 0,
+        "flutter_scale": 0.0,
         "stiffness": 9.2,
         "damping": 0.85,
         "interaction_scale": 0.16,
@@ -9169,7 +9169,7 @@
         "category": "GROUND_MOSS",
         "root_cutoff": 0.45,
         "bend_scale": 0.22,
-        "flutter_scale": 0,
+        "flutter_scale": 0.0,
         "stiffness": 9.2,
         "damping": 0.85,
         "interaction_scale": 0.16,
@@ -9191,7 +9191,7 @@
         "category": "GROUND_MOSS",
         "root_cutoff": 0.45,
         "bend_scale": 0.22,
-        "flutter_scale": 0,
+        "flutter_scale": 0.0,
         "stiffness": 9.2,
         "damping": 0.85,
         "interaction_scale": 0.16,
@@ -9213,7 +9213,7 @@
         "category": "GROUND_MOSS",
         "root_cutoff": 0.45,
         "bend_scale": 0.22,
-        "flutter_scale": 0,
+        "flutter_scale": 0.0,
         "stiffness": 9.2,
         "damping": 0.85,
         "interaction_scale": 0.16,
@@ -9235,7 +9235,7 @@
         "category": "GROUND_MOSS",
         "root_cutoff": 0.45,
         "bend_scale": 0.22,
-        "flutter_scale": 0,
+        "flutter_scale": 0.0,
         "stiffness": 9.2,
         "damping": 0.85,
         "interaction_scale": 0.16,
@@ -9257,7 +9257,7 @@
         "category": "GROUND_MOSS",
         "root_cutoff": 0.45,
         "bend_scale": 0.22,
-        "flutter_scale": 0,
+        "flutter_scale": 0.0,
         "stiffness": 9.2,
         "damping": 0.85,
         "interaction_scale": 0.16,
@@ -9279,7 +9279,7 @@
         "category": "GROUND_MOSS",
         "root_cutoff": 0.45,
         "bend_scale": 0.22,
-        "flutter_scale": 0,
+        "flutter_scale": 0.0,
         "stiffness": 9.2,
         "damping": 0.85,
         "interaction_scale": 0.16,
@@ -9301,7 +9301,7 @@
         "category": "GROUND_MOSS",
         "root_cutoff": 0.45,
         "bend_scale": 0.22,
-        "flutter_scale": 0,
+        "flutter_scale": 0.0,
         "stiffness": 9.2,
         "damping": 0.85,
         "interaction_scale": 0.16,
@@ -9323,7 +9323,7 @@
         "category": "GROUND_MOSS",
         "root_cutoff": 0.45,
         "bend_scale": 0.22,
-        "flutter_scale": 0,
+        "flutter_scale": 0.0,
         "stiffness": 9.2,
         "damping": 0.85,
         "interaction_scale": 0.16,
@@ -9345,7 +9345,7 @@
         "category": "GROUND_MOSS",
         "root_cutoff": 0.45,
         "bend_scale": 0.22,
-        "flutter_scale": 0,
+        "flutter_scale": 0.0,
         "stiffness": 9.2,
         "damping": 0.85,
         "interaction_scale": 0.16,
@@ -9367,7 +9367,7 @@
         "category": "GROUND_MOSS",
         "root_cutoff": 0.45,
         "bend_scale": 0.22,
-        "flutter_scale": 0,
+        "flutter_scale": 0.0,
         "stiffness": 9.2,
         "damping": 0.85,
         "interaction_scale": 0.16,
@@ -9389,7 +9389,7 @@
         "category": "GROUND_MOSS",
         "root_cutoff": 0.45,
         "bend_scale": 0.22,
-        "flutter_scale": 0,
+        "flutter_scale": 0.0,
         "stiffness": 9.2,
         "damping": 0.85,
         "interaction_scale": 0.16,
@@ -9411,7 +9411,7 @@
         "category": "GROUND_MOSS",
         "root_cutoff": 0.45,
         "bend_scale": 0.22,
-        "flutter_scale": 0,
+        "flutter_scale": 0.0,
         "stiffness": 9.2,
         "damping": 0.85,
         "interaction_scale": 0.16,
@@ -9433,7 +9433,7 @@
         "category": "GROUND_MOSS",
         "root_cutoff": 0.45,
         "bend_scale": 0.22,
-        "flutter_scale": 0,
+        "flutter_scale": 0.0,
         "stiffness": 9.2,
         "damping": 0.85,
         "interaction_scale": 0.16,
@@ -9455,7 +9455,7 @@
         "category": "GROUND_MOSS",
         "root_cutoff": 0.45,
         "bend_scale": 0.22,
-        "flutter_scale": 0,
+        "flutter_scale": 0.0,
         "stiffness": 9.2,
         "damping": 0.85,
         "interaction_scale": 0.16,
@@ -9477,7 +9477,7 @@
         "category": "GROUND_MOSS",
         "root_cutoff": 0.45,
         "bend_scale": 0.22,
-        "flutter_scale": 0,
+        "flutter_scale": 0.0,
         "stiffness": 9.2,
         "damping": 0.85,
         "interaction_scale": 0.16,
@@ -9499,7 +9499,7 @@
         "category": "GROUND_MOSS",
         "root_cutoff": 0.45,
         "bend_scale": 0.22,
-        "flutter_scale": 0,
+        "flutter_scale": 0.0,
         "stiffness": 9.2,
         "damping": 0.85,
         "interaction_scale": 0.16,
@@ -10050,7 +10050,7 @@
         "root_cutoff": 0.3,
         "bend_scale": 0.62,
         "flutter_scale": 0.18,
-        "stiffness": 7,
+        "stiffness": 7.0,
         "damping": 0.89,
         "interaction_scale": 0.52,
         "shadow_scale": 0.7,
@@ -10072,7 +10072,7 @@
         "root_cutoff": 0.3,
         "bend_scale": 0.62,
         "flutter_scale": 0.18,
-        "stiffness": 7,
+        "stiffness": 7.0,
         "damping": 0.89,
         "interaction_scale": 0.52,
         "shadow_scale": 0.7,
@@ -10094,7 +10094,7 @@
         "root_cutoff": 0.3,
         "bend_scale": 0.62,
         "flutter_scale": 0.18,
-        "stiffness": 7,
+        "stiffness": 7.0,
         "damping": 0.89,
         "interaction_scale": 0.52,
         "shadow_scale": 0.7,
@@ -10116,7 +10116,7 @@
         "root_cutoff": 0.3,
         "bend_scale": 0.62,
         "flutter_scale": 0.18,
-        "stiffness": 7,
+        "stiffness": 7.0,
         "damping": 0.89,
         "interaction_scale": 0.52,
         "shadow_scale": 0.7,
@@ -10138,7 +10138,7 @@
         "root_cutoff": 0.3,
         "bend_scale": 0.62,
         "flutter_scale": 0.18,
-        "stiffness": 7,
+        "stiffness": 7.0,
         "damping": 0.89,
         "interaction_scale": 0.52,
         "shadow_scale": 0.7,
@@ -10160,7 +10160,7 @@
         "root_cutoff": 0.3,
         "bend_scale": 0.62,
         "flutter_scale": 0.18,
-        "stiffness": 7,
+        "stiffness": 7.0,
         "damping": 0.89,
         "interaction_scale": 0.52,
         "shadow_scale": 0.7,
@@ -10182,7 +10182,7 @@
         "root_cutoff": 0.3,
         "bend_scale": 0.62,
         "flutter_scale": 0.18,
-        "stiffness": 7,
+        "stiffness": 7.0,
         "damping": 0.89,
         "interaction_scale": 0.52,
         "shadow_scale": 0.7,
@@ -10204,7 +10204,7 @@
         "root_cutoff": 0.3,
         "bend_scale": 0.62,
         "flutter_scale": 0.18,
-        "stiffness": 7,
+        "stiffness": 7.0,
         "damping": 0.89,
         "interaction_scale": 0.52,
         "shadow_scale": 0.7,
@@ -10226,7 +10226,7 @@
         "root_cutoff": 0.3,
         "bend_scale": 0.62,
         "flutter_scale": 0.18,
-        "stiffness": 7,
+        "stiffness": 7.0,
         "damping": 0.89,
         "interaction_scale": 0.52,
         "shadow_scale": 0.7,
@@ -10248,7 +10248,7 @@
         "root_cutoff": 0.3,
         "bend_scale": 0.62,
         "flutter_scale": 0.18,
-        "stiffness": 7,
+        "stiffness": 7.0,
         "damping": 0.89,
         "interaction_scale": 0.52,
         "shadow_scale": 0.7,
@@ -10270,7 +10270,7 @@
         "root_cutoff": 0.3,
         "bend_scale": 0.62,
         "flutter_scale": 0.18,
-        "stiffness": 7,
+        "stiffness": 7.0,
         "damping": 0.89,
         "interaction_scale": 0.52,
         "shadow_scale": 0.7,
@@ -10292,7 +10292,7 @@
         "root_cutoff": 0.35,
         "bend_scale": 0.52,
         "flutter_scale": 0.08,
-        "stiffness": 6,
+        "stiffness": 6.0,
         "damping": 0.91,
         "interaction_scale": 0.34,
         "shadow_scale": 0.76,
@@ -10314,7 +10314,7 @@
         "root_cutoff": 0.35,
         "bend_scale": 0.52,
         "flutter_scale": 0.08,
-        "stiffness": 6,
+        "stiffness": 6.0,
         "damping": 0.91,
         "interaction_scale": 0.34,
         "shadow_scale": 0.76,
@@ -10336,7 +10336,7 @@
         "root_cutoff": 0.35,
         "bend_scale": 0.52,
         "flutter_scale": 0.08,
-        "stiffness": 6,
+        "stiffness": 6.0,
         "damping": 0.91,
         "interaction_scale": 0.34,
         "shadow_scale": 0.76,
@@ -10358,7 +10358,7 @@
         "root_cutoff": 0.35,
         "bend_scale": 0.52,
         "flutter_scale": 0.08,
-        "stiffness": 6,
+        "stiffness": 6.0,
         "damping": 0.91,
         "interaction_scale": 0.34,
         "shadow_scale": 0.76,
@@ -10380,7 +10380,7 @@
         "root_cutoff": 0.35,
         "bend_scale": 0.52,
         "flutter_scale": 0.08,
-        "stiffness": 6,
+        "stiffness": 6.0,
         "damping": 0.91,
         "interaction_scale": 0.34,
         "shadow_scale": 0.76,
@@ -10402,7 +10402,7 @@
         "root_cutoff": 0.35,
         "bend_scale": 0.52,
         "flutter_scale": 0.08,
-        "stiffness": 6,
+        "stiffness": 6.0,
         "damping": 0.91,
         "interaction_scale": 0.34,
         "shadow_scale": 0.76,
@@ -10424,7 +10424,7 @@
         "root_cutoff": 0.35,
         "bend_scale": 0.52,
         "flutter_scale": 0.08,
-        "stiffness": 6,
+        "stiffness": 6.0,
         "damping": 0.91,
         "interaction_scale": 0.34,
         "shadow_scale": 0.76,
@@ -10446,7 +10446,7 @@
         "root_cutoff": 0.35,
         "bend_scale": 0.52,
         "flutter_scale": 0.08,
-        "stiffness": 6,
+        "stiffness": 6.0,
         "damping": 0.91,
         "interaction_scale": 0.34,
         "shadow_scale": 0.76,
@@ -10468,7 +10468,7 @@
         "root_cutoff": 0.35,
         "bend_scale": 0.52,
         "flutter_scale": 0.08,
-        "stiffness": 6,
+        "stiffness": 6.0,
         "damping": 0.91,
         "interaction_scale": 0.34,
         "shadow_scale": 0.76,
@@ -10495,8 +10495,8 @@
         "interaction_scale": 0.18,
         "shadow_scale": 0.6,
         "bend_exponent": 1.85,
-        "width_scale": 1,
-        "height_scale": 1
+        "width_scale": 1.0,
+        "height_scale": 1.0
       }
     },
     "foliage_v401_reed_r2c1": {
@@ -10517,8 +10517,8 @@
         "interaction_scale": 0.18,
         "shadow_scale": 0.6,
         "bend_exponent": 1.85,
-        "width_scale": 1,
-        "height_scale": 1
+        "width_scale": 1.0,
+        "height_scale": 1.0
       }
     },
     "foliage_v401_reed_r2c2": {
@@ -10539,8 +10539,8 @@
         "interaction_scale": 0.18,
         "shadow_scale": 0.6,
         "bend_exponent": 1.85,
-        "width_scale": 1,
-        "height_scale": 1
+        "width_scale": 1.0,
+        "height_scale": 1.0
       }
     },
     "foliage_v401_reed_r2c3": {
@@ -10561,8 +10561,8 @@
         "interaction_scale": 0.18,
         "shadow_scale": 0.6,
         "bend_exponent": 1.85,
-        "width_scale": 1,
-        "height_scale": 1
+        "width_scale": 1.0,
+        "height_scale": 1.0
       }
     },
     "foliage_v401_reed_r2c4": {
@@ -10583,8 +10583,8 @@
         "interaction_scale": 0.18,
         "shadow_scale": 0.6,
         "bend_exponent": 1.85,
-        "width_scale": 1,
-        "height_scale": 1
+        "width_scale": 1.0,
+        "height_scale": 1.0
       }
     },
     "foliage_v401_reed_r2c5": {
@@ -10605,8 +10605,8 @@
         "interaction_scale": 0.18,
         "shadow_scale": 0.6,
         "bend_exponent": 1.85,
-        "width_scale": 1,
-        "height_scale": 1
+        "width_scale": 1.0,
+        "height_scale": 1.0
       }
     },
     "foliage_v401_reed_r2c6": {
@@ -10627,8 +10627,8 @@
         "interaction_scale": 0.18,
         "shadow_scale": 0.6,
         "bend_exponent": 1.85,
-        "width_scale": 1,
-        "height_scale": 1
+        "width_scale": 1.0,
+        "height_scale": 1.0
       }
     },
     "foliage_v401_reed_r2c7": {
@@ -10649,8 +10649,8 @@
         "interaction_scale": 0.18,
         "shadow_scale": 0.6,
         "bend_exponent": 1.85,
-        "width_scale": 1,
-        "height_scale": 1
+        "width_scale": 1.0,
+        "height_scale": 1.0
       }
     },
     "foliage_v401_reed_r2c8": {
@@ -10671,8 +10671,8 @@
         "interaction_scale": 0.18,
         "shadow_scale": 0.6,
         "bend_exponent": 1.85,
-        "width_scale": 1,
-        "height_scale": 1
+        "width_scale": 1.0,
+        "height_scale": 1.0
       }
     },
     "foliage_v401_reed_r3c0": {
@@ -10693,8 +10693,8 @@
         "interaction_scale": 0.18,
         "shadow_scale": 0.6,
         "bend_exponent": 1.85,
-        "width_scale": 1,
-        "height_scale": 1
+        "width_scale": 1.0,
+        "height_scale": 1.0
       }
     },
     "foliage_v401_reed_r3c1": {
@@ -10715,8 +10715,8 @@
         "interaction_scale": 0.18,
         "shadow_scale": 0.6,
         "bend_exponent": 1.85,
-        "width_scale": 1,
-        "height_scale": 1
+        "width_scale": 1.0,
+        "height_scale": 1.0
       }
     },
     "foliage_v401_reed_r3c2": {
@@ -10737,8 +10737,8 @@
         "interaction_scale": 0.18,
         "shadow_scale": 0.6,
         "bend_exponent": 1.85,
-        "width_scale": 1,
-        "height_scale": 1
+        "width_scale": 1.0,
+        "height_scale": 1.0
       }
     },
     "foliage_v401_reed_r3c3": {
@@ -10759,8 +10759,8 @@
         "interaction_scale": 0.18,
         "shadow_scale": 0.6,
         "bend_exponent": 1.85,
-        "width_scale": 1,
-        "height_scale": 1
+        "width_scale": 1.0,
+        "height_scale": 1.0
       }
     },
     "foliage_v401_reed_r3c4": {
@@ -10781,8 +10781,8 @@
         "interaction_scale": 0.18,
         "shadow_scale": 0.6,
         "bend_exponent": 1.85,
-        "width_scale": 1,
-        "height_scale": 1
+        "width_scale": 1.0,
+        "height_scale": 1.0
       }
     },
     "foliage_v401_reed_r3c5": {
@@ -10803,8 +10803,8 @@
         "interaction_scale": 0.18,
         "shadow_scale": 0.6,
         "bend_exponent": 1.85,
-        "width_scale": 1,
-        "height_scale": 1
+        "width_scale": 1.0,
+        "height_scale": 1.0
       }
     },
     "foliage_v401_reed_r3c6": {
@@ -10825,8 +10825,8 @@
         "interaction_scale": 0.18,
         "shadow_scale": 0.6,
         "bend_exponent": 1.85,
-        "width_scale": 1,
-        "height_scale": 1
+        "width_scale": 1.0,
+        "height_scale": 1.0
       }
     },
     "foliage_v401_reed_r3c7": {
@@ -10847,8 +10847,8 @@
         "interaction_scale": 0.18,
         "shadow_scale": 0.6,
         "bend_exponent": 1.85,
-        "width_scale": 1,
-        "height_scale": 1
+        "width_scale": 1.0,
+        "height_scale": 1.0
       }
     },
     "foliage_v401_reed_r3c8": {
@@ -10869,8 +10869,8 @@
         "interaction_scale": 0.18,
         "shadow_scale": 0.6,
         "bend_exponent": 1.85,
-        "width_scale": 1,
-        "height_scale": 1
+        "width_scale": 1.0,
+        "height_scale": 1.0
       }
     }
   },
