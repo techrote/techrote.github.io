@@ -1,6 +1,6 @@
 {
   "schema": "relay-moth-hd-atlas/v4.14",
-  "image": "https://raw.githubusercontent.com/techrote/Relay-Moth-Forest/bd9ed186061fe464835d9911f461884f002d5939/assets/sprite_runtime_atlas.png",
+  "image": "https://raw.githubusercontent.com/techrote/Relay-Moth-Forest/4101ad51dd48407cdac77e54eba56979492f3211/assets/sprite_runtime_atlas.png",
   "source_size": [
     4096,
     4096
@@ -10875,7 +10875,7 @@
     }
   },
   "world_scale": 0.18,
-  "bump_image": "https://raw.githubusercontent.com/techrote/Relay-Moth-Forest/bd9ed186061fe464835d9911f461884f002d5939/assets/sprite_bumpmap.png",
-  "specular_image": "https://raw.githubusercontent.com/techrote/Relay-Moth-Forest/bd9ed186061fe464835d9911f461884f002d5939/assets/sprite_specularmap.png",
-  "normal_image": "https://raw.githubusercontent.com/techrote/Relay-Moth-Forest/bd9ed186061fe464835d9911f461884f002d5939/assets/sprite_normalmap.png"
+  "bump_image": "https://raw.githubusercontent.com/techrote/Relay-Moth-Forest/4101ad51dd48407cdac77e54eba56979492f3211/assets/sprite_bumpmap.png",
+  "specular_image": "https://raw.githubusercontent.com/techrote/Relay-Moth-Forest/4101ad51dd48407cdac77e54eba56979492f3211/assets/sprite_specularmap.png",
+  "normal_image": "https://raw.githubusercontent.com/techrote/Relay-Moth-Forest/4101ad51dd48407cdac77e54eba56979492f3211/assets/sprite_normalmap.png"
 }
