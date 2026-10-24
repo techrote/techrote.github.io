@@ -6,13 +6,13 @@
   <meta name="theme-color" content="#101c21">
   <meta name="description" content="A browser connection endurance test: real page loads, sustained transfers, and a timestamped record of pauses.">
   <title>Connection lab · techrote</title>
-  <link rel="stylesheet" href="style.css?v=3">
+  <link rel="stylesheet" href="style.css?v=4">
   <script src="assets/manifest.js?v=1" defer></script>
-  <script src="lab.js?v=3" defer></script>
+  <script src="lab.js?v=4" defer></script>
 </head>
 <body>
 <main>
-  <header><a href="../">techrote / workbench</a><span class="tag">CONNECTION LAB · v1.2</span></header>
+  <header><a href="../">techrote / workbench</a><span class="tag">CONNECTION LAB · v1.2.1</span></header>
   <div class="intro"><p class="eyebrow">A little pressure. A clearer picture.</p><h1>How steady is<br>your connection?</h1><p>Load a stream of real page assets, or keep a transfer running. Watch for pauses while your device does the work.</p></div>
   <section class="panel controls" aria-labelledby="test-heading">
     <h2 id="test-heading">Choose your workload</h2>
@@ -32,9 +32,10 @@
     <div class="actions"><button id="start" class="primary">Start test</button><button id="stop" disabled>Stop</button><span id="status" role="status" aria-live="polite">Ready when you are.</span></div>
     <div class="suite-control">
       <h2>One button. The same traffic suite.</h2>
-      <p class="hint">Eight stages, <b>60 seconds each</b>, with 5 seconds to settle between stages. About 9 minutes including checks. Uses a fixed 500 MB total budget; the individual settings above apply only to Start test.</p>
+      <p class="hint">Eight stages, <b>25 seconds each</b>, with 3 seconds to settle between stages. About 4 minutes including checks. Uses a fixed 500 MB total budget; the individual settings above apply only to Start test.</p>
       <ol class="suite-plan"><li>Browsing · 4 requests</li><li>Download · 1 request</li><li>Upload · 1 request</li><li>Both ways · 1 each</li><li>Download · 4 requests</li><li>Upload · 4 requests</li><li>Both ways · 4 each</li><li>Browsing · 4 + upload · 1</li></ol>
-      <button id="start-suite" class="primary">Run traffic suite · 8 × 60 s</button>
+      <label>Board distance for this suite<select id="distance"><option value="">Not recorded</option><option value="30" selected>30 cm</option><option value="60">60 cm</option></select></label>
+      <button id="start-suite" class="primary">Run traffic suite · about 4 min</button>
       <p class="hint">Stop ends the whole suite. A failed stage is recorded and the suite continues, so an upload service problem does not hide download results. The data cap ends the suite early. Keep this tab visible and the screen on.</p>
     </div>
     <progress id="progress" max="100" value="0" aria-label="Test progress"></progress>

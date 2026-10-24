@@ -1,10 +1,11 @@
 /* Buildless and deliberately uses XHR progress for older Firefox on Android. */
 (function () {
   'use strict';
-  var VERSION = '1.2.0', MB = 1000000, UP_URL = 'https://speed.cloudflare.com/__up';
+  var VERSION = '1.2.1', MB = 1000000, UP_URL = 'https://speed.cloudflare.com/__up';
   var $ = function (id) { return document.getElementById(id); };
   var mode = 'browse', run = null, suite = null, galleryURLs = [], requestSequence = 0;
   // Fixed order and settings make firmware comparisons reproducible.
+  var STAGE_SECONDS = 25, SETTLING_SECONDS = 3;
   var SUITE = [
     { name: 'Browsing', mode: 'browse', streams: 4 },
     { name: 'Download · 1 request', mode: 'download', streams: 1 },
@@ -336,7 +337,7 @@
   }
   function suiteSummary(s) {
     return 'Connection lab ' + VERSION + ' · Traffic suite ' + s.suite_version + '\n' + s.reason + '\n' +
-      s.stages.length + '/' + SUITE.length + ' stages recorded; ' + s.completed_stages + ' ran for the full 60 seconds.\n' +
+      s.stages.length + '/' + SUITE.length + ' stages recorded; ' + s.completed_stages + ' ran for the full ' + s.stage_duration_s + ' seconds. Distance: ' + (s.distance_cm ? s.distance_cm + ' cm' : 'not recorded') + '.\n' +
       s.stages.map(function (r) { var seconds = r.duration_s || 1; return r.stage_name + ': ↓ ' + (r.download_bytes * 8 / MB / seconds).toFixed(2) + ' Mbps, ↑ ' + (r.upload_server_confirmed_bytes * 8 / MB / seconds).toFixed(2) + ' Mbps confirmed, ' + r.pauses + ' pauses, ' + r.request_errors + ' errors · ' + r.reason; }).join('\n');
   }
   function stageResult(r, config, index) {
@@ -347,22 +348,22 @@
   }
   async function startSuite() {
     if ((run && run.live) || (suite && suite.live)) return;
-    var s = suite = { version: VERSION, suite_version: 'traffic-v1', type: 'traffic-suite', run_id: Date.now().toString(36), live: true, index: 0, started_utc: iso(), ended_utc: null, reason: '', stage_duration_s: 60, settling_gap_s: 5, budget_bytes: 500 * MB, reserved_bytes: 0, completed_stages: 0, plan: SUITE, stages: [], user_agent: navigator.userAgent };
+    var s = suite = { version: VERSION, suite_version: 'traffic-v2-short', distance_cm: +$('distance').value || null, type: 'traffic-suite', run_id: Date.now().toString(36), live: true, index: 0, started_utc: iso(), ended_utc: null, reason: '', stage_duration_s: STAGE_SECONDS, settling_gap_s: SETTLING_SECONDS, budget_bytes: 500 * MB, reserved_bytes: 0, completed_stages: 0, plan: SUITE, stages: [], user_agent: navigator.userAgent };
     run = null; busy(true); $('suite-results').textContent = ''; $('suite-progress').textContent = 'Preparing traffic suite…';
     try {
       if ($('countdown').checked) for (var i = 5; i > 0 && s.live; i--) { $('status').textContent = 'Suite starting in ' + i + '…'; await sleep(1000); }
       for (var index = 0; index < SUITE.length && s.live; index++) {
         s.index = index;
         var config = SUITE[index];
-        $('suite-progress').textContent = stageText() + '60 seconds';
-        await start({ suite: true, mode: config.mode, streams: config.streams, uploadStreams: config.uploadStreams, duration: 60, budget: s.budget_bytes - s.reserved_bytes });
+        $('suite-progress').textContent = stageText() + STAGE_SECONDS + ' seconds';
+        await start({ suite: true, mode: config.mode, streams: config.streams, uploadStreams: config.uploadStreams, duration: STAGE_SECONDS, budget: s.budget_bytes - s.reserved_bytes });
         var result = report(run); result.stage_name = config.name; result.stage_index = index + 1;
         s.stages.push(result); s.reserved_bytes += result.reserved_bytes;
         if (result.reason === 'Time limit reached') s.completed_stages++;
         stageResult(result, config, index);
         if (!s.live) break;
         if (result.reason === 'Data budget reached') { s.reason = '500 MB suite budget reached; remaining stages not run'; break; }
-        if (index < SUITE.length - 1) for (var gap = 5; gap > 0 && s.live; gap--) {
+        if (index < SUITE.length - 1) for (var gap = SETTLING_SECONDS; gap > 0 && s.live; gap--) {
           $('status').textContent = 'Settling · ' + gap + ' s · next: ' + SUITE[index + 1].name;
           $('suite-progress').textContent = 'Between stages · no test traffic';
           await sleep(1000);
@@ -392,7 +393,7 @@
   $('mark').addEventListener('click', function () { if (run && run.live) event(run, 'USER MARKER: I saw a freeze.', true); });
   $('save').addEventListener('click', function () {
     if (!run && !suite) return; var result = suite || report(run); var url = URL.createObjectURL(new Blob([JSON.stringify(result, null, 2)], { type: 'application/json' }));
-    var a = document.createElement('a'); a.href = url; a.download = 'connection-lab-' + result.run_id + '.json'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(url); }, 10000);
+    var a = document.createElement('a'); a.href = url; a.download = 'connection-lab-' + result.run_id + (result.distance_cm ? '-' + result.distance_cm + 'cm' : '') + '.json'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(url); }, 10000);
   });
   $('copy').addEventListener('click', async function () { try { await navigator.clipboard.writeText(suite ? suiteSummary(suite) : summaryText(run)); $('status').textContent = 'Summary copied.'; } catch (_) { $('status').textContent = 'Copy unavailable. Use Save results instead.'; } });
   document.addEventListener('visibilitychange', function () { if (run && run.live) event(run, document.hidden ? 'Tab hidden: browser timers and traffic may be throttled.' : 'Tab visible again.', document.hidden); });
