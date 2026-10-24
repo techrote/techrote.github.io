@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#f3efdf"><title>CHROMA / a living colour field</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden}body{background:#f3efdf;color:#24221f;font-family:Arial,Helvetica,sans-serif}button{font:inherit;color:inherit}
+#field{position:absolute;inset:0;overflow:hidden;background:radial-gradient(ellipse at 50% 55%,#ffe6bc 0,transparent 60%)}
+.seed{position:absolute;left:50%;top:52%;width:min(64vw,64vh);aspect-ratio:1;transform:translate(-50%,-50%);border-radius:46% 54% 66% 34% / 40% 39% 61% 60%;background:repeating-conic-gradient(from 30deg,#fc4c24 0deg 15deg,#ffbf17 15deg 30deg,#ff71ab 30deg 45deg,#5243d3 45deg 60deg);box-shadow:0 0 80px #fd925f55;animation:turn 35s linear infinite;transition:filter .3s}#field:hover .seed{filter:hue-rotate(80deg)}@keyframes turn{to{transform:translate(-50%,-50%) rotate(360deg)}}
+canvas{position:absolute;inset:0;width:100%;height:100%}header,footer{position:fixed;z-index:2;left:32px;right:32px;display:flex;justify-content:space-between;align-items:center;pointer-events:none}header{top:25px;border-top:1px solid #24221f;padding-top:14px}footer{bottom:24px;border-top:1px solid #24221f55;padding-top:14px}.label{font-family:monospace;font-size:11px;letter-spacing:1.8px;text-transform:uppercase}.brand{font-weight:900;letter-spacing:-1.5px;font-size:26px}.brand span{font-weight:400}.edition{text-align:right;line-height:1.7}.title{position:fixed;left:32px;bottom:90px;z-index:2;pointer-events:none}h1{font-size:clamp(52px,8vw,124px);font-weight:900;letter-spacing:-.085em;line-height:.78;margin:0 0 20px}.title p{font-size:13px;line-height:1.5;margin:0;max-width:210px}.controls{display:flex;gap:8px;pointer-events:auto}button{background:#f3efdfbb;border:1px solid #24221f66;padding:10px 15px;border-radius:30px;cursor:pointer;font-family:monospace;font-size:11px;letter-spacing:.4px;backdrop-filter:blur(8px)}button:hover{background:#24221f;color:#f3efdf}button:focus-visible{outline:3px solid #e64cdd;outline-offset:4px}.side{position:fixed;right:29px;top:45%;writing-mode:vertical-rl;z-index:2}.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#ec4b23;margin-right:8px}.hint{position:fixed;right:32px;bottom:100px;z-index:2;text-align:right;font:11px/1.8 monospace;pointer-events:none}
+@media(max-width:600px){header,footer{left:18px;right:18px}header{top:18px}.brand{font-size:22px}.edition{font-size:9px}.title{left:18px;bottom:100px}.title p{font-size:11px;max-width:165px}.side{right:12px;font-size:9px}.hint{right:18px;bottom:110px;font-size:9px}.footer-note{max-width:110px;font-size:9px;line-height:1.6}button{padding:10px;font-size:10px}}
+@media(prefers-reduced-motion:reduce){.seed{animation:none}}
+</style>
+</head>
+<body>
+<main id="field" aria-label="Interactive abstract flower of colourful ribbons. Move your pointer to bend the petals; click or use New bloom to change the composition."><div class="seed" aria-hidden="true"></div><canvas id="art" aria-hidden="true"></canvas></main>
+<header><div class="brand">CHROMA<span>®</span></div><div class="edition label">Studies in happy accidents<br>Edition 001 / Infinite variations</div></header>
+<div class="side label">A living colour field — made to be touched</div>
+<div class="title"><h1>BE<br>MORE<br>COLOUR.</h1><p>A little chaos. A lot of feeling.<br>Nothing here stays the same.</p></div>
+<div class="hint">MOVE TO DISTURB<br>CLICK TO REIMAGINE</div>
+<footer><div class="label footer-note"><span class="dot"></span>Beautifully unstable</div><div class="controls"><button id="pause" type="button" aria-pressed="false">Pause motion</button><button id="bloom" type="button">New bloom ↗</button></div></footer>
+<script>
+(() => {
+  'use strict';
+  const canvas = document.getElementById('art'), ctx = canvas.getContext('2d');
+  if (!ctx) return;
+  const motion = matchMedia('(prefers-reduced-motion: reduce)');
+  const pauseButton = document.getElementById('pause');
+  const palettes = [
+    ['#ff4c22','#ff9e16','#ffcb32','#f563ae','#a726cb','#433ac4','#18aa9a'],
+    ['#ff3982','#f85c26','#ffba26','#e4f16a','#009b91','#277acb','#663fbe'],
+    ['#7147d9','#b947b6','#fa5982','#ff7240','#ffca42','#2caeaf','#164eaa']
+  ];
+  let w=0,h=0,dpr=1,time=0,last=0,frame=0,seed=4,palette=0;
+  let paused=motion.matches,active=false,pulse=0;
+  const pointer={x:0,y:0}, eased={x:0,y:0};
+  const TAU=Math.PI*2;
+  const rand=n=>{const v=Math.sin(n*127.1+seed*311.7)*43758.5453;return v-Math.floor(v)};
+  function resize(){
+    w=innerWidth;h=innerHeight;dpr=Math.min(devicePixelRatio||1,2);
+    canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    draw();
+  }
+  function syncButton(){pauseButton.textContent=paused?'Resume motion':'Pause motion';pauseButton.setAttribute('aria-pressed',String(paused))}
+  function schedule(){if(!frame&&!paused&&!document.hidden)frame=requestAnimationFrame(tick)}
+  function tick(now){frame=0;time+=Math.min((now-last)||16,40)*.001;last=now;eased.x+=(pointer.x-eased.x)*.075;eased.y+=(pointer.y-eased.y)*.075;pulse*=.96;draw();schedule()}
+  function petal(cx,cy,r,angle,length,width,color,index){
+    const proximity=Math.max(0,1-Math.hypot(cx+Math.cos(angle)*r*.65-(w/2+eased.x),cy+Math.sin(angle)*r*.65-(h/2+eased.y))/(r*.9));
+    const bend=Math.sin(time*.55+index*1.8)*.13 + (active?proximity*.6:0);
+    const twist=.55+Math.sin(index*2.3+seed)*.28+bend;
+    const shape=(v,side,inset=1)=>{
+      const radial=r*(.055+v*length);
+      const a=angle+twist*v+Math.sin(v*Math.PI)*bend;
+      const breadth=Math.pow(Math.sin(v*Math.PI),.7)*r*width*side*inset;
+      return [cx+Math.cos(a)*radial-Math.sin(a)*breadth,cy+Math.sin(a)*radial+Math.cos(a)*breadth];
+    };
+    ctx.beginPath();
+    for(let s=0;s<=32;s++){const p=shape(s/32,1);s?ctx.lineTo(...p):ctx.moveTo(...p)}
+    for(let s=32;s>=0;s--)ctx.lineTo(...shape(s/32,-1));
+    ctx.closePath();
+    const end=shape(.9,0),g=ctx.createLinearGradient(cx,cy,...end);
+    g.addColorStop(0,palettes[palette][(index+2)%7]);g.addColorStop(.4,color);g.addColorStop(1,palettes[palette][(index+1)%7]);
+    ctx.fillStyle=g;ctx.fill();ctx.strokeStyle='#26211e30';ctx.lineWidth=.6;ctx.stroke();
+    // Fine ink contours follow the same warped surface as the colour.
+    for(let stripe=-4;stripe<=4;stripe++){
+      ctx.beginPath();
+      for(let s=2;s<=30;s++){const p=shape(s/32,stripe/5,.94);s===2?ctx.moveTo(...p):ctx.lineTo(...p)}
+      ctx.strokeStyle=stripe%2?'#fff3c04a':'#25123540';ctx.lineWidth=stripe===0?1.25:.65;ctx.stroke();
+    }
+  }
+  function draw(){
+    ctx.clearRect(0,0,w,h);
+    const compact=w<650;
+    const cx=w*(compact?.53:.59)+eased.x*.035,cy=h*(compact?.43:.48)+eased.y*.035;
+    const r=Math.min(w*(compact?.43:.34),h*.405)*(1+pulse*.04);
+    const colors=palettes[palette];
+    // A quiet printed field behind the unruly flower.
+    ctx.fillStyle='#746a521f';
+    for(let x=24;x<w;x+=28)for(let y=94;y<h-70;y+=28)ctx.fillRect(x,y,1,1);
+    ctx.save();ctx.translate(cx,cy);ctx.rotate(-.25);
+    ctx.strokeStyle='#746a5233';ctx.lineWidth=.7;
+    [1.06,1.18].forEach(scale=>{ctx.beginPath();ctx.ellipse(0,0,r*scale,r*scale*.87,0,0,TAU);ctx.stroke()});
+    ctx.restore();
+    // Loose satellites make the composition spill beyond its own orbit.
+    for(let i=0;i<23;i++){
+      const a=rand(i+18)*TAU+time*.015*(i%2?1:-1),distance=r*(1.08+rand(i+50)*.28);
+      const x=cx+Math.cos(a)*distance,y=cy+Math.sin(a)*distance*.9;
+      ctx.save();ctx.translate(x,y);ctx.rotate(a+time*.1);
+      ctx.fillStyle=colors[i%7];ctx.beginPath();
+      ctx.ellipse(0,0,2+rand(i+90)*8,1+rand(i+100)*3,0,0,TAU);ctx.fill();ctx.restore();
+    }
+    // Two offset whorls of individually inked, tapered colour ribbons.
+    for(let layer=0;layer<2;layer++){
+      const count=layer?17:23;
+      for(let i=0;i<count;i++){
+        const index=i+layer*23;
+        const angle=i/count*TAU+layer*.18+time*(layer?-.028:.022)+seed*.3;
+        const length=(layer?.67:1)*( .8+rand(index+2)*.23+Math.sin(time*.6+i)*.025);
+        petal(cx,cy,r,angle,length,layer?.105:.118,colors[index%7],index);
+      }
+    }
+    // The eye is built from imperfect concentric rings, like cut paper.
+    for(let ring=18;ring>0;ring--){
+      ctx.beginPath();
+      for(let s=0;s<=100;s++){
+        const a=s/100*TAU,rr=r*(ring/18)*.16*(1+.1*Math.sin(a*7+time+ring*.27));
+        const x=cx+Math.cos(a)*rr,y=cy+Math.sin(a)*rr;
+        s?ctx.lineTo(x,y):ctx.moveTo(x,y);
+      }
+      ctx.closePath();ctx.fillStyle=ring<4?'#252137':colors[(ring+3)%7];ctx.fill();
+    }
+    ctx.font='10px monospace';ctx.fillStyle='#514937';
+    ctx.fillText('FIG. '+String(seed-3).padStart(2,'0')+' / CHROMATIC ORGANISM',32,100);
+    colors.forEach((c,i)=>{ctx.fillStyle=c;ctx.fillRect(32+i*18,112,13,4)});
+    if(active){
+      ctx.beginPath();ctx.arc(w/2+pointer.x,h/2+pointer.y,16+Math.sin(time*2)*2,0,TAU);
+      ctx.strokeStyle='#25213788';ctx.lineWidth=.7;ctx.stroke();
+      ctx.beginPath();ctx.arc(w/2+pointer.x,h/2+pointer.y,2,0,TAU);ctx.fillStyle=colors[0];ctx.fill();
+    }
+  }
+  function newBloom(){seed++;palette=(palette+1)%palettes.length;pulse=1;draw()}
+  window.addEventListener('pointermove',e=>{active=true;pointer.x=e.clientX-w/2;pointer.y=e.clientY-h/2;if(paused){eased.x=pointer.x;eased.y=pointer.y;draw()}},{passive:true});
+  document.documentElement.addEventListener('pointerleave',()=>{active=false;pointer.x=pointer.y=0;if(paused){eased.x=eased.y=0;draw()}});
+  document.getElementById('field').addEventListener('click',newBloom);
+  document.getElementById('bloom').addEventListener('click',newBloom);
+  pauseButton.addEventListener('click',()=>{paused=!paused;syncButton();if(paused){cancelAnimationFrame(frame);frame=0}else{last=performance.now();schedule()}});
+  motion.addEventListener('change',e=>{paused=e.matches;syncButton();if(paused){cancelAnimationFrame(frame);frame=0;draw()}else{last=performance.now();schedule()}});
+  document.addEventListener('visibilitychange',()=>{if(document.hidden){cancelAnimationFrame(frame);frame=0}else{last=performance.now();schedule()}});
+  window.addEventListener('resize',resize);
+  syncButton();resize();document.querySelector('.seed').style.display='none';schedule();
+})();
+</script>
+</body>
+</html>
