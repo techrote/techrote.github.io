@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#10171a"><meta name="description" content="Shattered Art Stash — eight live interactive works curated from techrote/tokensplurge.">
+<title>SHATTERED ART STASH // TECHROTE</title>
+<style>
+:root{color-scheme:dark;--bg:#090e11;--metal:#1b2529;--line:#45575b;--ink:#d8e7e6;--dim:#91a7a6;--signal:#c7ff6b}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font-family:Consolas,"Cascadia Mono",monospace}
+body{background-image:linear-gradient(#ffffff06 1px,transparent 1px),linear-gradient(90deg,#ffffff06 1px,transparent 1px);background-size:25px 25px}
+a{color:var(--signal)}button,select{font:inherit;cursor:pointer}button:focus-visible,a:focus-visible{outline:2px solid var(--signal);outline-offset:3px}
+header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;padding:14px clamp(12px,3vw,32px);border-bottom:2px solid #728489;background:linear-gradient(#29353a,#121a1e)}
+header .mark{font-size:12px;letter-spacing:.17em;color:var(--signal)}header a{text-decoration:none;border:1px solid #607277;padding:9px 12px}
+h1{font-size:clamp(22px,3vw,44px);line-height:1.1;letter-spacing:-.06em;margin:17px 0 6px}p{color:var(--dim);line-height:1.55}
+main{max-width:1660px;margin:auto;padding:0 clamp(12px,3vw,32px) 28px}
+.intro{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap}.intro p{max-width:650px;font-size:12px}.counter{font-size:11px;color:var(--signal)}
+.gallery{display:grid;grid-template-columns:minmax(230px,310px) minmax(0,1fr);gap:12px;margin-top:18px}
+.rack{background:linear-gradient(135deg,#243037,#10171b);border:1px solid #64787d;padding:12px;box-shadow:inset 0 0 0 3px #0a0e10}
+.rack h2{margin:0 0 10px;color:#a2b8b6;font-size:12px;letter-spacing:.13em;text-transform:uppercase}.rack ol{list-style:none;padding:0;margin:0;display:grid;gap:5px}
+.rack li button{width:100%;padding:12px 9px;background:#0b1115;color:#bed1ce;border:1px solid #324449;text-align:left;font-size:11px;line-height:1.4}
+.rack li button:hover,.rack li button[aria-current=true]{border-color:var(--signal);background:#283527;color:#edffe0}.rack li span{display:block;color:#8b9da0;font-size:10px;margin-top:4px}
+.viewer{min-width:0;background:#0c1014;border:1px solid #64787d;box-shadow:inset 0 0 0 4px #1a2529}
+.toolbar{display:flex;align-items:center;flex-wrap:wrap;gap:7px;padding:9px;background:linear-gradient(#29373d,#162126);border-bottom:1px solid #61757a}
+.toolbar strong{font-size:12px;flex:1;min-width:150px}.toolbar button,.toolbar a{padding:7px 11px;border:1px solid #6c7c80;color:#d8e7e6;background:#10191e;text-decoration:none;font-size:11px}
+.toolbar button:hover,.toolbar a:hover{color:#111b18;background:var(--signal)}
+.viewport{height:min(72vh,850px);min-height:420px;background:#000}.viewport iframe{width:100%;height:100%;border:0;background:#000}
+.readout{padding:10px 12px;font-size:11px;color:#b8c9c7;border-top:1px solid #405258}
+footer{margin:18px 0;font-size:11px;color:#8b9d9d}footer a{color:#c9e5dd}
+@media(max-width:760px){.gallery{grid-template-columns:1fr}.rack ol{grid-template-columns:repeat(2,minmax(0,1fr))}.viewport{height:62vh;min-height:360px}}
+@media(max-width:440px){.rack ol{grid-template-columns:1fr}.viewport{min-height:300px}}
+</style></head><body>
+<header><div class="mark">TECHROTE // RESTRICTED CULTURAL STORAGE</div><a href="../">↖ RETURN TO WORKBENCH</a></header>
+<main><div class="intro"><div><h1>SHATTERED ART STASH</h1><p>Eight working specimens from <a href="https://github.com/techrote/tokensplurge">tokensplurge</a>, presented intact in their own isolated display. Move, click and experiment inside the exhibit. Choose a specimen from the rack to change the feed.</p></div><div class="counter" id="count">SPECIMEN 01 / 08</div></div>
+<div class="gallery"><nav class="rack" aria-label="Select an artwork"><h2>ARCHIVE DRAWERS // 08</h2><ol id="list"></ol></nav>
+<section class="viewer" aria-label="Interactive selected artwork"><div class="toolbar"><strong id="name"></strong><button id="previous" type="button" aria-label="Previous artwork">← PREV</button><button id="next" type="button" aria-label="Next artwork">NEXT →</button><a id="standalone" href="#" target="_blank" rel="noopener">FULL VIEW ↗</a></div><div class="viewport"><iframe id="frame" title="Selected interactive artwork" loading="eager" sandbox="allow-scripts allow-downloads allow-pointer-lock" referrerpolicy="no-referrer"></iframe></div><div class="readout" id="desc" role="status"></div></section></div>
+<footer>CURATED SOURCE: <a href="https://github.com/techrote/tokensplurge">TECHROTE / TOKENSPLURGE</a> · ALL PIECES ARE LIVE ORIGINAL HTML/CANVAS WORKS. USE FULL VIEW FOR A LARGER CANVAS.</footer></main>
+<script>
+const works=[{"title":"CHROMA — Living Colour Field","path":"index.html","name":"chroma.html","desc":"Colour that responds to disturbance"},{"title":"MOUTHFEEL — Uncooperative Organism","path":"deranged.html","name":"mouthfeel.html","desc":"A hostile, elastic digital organism"},{"title":"013 — Thermal Runaway","path":"lineage/013-thermal.html","name":"thermal.html","desc":"Feedback under mounting heat"},{"title":"019 — Moiré Apparition","path":"lineage/019-moire.html","name":"moire.html","desc":"Interference and unstable perception"},{"title":"020 — Phosphor Bloom","path":"lineage/020-phosphor.html","name":"phosphor.html","desc":"A luminous residue of the signal"},{"title":"030 — Liquid Crystal Pressure","path":"lineage/030-liquid-crystal.html","name":"liquid-crystal.html","desc":"Compressed colour and shifting structure"},{"title":"037 — Failure Weave","path":"lineage/037-weave.html","name":"weave.html","desc":"An inherited mesh of accumulating errors"},{"title":"041 — Intermittent Picture","path":"lineage/041-recall.html","name":"intermittent.html","desc":"The final damaged transmission"}];
+let current=0;
+const list=document.getElementById('list'),frame=document.getElementById('frame'),name=document.getElementById('name'),desc=document.getElementById('desc'),count=document.getElementById('count'),standalone=document.getElementById('standalone');
+const buttons=works.map((work,i)=>{const li=document.createElement('li'),button=document.createElement('button');button.type='button';button.innerHTML='<b>'+String(i+1).padStart(2,'0')+' / </b>'+work.title+'<span>'+work.desc+'</span>';button.addEventListener('click',()=>show(i));li.appendChild(button);list.appendChild(li);return button});
+function show(index){current=(index+works.length)%works.length;const work=works[current];frame.src='works/'+work.name;frame.title=work.title+' — interactive artwork';name.textContent=work.title;desc.textContent=work.desc+' · Interactive source: '+work.path;count.textContent='SPECIMEN '+String(current+1).padStart(2,'0')+' / '+String(works.length).padStart(2,'0');standalone.href='works/'+work.name;buttons.forEach((b,i)=>b.setAttribute('aria-current',String(i===current)));buttons[current].scrollIntoView({block:'nearest',behavior:'auto'})}
+document.getElementById('previous').addEventListener('click',()=>show(current-1));document.getElementById('next').addEventListener('click',()=>show(current+1));
+document.addEventListener('keydown',e=>{if(e.target===document.body&&e.key==='ArrowLeft')show(current-1);if(e.target===document.body&&e.key==='ArrowRight')show(current+1)});
+show(0);
+</script></body></html>
