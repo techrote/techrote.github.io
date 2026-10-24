@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#230526"><title>MOUTHFEEL — an uncooperative organism</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden}body{background:#230526;color:#edff52;font-family:Arial,Helvetica,sans-serif}button{font:inherit}#stage{position:absolute;inset:0;touch-action:none;overflow:hidden;background:repeating-linear-gradient(112deg,transparent 0 77px,#fa69cf18 77px 78px),#230526}canvas{position:absolute;inset:0;width:100%;height:100%}.fallback{position:absolute;width:75vmin;height:55vmin;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-25deg);border-radius:25% 70% 38% 65%;background:repeating-radial-gradient(ellipse at 30% 45%,#edff52 0 7px,#fa69cf 8px 15px,#181923 16px 24px);box-shadow:8vmin 4vmin 0 #4c34ff;transition:filter .3s,border-radius .6s;animation:squirm 6s ease-in-out infinite alternate}#stage:hover .fallback{filter:hue-rotate(100deg);border-radius:70% 20% 65% 35%}@keyframes squirm{to{transform:translate(-50%,-50%) rotate(18deg) scale(.9,1.2)}}
+header{position:fixed;top:22px;left:24px;right:24px;display:flex;justify-content:space-between;gap:20px;z-index:3;pointer-events:none;font:11px/1.5 monospace;letter-spacing:1.2px;text-transform:uppercase}.tag{background:#edff52;color:#230526;padding:5px 8px;height:max-content;transform:rotate(-3deg)}.serial{text-align:right;color:#fff0e4}h1{position:fixed;left:3vw;top:10vh;margin:0;font-size:clamp(70px,14vw,220px);font-weight:900;line-height:.73;letter-spacing:-.09em;transform:rotate(-9deg);mix-blend-mode:difference;color:#dfff53;pointer-events:none;z-index:1}.aside{position:fixed;right:22px;bottom:105px;z-index:2;writing-mode:vertical-rl;font:10px monospace;letter-spacing:3px;color:#fff0e4;pointer-events:none}.bottom{position:fixed;bottom:20px;left:24px;right:24px;z-index:3;display:flex;justify-content:space-between;align-items:flex-end;gap:16px}.caption{font:10px/1.7 monospace;letter-spacing:1px;color:#fff0e4;pointer-events:none}.caption strong{font-weight:400;color:#edff52}.controls{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}button{border:1px solid #edff52;background:#230526dd;color:#edff52;border-radius:0;cursor:pointer;padding:12px 14px;font:11px monospace;text-transform:uppercase;box-shadow:3px 3px 0 #fa69cf;transition:transform .15s}button:hover{background:#edff52;color:#230526;transform:translate(-2px,-2px)}button:focus-visible{outline:3px solid #fff;outline-offset:5px}button[aria-pressed=true]{background:#edff52;color:#230526}#announce{position:fixed;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}.cursor-note{position:fixed;left:24px;top:51%;font:10px/1.6 monospace;letter-spacing:1px;writing-mode:vertical-rl;pointer-events:none;z-index:2;color:#fff0e4}
+@media(max-width:600px){header{left:14px;right:14px;top:14px;font-size:9px}.serial{max-width:130px}h1{top:15%;font-size:23vw}.bottom{left:14px;right:14px;bottom:17px;display:block}.caption{font-size:9px;margin-bottom:12px;max-width:80%}.controls{justify-content:flex-start}button{padding:11px;font-size:10px}.aside{right:10px;bottom:160px;font-size:8px}.cursor-note{left:10px;font-size:8px;top:48%}}
+@media(prefers-reduced-motion:reduce){.fallback{animation:none}button{transition:none}}
+</style>
+</head>
+<body>
+<main id="stage" aria-label="Mouthfeel, an interactive abstract organism. Move to attract it, hold and drag to stretch it, click to plant an eye. Space mutates the organism; P pauses motion."><div class="fallback" aria-hidden="true"></div><canvas id="organism" aria-hidden="true"></canvas></main>
+<header><div class="tag">NO. 002 / Unnatural history</div><div class="serial">A specimen of excessive feeling<br>Nothing useful will happen here</div></header>
+<h1 aria-label="Mouthfeel">MOUTH<br>FEEL<span style="font-size:.35em;vertical-align:top">™</span></h1>
+<div class="cursor-note">MOVE CLOSER / IT HAS TERRIBLE MANNERS</div>
+<div class="aside">PLEASE DO NOT FEED THE FEELING</div>
+<div class="bottom"><div class="caption"><strong id="status">SPECIMEN 001 · EMOTIONALLY UNSTABLE</strong><br>DRAG TO STRETCH · CLICK TO PLANT AN EYE</div><nav class="controls" aria-label="Artwork controls"><button id="mutate" type="button">Mutate ↗</button><button id="still" type="button" aria-pressed="false">Pause</button><button id="save" type="button">Collect PNG ↓</button></nav></div>
+<div id="announce" role="status" aria-live="polite"></div>
+<script>
+(() => {
+'use strict';
+const canvas=document.getElementById('organism'),ctx=canvas.getContext('2d');
+if(!ctx)return;
+const stage=document.getElementById('stage'),still=document.getElementById('still');
+const reduced=matchMedia('(prefers-reduced-motion: reduce)');
+const TAU=Math.PI*2,clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
+const palettes=[
+ {bg:'#230526',ink:'#14071c',acid:'#e5ff42',pink:'#ff63bc',blue:'#4437ff',white:'#fff5da',grid:'#6b275b'},
+ {bg:'#061f29',ink:'#09212a',acid:'#ff892e',pink:'#afffdf',blue:'#fa307b',white:'#e5e7ff',grid:'#1f5159'},
+ {bg:'#302800',ink:'#261619',acid:'#d4afff',pink:'#ff422b',blue:'#347753',white:'#fbff83',grid:'#6a5c28'},
+ {bg:'#21063d',ink:'#16052c',acid:'#d8ff53',pink:'#eae0c8',blue:'#ff442a',white:'#89e7ff',grid:'#663989'}
+];
+let W=1,H=1,D=1,R=1,CX=0,CY=0,time=0,last=0,frame=0,specimen=1,pi=0;
+let p=palettes[0],paused=reduced.matches,down=false,inside=false,dragged=false;
+let energy=0,bodySeed=0,seedTarget=0,activePointer=null,tear=0;
+const pointer={x:.6,y:.5,ex:.6,ey:.5,sx:0,sy:0};
+const trail=[],scars=[],extraEyes=[];
+const COUNT=126,COLS=10;
+const spine=new Float32Array((COUNT+1)*5);
+const vertices=new Float32Array((COUNT+1)*(COLS+1)*2);
+const stipple=document.createElement('canvas');stipple.width=stipple.height=768;
+const stippleCtx=stipple.getContext('2d');
+const torn=document.createElement('canvas'),tornCtx=torn.getContext('2d');
+let letterSize=1,letterRows=[];
+const inkCanvas=document.createElement('canvas');inkCanvas.width=inkCanvas.height=128;
+const inkCtx=inkCanvas.getContext('2d'),inkData=inkCtx.createImageData(128,128);
+let noiseSeed=78231;
+for(let i=0;i<inkData.data.length;i+=4){noiseSeed=(noiseSeed*1664525+1013904223)>>>0;const v=noiseSeed>>>24;inkData.data[i]=inkData.data[i+1]=inkData.data[i+2]=v;inkData.data[i+3]=35;}
+inkCtx.putImageData(inkData,0,0);const grain=ctx.createPattern(inkCanvas,'repeat');
+function rand(n){const a=Math.sin(n*138.21+specimen*79.3)*47358.53;return a-Math.floor(a)}
+function prepareStipple(){
+ stippleCtx.clearRect(0,0,768,768);stippleCtx.fillStyle=p.ink;
+ const radius=192,gap=radius*.068;
+ for(let row=-18;row<=18;row++)for(let col=-18;col<=18;col++){
+  const dot=(.5+.5*Math.sin(col*.09+row*.18))*gap*.3;
+  stippleCtx.beginPath();stippleCtx.arc(384+col*gap+(row%2)*gap/2,384+row*gap,Math.max(.1,dot),0,TAU);stippleCtx.fill();
+ }
+}
+function prepareLetters(){
+ letterSize=W<600?W*.23:Math.min(220,Math.max(70,W*.14));
+ ctx.font='900 '+letterSize+'px Arial';
+ letterRows=['MOUTH','FEEL'].map(word=>{let x=0;return Array.from(word).map(char=>{const a={char,x,width:ctx.measureText(char).width};x+=a.width-letterSize*.07;return a})});
+}
+function notify(s){document.getElementById('announce').textContent=s}
+function sync(){still.textContent=paused?'Resume':'Pause';still.setAttribute('aria-pressed',String(paused))}
+function queue(){if(!frame&&!paused&&!document.hidden)frame=requestAnimationFrame(tick)}
+function tick(now){
+ frame=0;const dt=Math.min((now-last)||16,40)/1000;last=now;time+=dt;
+ const ease=1-Math.exp(-dt*8);pointer.ex+=(pointer.x-pointer.ex)*ease;pointer.ey+=(pointer.y-pointer.ey)*ease;
+ energy+=((down?1:inside?.22:0)-energy)*ease;bodySeed+=(seedTarget-bodySeed)*ease*.7;
+ tear+=((down?1:0)-tear)*ease;draw();queue();
+}
+function resize(){
+ W=innerWidth;H=innerHeight;D=Math.min(devicePixelRatio||1,1.75);
+ canvas.width=Math.round(W*D);canvas.height=Math.round(H*D);ctx.setTransform(D,0,0,D,0,0);
+ torn.width=canvas.width;torn.height=canvas.height;
+ R=Math.min(W*(W<650?.65:.38),H*.57);CX=W*(W<650?.55:.59);CY=H*(W<650?.48:.51);prepareLetters();draw();
+}
+function poly(points,close=true){ctx.beginPath();points.forEach((a,i)=>i?ctx.lineTo(a[0],a[1]):ctx.moveTo(a[0],a[1]));if(close)ctx.closePath()}
+function ellipse(x,y,rx,ry,color,angle=0){ctx.beginPath();ctx.ellipse(x,y,Math.max(.1,rx),Math.max(.1,ry),angle,0,TAU);ctx.fillStyle=color;ctx.fill()}
+function distort(x,y,strength=1){
+ const dx=pointer.ex*W-x,dy=pointer.ey*H-y;
+ const influence=Math.exp(-(dx*dx+dy*dy)/(R*R*.24))*energy*strength;
+ return [x+dx*influence*.74,y+dy*influence*.74];
+}
+function organicPath(x,y,r,phase,aspect=1){
+ const pts=[];
+ for(let i=0;i<60;i++){
+  const a=i/60*TAU,rr=r*(1+.13*Math.sin(a*3+phase)+.12*Math.cos(a*5-time*.32+phase));
+  pts.push(distort(x+Math.cos(a)*rr,y+Math.sin(a)*rr*aspect,.8));
+ }
+ ctx.beginPath();ctx.moveTo((pts[59][0]+pts[0][0])/2,(pts[59][1]+pts[0][1])/2);
+ for(let i=0;i<60;i++){const n=pts[(i+1)%60];ctx.quadraticCurveTo(pts[i][0],pts[i][1],(pts[i][0]+n[0])/2,(pts[i][1]+n[1])/2)}
+ ctx.closePath();
+}
+function background(){
+ ctx.fillStyle=p.bg;ctx.fillRect(0,0,W,H);
+ // The room refuses to agree on perspective.
+ ctx.save();ctx.translate(W*.48,H*.5);ctx.rotate(-.17+Math.sin(time*.07)*.025);
+ ctx.strokeStyle=p.grid;ctx.lineWidth=.7;
+ for(let x=-W;x<W;x+=64){ctx.beginPath();ctx.moveTo(x,-H);ctx.lineTo(x+H*.25,H);ctx.stroke()}
+ for(let y=-H;y<H;y+=64){ctx.beginPath();ctx.moveTo(-W,y);ctx.lineTo(W,y);ctx.stroke()}
+ ctx.restore();
+ ctx.save();ctx.translate(W*.86,H*.27);ctx.rotate(.2);
+ ctx.strokeStyle=p.acid;ctx.lineWidth=1;ctx.globalAlpha=.45;
+ ctx.font='900 '+Math.max(86,W*.12)+'px Arial';ctx.strokeText('NO',-W*.13,0);ctx.strokeText('THANK',-W*.28,H*.14);ctx.strokeText('YOU',-W*.1,H*.28);ctx.restore();
+ // A cut-out slice of the wrong floor.
+ ctx.save();ctx.translate(W*.68,H*.77);ctx.rotate(-.23);
+ const tile=Math.max(14,R*.055),bw=R*1.13,bh=R*.39;
+ ctx.beginPath();ctx.moveTo(-bw,-bh*.5);ctx.lineTo(bw*.7,-bh);ctx.lineTo(bw,bh*.5);ctx.lineTo(-bw*.7,bh);ctx.closePath();ctx.clip();
+ ctx.fillStyle=p.acid;ctx.fillRect(-bw,-bh,bw*2,bh*2);
+ ctx.fillStyle=p.ink;for(let i=-25;i<25;i++)for(let j=-10;j<10;j++)if((i+j)%2===0)ctx.fillRect(i*tile,j*tile,tile+.5,tile+.5);
+ ctx.restore();
+ // A violet sun with too many technical drawing annotations.
+ ctx.save();ctx.translate(W*.81,H*.2);ctx.rotate(time*.035);
+ ctx.strokeStyle=p.pink;ctx.lineWidth=1;
+ for(let i=0;i<48;i++){const a=i/48*TAU;ctx.beginPath();ctx.moveTo(Math.cos(a)*R*.16,Math.sin(a)*R*.16);ctx.lineTo(Math.cos(a)*R*.26,Math.sin(a)*R*.26);ctx.stroke()}
+ ellipse(0,0,R*.155,R*.155,p.blue);ellipse(R*.035,0,R*.052,R*.052,p.acid);ctx.restore();
+}
+function jelly(){
+ const x=CX+R*.36,y=CY+R*.21,r=R*.57;
+ ctx.save();organicPath(x+10,y+15,r,.5,1.07);ctx.fillStyle=p.ink;ctx.fill();
+ organicPath(x,y,r,.5,1.07);ctx.clip();
+ const g=ctx.createRadialGradient(x-r*.4,y-r*.4,r*.05,x,y,r*1.3);g.addColorStop(0,p.white);g.addColorStop(.24,p.pink);g.addColorStop(1,p.blue);ctx.fillStyle=g;ctx.fillRect(x-r*2,y-r*2,r*4,r*4);
+ ctx.save();ctx.translate(x,y);ctx.rotate(-.7+Math.sin(time*.15)*.1);
+ ctx.drawImage(stipple,-r*2,-r*2,r*4,r*4);
+ ctx.restore();ctx.restore();
+ organicPath(x,y,r,.5,1.07);ctx.strokeStyle=p.ink;ctx.lineWidth=2;ctx.stroke();
+ // A suture that is much too neat for the rest of the specimen.
+ ctx.save();ctx.translate(x+r*.5,y);ctx.rotate(-.23);ctx.strokeStyle=p.white;ctx.lineWidth=1.7;
+ ctx.beginPath();ctx.moveTo(0,-r*.7);ctx.bezierCurveTo(-r*.3,-r*.3,r*.3,r*.3,0,r*.7);ctx.stroke();
+ for(let i=0;i<12;i++){const s=i/11,yy=(s*1.4-.7)*r,xx=Math.sin(s*TAU)*-r*.085;ctx.beginPath();ctx.moveTo(xx-r*.04,yy-r*.015);ctx.lineTo(xx+r*.04,yy+r*.015);ctx.stroke()}
+ ctx.restore();
+}
+function centerAt(s){
+ const a=s*TAU+bodySeed*.34;
+ const wobble=Math.sin(time*.36+a*3)*.035;
+ const x=(Math.sin(a)*.67+Math.sin(a*2+bodySeed)*.21)*(1+wobble);
+ const y=(Math.cos(a)*.64+Math.cos(a*3+bodySeed*.7)*.15);
+ const rot=-.36+Math.sin(time*.13)*.08,co=Math.cos(rot),si=Math.sin(rot);
+ return distort(CX+(x*co-y*si)*R,CY+(x*si+y*co)*R,1.04);
+}
+function buildTube(){
+ for(let i=0;i<=COUNT;i++){
+  const s=i/COUNT,a=centerAt(s),prev=centerAt(s-.001),next=centerAt(s+.001);
+  const dx=next[0]-prev[0],dy=next[1]-prev[1],len=Math.hypot(dx,dy)||1;
+  const width=R*(.13+.055*Math.sin(s*TAU*3+time*.25+bodySeed)+.04*Math.cos(s*TAU*2));
+  const k=i*5;spine[k]=a[0];spine[k+1]=a[1];spine[k+2]=-dy/len;spine[k+3]=dx/len;spine[k+4]=width;
+  for(let j=0;j<=COLS;j++){
+   const q=Math.sin((j/COLS-.5)*Math.PI),v=(i*(COLS+1)+j)*2;
+   vertices[v]=a[0]+spine[k+2]*width*q;vertices[v+1]=a[1]+spine[k+3]*width*q;
+  }
+ }
+}
+function tube(){
+ buildTube();
+ ctx.save();ctx.strokeStyle='#08000bb0';ctx.lineWidth=R*.3;ctx.lineCap='round';ctx.lineJoin='round';ctx.beginPath();
+ for(let i=0;i<=COUNT;i++){const k=i*5;i?ctx.lineTo(spine[k]+12,spine[k+1]+16):ctx.moveTo(spine[k]+12,spine[k+1]+16)}ctx.stroke();ctx.restore();
+ // This checkered skin is a mesh, so its tiles bend with the entire knot.
+ for(let i=0;i<COUNT;i++){
+  const a=i*(COLS+1)*2,b=(i+1)*(COLS+1)*2,k=i*5;
+  for(let j=0;j<COLS;j++){
+   const n=j*2;
+   ctx.beginPath();ctx.moveTo(vertices[a+n],vertices[a+n+1]);ctx.lineTo(vertices[b+n],vertices[b+n+1]);ctx.lineTo(vertices[b+n+2],vertices[b+n+3]);ctx.lineTo(vertices[a+n+2],vertices[a+n+3]);ctx.closePath();
+   const check=(Math.floor(i/6)+j)%2;
+   ctx.fillStyle=check?p.ink:p.acid;ctx.fill();ctx.lineWidth=.55;ctx.strokeStyle=ctx.fillStyle;ctx.stroke();
+   const shade=.43*Math.pow(Math.abs((j+.5)/COLS*2-1),2);
+   ctx.fillStyle='rgba(20,0,32,'+shade+')';ctx.fill();
+   if(j===4||j===5){ctx.fillStyle=check?'#ffffff16':'#ffffff38';ctx.fill()}
+  }
+  // Iridescent contour fringe: printed slightly out of register.
+  ctx.lineWidth=1.3;ctx.strokeStyle=i%12<6?p.pink:p.blue;
+  ctx.beginPath();ctx.moveTo(vertices[a],vertices[a+1]);ctx.lineTo(vertices[b],vertices[b+1]);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(vertices[a+COLS*2],vertices[a+COLS*2+1]);ctx.lineTo(vertices[b+COLS*2],vertices[b+COLS*2+1]);ctx.stroke();
+ }
+}
+function eye(x,y,size,angle,odd=0){
+ const pos=distort(x,y,.28);x=pos[0];y=pos[1];
+ const dx=pointer.ex*W-x,dy=pointer.ey*H-y,dist=Math.hypot(dx,dy)||1;
+ const px=dx/dist*Math.min(size*.33,dist*.07),py=dy/dist*Math.min(size*.24,dist*.07);
+ ctx.save();ctx.translate(x,y);ctx.rotate(angle);
+ const blink=paused?0:Math.pow(Math.max(0,Math.cos(time*.42+odd*2.31)),44);
+ const open=1-(blink>.6?(blink-.6)*2:0);
+ ellipse(3,7,size*1.08,size*.73,p.ink);
+ ellipse(0,0,size*1.06,size*.72,p.pink);
+ ctx.save();ctx.beginPath();ctx.ellipse(0,0,size,size*.63*Math.max(.16,open),0,0,TAU);ctx.clip();ctx.fillStyle=p.white;ctx.fillRect(-size,-size,size*2,size*2);
+ const co=Math.cos(angle),si=Math.sin(angle),xx=px*co+py*si,yy=-px*si+py*co;
+ ellipse(xx,yy,size*.4,size*.46,odd%2?p.blue:p.pink);
+ ctx.strokeStyle=p.ink;ctx.lineWidth=1;
+ for(let i=0;i<15;i++){const a=i/15*TAU;ctx.beginPath();ctx.moveTo(xx+Math.cos(a)*size*.2,yy+Math.sin(a)*size*.2);ctx.lineTo(xx+Math.cos(a)*size*.38,yy+Math.sin(a)*size*.43);ctx.stroke()}
+ ellipse(xx,yy,size*.19,size*.31,p.ink);ellipse(xx-size*.12,yy-size*.18,size*.08,size*.08,'#fff');ctx.restore();
+ ctx.beginPath();ctx.ellipse(0,0,size,size*.63*Math.max(.16,open),0,0,TAU);ctx.strokeStyle=p.ink;ctx.lineWidth=2;ctx.stroke();
+ for(let i=0;i<5;i++){const a=Math.PI*1.17+i*.16;ctx.beginPath();ctx.moveTo(Math.cos(a)*size,Math.sin(a)*size*.68);ctx.lineTo(Math.cos(a)*size*1.16,Math.sin(a)*size*.9);ctx.stroke()}
+ ctx.restore();
+}
+function appendages(){
+ // A bundle of feelers escapes from the organism.
+ for(let i=0;i<9;i++){
+  const start=centerAt(.51+i*.006),a=-2+i*.18+Math.sin(time*.4+i)*.07;
+  const length=R*(.55+.1*Math.sin(i*1.7));
+  const end=distort(start[0]+Math.cos(a)*length,start[1]+Math.sin(a)*length,1.1);
+  ctx.beginPath();ctx.moveTo(...start);ctx.bezierCurveTo(start[0]-R*.4,start[1]-R*.28,end[0]+Math.sin(i)*R*.2,end[1]-R*.25,...end);
+  ctx.strokeStyle=p.ink;ctx.lineWidth=5;ctx.stroke();ctx.strokeStyle=i%2?p.pink:p.acid;ctx.lineWidth=2;ctx.stroke();
+  ellipse(end[0],end[1],R*.017,R*.017,p.acid);
+ }
+}
+function stickers(){
+ ctx.save();ctx.translate(CX-R*.72,CY+R*.68);ctx.rotate(-.3);
+ ctx.fillStyle=p.blue;ctx.fillRect(-R*.24,-R*.15,R*.48,R*.3);
+ ctx.fillStyle=p.white;ctx.font='italic 900 '+R*.095+'px Georgia';ctx.textAlign='center';ctx.fillText('too much',0,-R*.015);ctx.fillText('is a feeling',0,R*.085);ctx.restore();
+ ctx.save();ctx.translate(CX+R*.64,CY-R*.69);ctx.rotate(.2+Math.sin(time*.17)*.06);
+ ctx.fillStyle=p.pink;ctx.fillRect(-R*.22,-R*.08,R*.44,R*.16);ctx.fillStyle=p.ink;ctx.textAlign='center';ctx.font='bold '+Math.max(9,R*.026)+'px monospace';ctx.fillText('100% UNRESOLVED',0,4);ctx.restore();
+ // A small impossible face, floating free of any sensible anatomy.
+ const x=CX-R*.7+Math.sin(time*.4)*R*.03,y=CY+R*.29;
+ ctx.save();ctx.translate(x,y);ctx.rotate(-.4);
+ ctx.fillStyle=p.pink;ctx.strokeStyle=p.ink;ctx.lineWidth=2;ctx.beginPath();
+ for(let i=0;i<32;i++){const a=i/32*TAU,rr=R*(i%2?.16:.23);i?ctx.lineTo(Math.cos(a)*rr,Math.sin(a)*rr):ctx.moveTo(Math.cos(a)*rr,Math.sin(a)*rr)}ctx.closePath();ctx.fill();ctx.stroke();
+ ellipse(-R*.065,-R*.025,R*.025,R*.05,p.ink);ellipse(R*.055,-R*.025,R*.025,R*.05,p.ink);
+ ctx.beginPath();ctx.arc(0,R*.035,R*.08,0,Math.PI);ctx.stroke();ctx.restore();
+}
+function mouth(){
+ const a=distort(CX+R*.38,CY-R*.07,.7);
+ const distance=Math.hypot(pointer.ex*W-a[0],pointer.ey*H-a[1]);
+ const open=.14+(inside?Math.max(0,1-distance/(R*.7))*.55:0)+energy*.33;
+ const wide=R*.145,high=R*(.019+open*.085);
+ ctx.save();ctx.translate(...a);ctx.rotate(.4+Math.sin(time*.27)*.06);
+ ellipse(0,0,wide*1.08,high*1.25,p.pink);ellipse(0,0,wide,high,p.ink);
+ ctx.save();ctx.beginPath();ctx.ellipse(0,0,wide,high,0,0,TAU);ctx.clip();
+ ellipse(wide*.15,high*.8,wide*.45,high*.65,p.pink);
+ for(let i=0;i<8;i++){
+  const x=(i/8*2-1)*wide,tw=wide*.19,th=high*(.3+.2*rand(i+70));
+  ctx.fillStyle=i%3?p.white:p.acid;ctx.fillRect(x,-high,tw,th);ctx.fillRect(x+wide*.08,high-th,tw,th);
+ }
+ ctx.restore();ctx.restore();
+}
+function lettering(){
+ const ox=W*.025,oy=H*(W<600?.255:.3),angle=-.157,co=Math.cos(angle),si=Math.sin(angle);
+ ctx.save();ctx.translate(ox,oy);ctx.rotate(angle);ctx.globalCompositeOperation='difference';ctx.fillStyle='#dfff53';ctx.font='900 '+letterSize+'px Arial';
+ letterRows.forEach((row,index)=>row.forEach((letter,i)=>{
+  const baseY=index*letterSize*.76,midX=letter.x+letter.width*.5,midY=baseY-letterSize*.4;
+  const x=ox+co*midX-si*midY,y=oy+si*midX+co*midY;
+  const d=Math.hypot(pointer.ex*W-x,pointer.ey*H-y);
+  const influence=inside?Math.max(0,1-d/(letterSize*1.5)):0;
+  const jump=influence*letterSize*(down?.3:.12)*Math.sin(i*2.7+index);
+  ctx.save();ctx.translate(letter.x,baseY+jump);ctx.rotate(influence*Math.sin(i*4+time*.5)*.12);ctx.scale(1,1+influence*(down?.3:.08));ctx.fillText(letter.char,0,0);ctx.restore();
+ }));
+ ctx.restore();
+}
+function tearImage(){
+ if(tear<.02)return;
+ tornCtx.clearRect(0,0,torn.width,torn.height);tornCtx.drawImage(canvas,0,0);
+ const center=pointer.ey*H,reach=R*.45*tear;
+ ctx.save();ctx.globalAlpha=Math.min(.85,tear);
+ // Small offset scanlines shear the paper without full-screen flashes.
+ for(let i=-4;i<=4;i++){
+  const y=clamp(center+i*reach*.2,0,H-1),band=Math.min(H-y,Math.max(2,R*.009*(i%2?2:1)));
+  const shift=Math.sin(i*5.7+time*.8)*R*.11*tear;
+  ctx.drawImage(torn,0,y*D,torn.width,band*D,shift,y,W,band);
+  ctx.fillStyle=i%2?p.acid:p.pink;ctx.fillRect(clamp(pointer.ex*W+shift,0,W),y,Math.abs(shift)*.8,1);
+ }
+ ctx.restore();
+}
+function drawScars(){
+ for(const scar of scars){
+  ctx.strokeStyle=p.pink;ctx.lineWidth=2;ctx.beginPath();
+  scar.forEach((pt,i)=>i?ctx.lineTo(pt[0]*W,pt[1]*H):ctx.moveTo(pt[0]*W,pt[1]*H));ctx.stroke();
+  for(let i=2;i<scar.length;i+=3){const pt=scar[i],prev=scar[i-2],dx=pt[0]*W-prev[0]*W,dy=pt[1]*H-prev[1]*H,d=Math.hypot(dx,dy)||1;
+   ctx.strokeStyle=p.acid;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pt[0]*W-dy/d*5,pt[1]*H+dx/d*5);ctx.lineTo(pt[0]*W+dy/d*5,pt[1]*H-dx/d*5);ctx.stroke();}
+ }
+ if(down&&trail.length>1){ctx.strokeStyle=p.white;ctx.lineWidth=1;ctx.setLineDash([3,5]);poly(trail.map(pt=>[pt[0]*W,pt[1]*H]),false);ctx.stroke();ctx.setLineDash([])}
+}
+function draw(){
+ background();appendages();jelly();tube();mouth();
+ const a=centerAt(.1),b=centerAt(.65);
+ eye(a[0],a[1],R*.105,-.55,1);eye(b[0],b[1],R*.09,.3,2);
+ eye(CX+R*.42,CY+R*.31,R*.14,.26,3);eye(CX+R*.17,CY+R*.5,R*.066,-.5,4);
+ stickers();drawScars();
+ extraEyes.forEach((e,i)=>eye(e.x*W,e.y*H,R*e.r,e.a,i+5));
+ lettering();tearImage();ctx.fillStyle=grain;ctx.fillRect(0,0,W,H);
+ if(inside){
+  const x=pointer.x*W,y=pointer.y*H;ctx.strokeStyle=p.white;ctx.lineWidth=1;ctx.beginPath();ctx.arc(x,y,down?22:12,0,TAU);ctx.moveTo(x-18,y);ctx.lineTo(x+18,y);ctx.moveTo(x,y-18);ctx.lineTo(x,y+18);ctx.stroke();
+  ctx.font='9px monospace';ctx.fillStyle=p.acid;ctx.fillText(down?'FEEDING':'HELLO, STRANGER',x+22,y-12);
+ }
+}
+function updatePointer(e){pointer.x=clamp(e.clientX/W,-.1,1.1);pointer.y=clamp(e.clientY/H,-.1,1.1);inside=true;if(paused){pointer.ex=pointer.x;pointer.ey=pointer.y;energy=down?1:.22;tear=down?1:0}}
+stage.addEventListener('pointermove',e=>{
+ if(!e.isPrimary||(activePointer!==null&&e.pointerId!==activePointer))return;
+ updatePointer(e);
+ if(down){dragged=dragged||Math.hypot(e.clientX-pointer.sx,e.clientY-pointer.sy)>6;trail.push([pointer.x,pointer.y]);if(trail.length>65)trail.shift()}
+ if(paused)draw();
+},{passive:true});
+stage.addEventListener('pointerdown',e=>{
+ if(e.button!==0||!e.isPrimary||activePointer!==null)return;activePointer=e.pointerId;down=true;dragged=false;pointer.sx=e.clientX;pointer.sy=e.clientY;trail.length=0;updatePointer(e);trail.push([pointer.x,pointer.y]);stage.setPointerCapture(e.pointerId);if(paused)draw();
+});
+function release(e,cancelled=false){
+ if(!down||e.pointerId!==activePointer)return;down=false;activePointer=null;
+ dragged=dragged||Math.hypot(e.clientX-pointer.sx,e.clientY-pointer.sy)>6;
+ if(!cancelled){updatePointer(e);trail.push([pointer.x,pointer.y])}
+ if(!cancelled){
+  if(dragged){scars.push(trail.slice());if(scars.length>3)scars.shift();notify('A new scar remains. The organism remembers.')}
+  else{extraEyes.push({x:pointer.x,y:pointer.y,r:.035+rand(extraEyes.length+3)*.04,a:rand(extraEyes.length+10)*1.6-.8});if(extraEyes.length>12)extraEyes.shift();notify('An eye has appeared. It is watching your pointer.')}
+ }
+ trail.length=0;if(stage.hasPointerCapture(e.pointerId))stage.releasePointerCapture(e.pointerId);
+ if(paused){energy=inside?.22:0;tear=0;draw()}
+}
+stage.addEventListener('pointerup',e=>release(e));stage.addEventListener('pointercancel',e=>release(e,true));
+stage.addEventListener('pointerleave',()=>{if(!down){inside=false;if(paused){energy=0;draw()}}});
+window.addEventListener('blur',()=>{down=false;activePointer=null;trail.length=0;inside=false;if(paused){energy=0;tear=0;draw()}});
+function mutate(){
+ specimen++;pi=(pi+1)%palettes.length;p=palettes[pi];seedTarget+=1.73;extraEyes.length=0;scars.length=0;prepareStipple();
+ if(paused)bodySeed=seedTarget;
+ document.getElementById('status').textContent='SPECIMEN '+String(specimen).padStart(3,'0')+' · '+['EMOTIONALLY UNSTABLE','INCONVENIENTLY ALIVE','NO KNOWN PURPOSE','DOING ITS WORST'][pi];
+ document.body.style.background=p.bg;notify('Specimen '+specimen+'. A new colour and shape mutation.');draw();
+}
+function togglePause(){paused=!paused;sync();if(paused){cancelAnimationFrame(frame);frame=0;draw()}else{last=performance.now();queue()}}
+document.getElementById('mutate').addEventListener('click',mutate);still.addEventListener('click',togglePause);
+window.addEventListener('keydown',e=>{if(e.repeat||e.ctrlKey||e.metaKey||e.altKey||e.target.closest('button,input,textarea,select'))return;if(e.code==='Space'){e.preventDefault();mutate()}else if(e.code==='KeyP')togglePause()});
+document.getElementById('save').addEventListener('click',()=>{
+ const out=document.createElement('canvas');out.width=canvas.width;out.height=canvas.height;
+ const c=out.getContext('2d');c.drawImage(canvas,0,0);c.scale(D,D);
+ c.fillStyle=p.white;c.font='11px monospace';c.fillText('MOUTHFEEL / SPECIMEN '+String(specimen).padStart(3,'0')+' / '+new Date().toISOString().slice(0,10),20,H-22);
+ out.toBlob(blob=>{if(!blob){notify('The image could not be saved. Please try again.');return}const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download='mouthfeel-'+String(specimen).padStart(3,'0')+'.png';link.click();setTimeout(()=>URL.revokeObjectURL(url),30000);notify('Your specimen has been collected as a PNG.')},'image/png');
+});
+reduced.addEventListener('change',e=>{paused=e.matches;sync();if(paused){cancelAnimationFrame(frame);frame=0;draw()}else{last=performance.now();queue()}});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){cancelAnimationFrame(frame);frame=0}else{last=performance.now();queue()}});
+window.addEventListener('resize',resize);sync();prepareStipple();resize();document.querySelector('.fallback').style.display='none';document.querySelector('h1').style.opacity='0';queue();
+})();
+</script>
+</body>
+</html>

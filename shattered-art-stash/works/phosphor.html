@@ -1,0 +1,639 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#05070e"><title>020 — PHOSPHOR BLOOM</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;height:100%;overflow:hidden;background:#05070e;color:#d9e6ed;font-family:monospace}canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;background:repeating-linear-gradient(0deg,#020817 0 5px,#102644 6px 7px)}header,footer{position:fixed;left:22px;right:22px;display:flex;justify-content:space-between;gap:12px;z-index:2;pointer-events:none;font-size:10px;line-height:1.5;letter-spacing:1.1px;text-transform:uppercase;mix-blend-mode:exclusion}header{top:19px}footer{bottom:19px;align-items:flex-end}.name{font-size:12px;letter-spacing:2px}.subtitle{opacity:.6}.readout{text-align:right}nav{display:flex;gap:6px;pointer-events:auto}button{font:10px monospace;letter-spacing:.7px;color:#d9e6ed;background:#07111ccc;border:1px solid #a8c5d855;padding:10px 12px;cursor:pointer}button:hover{color:#07111c;background:#d9e6ed}button:focus-visible{outline:2px solid #fef669;outline-offset:4px}#help{opacity:.75}#live{position:absolute;clip-path:inset(50%);width:1px;height:1px;overflow:hidden}@media(max-width:600px){header,footer{left:12px;right:12px;font-size:8px}.name{font-size:10px}.subtitle{max-width:200px}footer{flex-wrap:wrap}button{padding:9px;font-size:9px}.readout{max-width:120px}}@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+</style></head><body>
+<canvas id="surface" role="img" aria-label="An interactive fictional signal that progressively corrupts. Mouse movement introduces faults. Pause freezes time; Reseed starts a new specimen."></canvas>
+<header><div><div class="name" id="title">020 / PHOSPHOR BLOOM</div><div class="subtitle" id="ancestry">DESCENDED FROM 019-moire.html</div></div><div class="readout"><span id="meter">COHERENCE 100.000%</span><br><span id="clock">00:00.000</span></div></header>
+<footer><div id="help">MOVE TO INTRODUCE A FAULT<br>EVERY SURFACE REMEMBERS</div><nav aria-label="Artwork controls"><button id="pause" type="button" aria-pressed="false">Pause</button><button id="reset" type="button">Reseed ↗</button><button id="export" type="button">Collect ↓</button></nav></footer><div id="live" role="status" aria-live="polite"></div>
+<script>
+(()=>{'use strict';
+const canvas=document.getElementById('surface'),ctx=canvas.getContext('2d',{alpha:false});if(!ctx)return;
+const reduced=matchMedia('(prefers-reduced-motion: reduce)');
+const seedBuffer=new Uint32Array(1);crypto.getRandomValues(seedBuffer);
+const E=window.Decay={canvas,ctx,w:1,h:1,dpr:1,time:0,dt:0,seed:seedBuffer[0],generation:1,title:'SIGNAL RETENTION',level:0,pressure:0,held:false,inside:false,paused:reduced.matches,frame:0,last:0,cols:64,rows:40,grid:new Float32Array(64*40),hooks:[],resets:[],inputs:[],pointer:{x:.5,y:.5,px:.5,py:.5,speed:0},palette:['#10f4cf','#196fff','#f4d84e','#ed4e8c','#8d78ff','#b7f6ff']};
+let state=E.seed,spread=0,readout=0,pointerId=null;
+E.rand=()=>{state^=state<<13;state^=state>>>17;state^=state<<5;return(state>>>0)/4294967296};
+E.hash=n=>{const v=Math.sin(n*127.17+E.seed*.00017)*43758.54;return v-Math.floor(v)};
+E.clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
+E.buffer=()=>{const c=document.createElement('canvas');c.width=canvas.width;c.height=canvas.height;return c};
+E.register=(name,draw,reset)=>{E.hooks.push({name,draw});if(reset)E.resets.push(reset)};
+E.infect=(x,y,power=1)=>{
+ const col=Math.floor(x*E.cols),row=Math.floor(y*E.rows);
+ for(let j=-2;j<=2;j++)for(let i=-2;i<=2;i++){const xx=col+i,yy=row+j;if(xx<0||xx>=E.cols||yy<0||yy>=E.rows)continue;const index=yy*E.cols+xx;E.grid[index]=E.clamp(E.grid[index]+power*.15/(1+i*i+j*j))}
+};
+function resize(){E.w=innerWidth;E.h=innerHeight;E.dpr=Math.min(devicePixelRatio||1,1.5);canvas.width=Math.round(E.w*E.dpr);canvas.height=Math.round(E.h*E.dpr);ctx.setTransform(E.dpr,0,0,E.dpr,0,0);draw()}
+function foundation(){
+ const w=E.w,h=E.h,t=E.time,p=E.pointer;
+ ctx.fillStyle='#050710';ctx.fillRect(0,0,w,h);
+ const glow=ctx.createRadialGradient(w*.52,h*.49,0,w*.52,h*.49,w*.7);glow.addColorStop(0,'#153365');glow.addColorStop(.55,'#0b152c');glow.addColorStop(1,'#020409');ctx.fillStyle=glow;ctx.fillRect(0,0,w,h);
+ // An immaculate spectrum, waiting for the first impossible address.
+ const left=w*.15,top=h*.19,rw=w*.7,rh=h*.62;
+ ctx.save();ctx.beginPath();ctx.rect(left,top,rw,rh);ctx.clip();
+ const grad=ctx.createLinearGradient(left,0,left+rw,0);['#102cfa','#28e3f4','#e4f2bf','#fe6741','#f1118b','#5920ab'].forEach((c,i)=>grad.addColorStop(i/5,c));ctx.fillStyle=grad;ctx.fillRect(left,top,rw,rh);
+ ctx.globalCompositeOperation='multiply';
+ for(let i=0;i<84;i++){const yy=top+i/84*rh,phase=i*.07+t*.08;ctx.fillStyle='rgba(1,3,24,'+(.17+.35*(.5+.5*Math.sin(phase)))+')';ctx.beginPath();ctx.moveTo(left,yy);ctx.bezierCurveTo(left+rw*.3,yy+Math.sin(phase)*rh*.16,left+rw*.7,yy-Math.cos(phase)*rh*.17,left+rw,yy);ctx.lineTo(left+rw,yy+rh/84*.6);ctx.bezierCurveTo(left+rw*.7,yy-Math.cos(phase)*rh*.17+4,left+rw*.3,yy+Math.sin(phase)*rh*.16+4,left,yy+4);ctx.closePath();ctx.fill()}
+ ctx.globalCompositeOperation='screen';ctx.strokeStyle='#b5dfea60';ctx.lineWidth=.7;
+ for(let i=0;i<29;i++){const xx=left+i/28*rw;ctx.beginPath();ctx.moveTo(xx,top);ctx.lineTo(xx+Math.sin(t*.12+i*.2)*E.level*70,top+rh);ctx.stroke()}
+ for(let i=0;i<21;i++){ctx.beginPath();ctx.moveTo(left,top+i/20*rh);ctx.lineTo(left+rw,top+i/20*rh);ctx.stroke()}
+ ctx.restore();
+ ctx.strokeStyle='#bfe9ff80';ctx.lineWidth=1;ctx.strokeRect(left-.5,top-.5,rw+1,rh+1);
+ ctx.save();ctx.translate(w*.5,h*.5);ctx.rotate(t*.013);
+ for(let i=0;i<4;i++){ctx.strokeStyle=i%2?'#f8ffffaa':'#080e1fcc';ctx.lineWidth=i%2?1:4;ctx.beginPath();ctx.ellipse(0,0,rh*(.24+i*.047),rh*(.24+i*.047),0,0,Math.PI*2);ctx.stroke()}
+ ctx.restore();
+ ctx.fillStyle='#e9fbff';ctx.font='9px monospace';ctx.fillText('REFERENCE SURFACE / '+E.seed.toString(16).toUpperCase(),left,top-12);ctx.fillText('01  02  04  08  16  32  64  128  256  512  1024',left,top+rh+19);
+ for(const x of [left-15,left+rw+15])for(const y of [top-15,top+rh+15]){ctx.strokeStyle='#bfe9ff';ctx.beginPath();ctx.moveTo(x-6,y);ctx.lineTo(x+6,y);ctx.moveTo(x,y-6);ctx.lineTo(x,y+6);ctx.stroke()}
+}
+function damage(){
+ const cw=E.w/E.cols,ch=E.h/E.rows;
+ for(let n=0;n<E.grid.length;n++){
+  const v=E.grid[n];if(v<.025)continue;
+  const x=n%E.cols*cw,y=Math.floor(n/E.cols)*ch,r=E.hash(n);
+  ctx.globalAlpha=Math.min(.92,v*.8);
+  ctx.fillStyle=v>.74?'#03040b':E.palette[Math.floor(r*E.palette.length)];ctx.fillRect(x,y,cw*(r>.85?2.8:1)+.4,ch+.4);
+  if(v>.2){ctx.globalAlpha=Math.min(.7,v);ctx.fillStyle=E.palette[(n+2)%6];for(let k=0;k<3;k++)if(E.hash(n+k*31)>.4)ctx.fillRect(x+(k/3)*cw,y+ch*.2,cw*.17,ch*.6)}
+ }
+ ctx.globalAlpha=1;
+}
+function advance(){
+ const dt=E.dt;E.time+=dt;E.pointer.speed*=Math.exp(-dt*4);E.pressure+=(E.held?1:0-E.pressure)*Math.min(1,dt*3);E.pressure=E.clamp(E.pressure);
+ E.level=E.clamp(E.level+dt*.0018+E.pointer.speed*dt*.007);
+ spread+=dt*(6+E.level*110);
+ while(spread>=1){spread--;const i=Math.floor(E.rand()*E.grid.length);if(E.grid[i]>.03){const j=i+[1,-1,E.cols,-E.cols][Math.floor(E.rand()*4)];if(j>=0&&j<E.grid.length)E.grid[j]=E.clamp(E.grid[j]+E.grid[i]*.13+.007);E.grid[i]=E.clamp(E.grid[i]+.009)}else if(E.rand()<.04+E.level*.4)E.grid[i]=.03+E.level*.1}
+ if(E.held)E.infect(E.pointer.x,E.pointer.y,dt*3);
+}
+function draw(){
+ foundation();damage();
+ for(const hook of E.hooks){ctx.save();try{hook.draw(E)}finally{ctx.restore()}}
+ ctx.fillStyle='#01040e20';for(let y=0;y<E.h;y+=4)ctx.fillRect(0,y,E.w,1);
+ if(E.inside){const x=E.pointer.x*E.w,y=E.pointer.y*E.h;ctx.strokeStyle='#faffdba0';ctx.lineWidth=1;ctx.strokeRect(x-7,y-7,14,14);ctx.font='9px monospace';ctx.fillStyle='#e0faff';ctx.fillText(Math.floor(x).toString(16)+':'+Math.floor(y).toString(16),x+14,y-10)}
+ if(E.time-readout>.15||E.paused){readout=E.time;document.getElementById('meter').textContent='COHERENCE '+((1-E.level)*100).toFixed(3)+'%';document.getElementById('clock').textContent=new Date(E.time*1000).toISOString().slice(14,23)}
+}
+E.draw=draw;
+function queue(){if(!E.frame&&!E.paused&&!document.hidden)E.frame=requestAnimationFrame(tick)}
+function tick(now){E.frame=0;E.dt=Math.min((now-E.last)||16,40)/1000;E.last=now;advance();draw();queue()}
+function setPaused(value){E.paused=value;const b=document.getElementById('pause');b.textContent=value?'Resume':'Pause';b.setAttribute('aria-pressed',String(value));if(value){cancelAnimationFrame(E.frame);E.frame=0}else{E.last=performance.now();queue()}}
+function input(e){if(!e.isPrimary||(pointerId!==null&&e.pointerId!==pointerId))return;const p=E.pointer;const x=E.clamp(e.clientX/E.w),y=E.clamp(e.clientY/E.h),dist=Math.hypot(x-p.x,y-p.y);p.px=p.x;p.py=p.y;p.x=x;p.y=y;p.speed=Math.min(5,p.speed+dist*12);E.inside=true;E.level=E.clamp(E.level+dist*.003);E.infect(x,y,Math.min(1,.1+dist*7));for(const fn of E.inputs)fn(E,e,dist);if(E.paused)draw()}
+canvas.addEventListener('pointermove',input,{passive:true});canvas.addEventListener('pointerdown',e=>{if(!e.isPrimary||e.button!==0||pointerId!==null)return;pointerId=e.pointerId;E.held=true;canvas.setPointerCapture(e.pointerId);input(e)});
+function release(e){if(pointerId!==e.pointerId)return;E.held=false;pointerId=null;if(canvas.hasPointerCapture(e.pointerId))canvas.releasePointerCapture(e.pointerId);if(E.paused)draw()}
+canvas.addEventListener('pointerup',release);canvas.addEventListener('pointercancel',release);canvas.addEventListener('pointerleave',()=>{E.inside=false;if(E.paused)draw()});window.addEventListener('blur',()=>{E.held=false;pointerId=null});
+document.getElementById('pause').onclick=()=>setPaused(!E.paused);
+document.getElementById('reset').onclick=()=>{crypto.getRandomValues(seedBuffer);E.seed=seedBuffer[0];state=E.seed;E.level=0;E.time=0;E.grid.fill(0);E.pointer.speed=0;E.pressure=0;spread=0;readout=0;E.resets.forEach(fn=>fn(E));document.getElementById('live').textContent='New specimen '+E.seed.toString(16);draw()};
+document.getElementById('export').onclick=()=>canvas.toBlob(blob=>{if(!blob)return;const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=String(E.generation).padStart(3,'0')+'-'+E.seed.toString(16)+'.png';a.click();setTimeout(()=>URL.revokeObjectURL(u),30000)},'image/png');
+window.addEventListener('keydown',e=>{if(e.repeat||e.ctrlKey||e.metaKey||e.altKey||e.target.closest('button,input,textarea,select'))return;if(e.code==='Space'){e.preventDefault();setPaused(!E.paused)}else if(e.code==='KeyR')document.getElementById('reset').click()});
+reduced.addEventListener('change',e=>setPaused(e.matches));document.addEventListener('visibilitychange',()=>{if(document.hidden){cancelAnimationFrame(E.frame);E.frame=0}else{E.last=performance.now();queue()}});
+window.addEventListener('resize',resize);resize();setPaused(E.paused);
+})();
+</script>
+<!-- MILESTONE 002: AFTERIMAGE DEBT; PARENT 001-signal.html -->
+<script>
+(()=>{const E=window.Decay;if(!E)return;E.generation=2;E.title="AFTERIMAGE DEBT";
+// The frame starts believing its own old frames. Misregistration persists.
+const memory=E.buffer(),m=memory.getContext('2d');let ready=false;
+E.register('retention',()=>{
+ const {ctx:c,w,h}=E;
+ if(memory.width!==E.canvas.width||memory.height!==E.canvas.height){memory.width=E.canvas.width;memory.height=E.canvas.height;ready=false}
+ if(ready){
+  const loss=.08+E.level*.55+E.pointer.speed*.05;
+  c.globalAlpha=Math.min(.84,loss);c.globalCompositeOperation='screen';
+  const dx=Math.sin(E.time*.33)*(.5+E.level*18)+E.pointer.speed*3;
+  c.drawImage(memory,dx,-E.level*4,w*(1+E.level*.005),h*(1+E.level*.005));
+  c.globalAlpha=Math.min(.8,.12+E.level*.5);c.globalCompositeOperation='source-over';
+  const y=Math.floor(E.pointer.y*h/8)*8;
+  c.drawImage(memory,0,Math.max(0,y-24)*E.dpr,memory.width,Math.min(48,h-y+24)*E.dpr,Math.sin(E.time*.2)*E.level*60,Math.max(0,y-24),w,Math.min(48,h-y+24));
+ }
+ m.clearRect(0,0,memory.width,memory.height);m.drawImage(E.canvas,0,0);ready=true;
+},()=>{ready=false});
+E.level=.035;
+document.getElementById('help').innerHTML='MOVE TO MISREGISTER THE PRESENT<br>THE PREVIOUS FRAME HAS NOT LEFT';
+
+E.draw();
+})();
+</script>
+<!-- MILESTONE 003: SCANLINE AMNESIA; PARENT 002-afterimage.html -->
+<script>
+(()=>{const E=window.Decay;if(!E)return;E.generation=3;E.title="SCANLINE AMNESIA";
+// The raster loses horizontal lock one band at a time.
+const raster=E.buffer(),rasterCtx=raster.getContext('2d');
+const offsets=new Float32Array(72),targets=new Float32Array(72);
+let lastFault=0;
+E.inputs.push((s,e,dist)=>{const row=Math.min(71,Math.floor(s.pointer.y*72));targets[row]+=(s.pointer.x-s.pointer.px)*s.w*3;targets[(row+1)%72]-=dist*s.w;});
+E.register('scanline-amnesia',()=>{
+ const {ctx:c,w,h}=E;
+ if(raster.width!==E.canvas.width||raster.height!==E.canvas.height){raster.width=E.canvas.width;raster.height=E.canvas.height}
+ rasterCtx.drawImage(E.canvas,0,0);
+ if(E.time-lastFault>.3){lastFault=E.time;const i=Math.floor(E.rand()*72);targets[i]=(E.rand()-.5)*w*(.01+E.level*.4);if(E.rand()<E.level)targets[(i+1)%72]=targets[i]*-.45}
+ const bh=h/72;
+ for(let i=0;i<72;i++){
+  offsets[i]+=(targets[i]-offsets[i])*.08;
+  const shift=offsets[i];if(Math.abs(shift)<.5)continue;
+  const y=i*bh;const sy=Math.min(raster.height-1,y*E.dpr),sh=Math.min(raster.height-sy,bh*E.dpr);
+  c.globalAlpha=.92;c.drawImage(raster,0,sy,raster.width,sh,shift,y,w,bh+.5);
+  c.globalAlpha=.3;c.fillStyle=E.palette[i%6];c.fillRect(shift>0?0:w+shift,y,Math.abs(shift),1);
+ }
+ c.globalAlpha=.4;c.fillStyle='#ecfff5';
+ const rolling=(E.time*13)%h;c.fillRect(0,rolling,w,.7);
+},()=>{offsets.fill(0);targets.fill(0);lastFault=0});
+E.level=.07;
+document.getElementById('help').innerHTML='DRAG ACROSS THE SCANLINES<br>SYNC CANNOT FIND THE SAME ROW TWICE';
+
+E.draw();
+})();
+</script>
+<!-- MILESTONE 004: ADDRESS SPACE; PARENT 003-scanline.html -->
+<script>
+(()=>{const E=window.Decay;if(!E)return;E.generation=4;E.title="ADDRESS SPACE";
+// Blocks retain their addresses after their contents have moved away.
+const cache=E.buffer(),cacheCtx=cache.getContext('2d'),pages=[];let allocation=0;
+function allocate(x,y,size){
+ const wide=(.035+E.rand()*.11)*size,high=(.012+E.rand()*.09)*size;
+ pages.push({x:E.clamp(x),y:E.clamp(y),w:wide,h:high,sx:E.rand()*.75,sy:E.rand()*.75,life:0,skew:(E.rand()-.5)*.15,id:Math.floor(E.rand()*65535).toString(16).padStart(4,'0')});if(pages.length>64)pages.shift();
+}
+E.inputs.push((s,e,d)=>{if(d>.004)allocate(s.pointer.x,s.pointer.y,1+d*3)});
+E.register('address-space',()=>{
+ const {ctx:c,w,h}=E;if(cache.width!==E.canvas.width||cache.height!==E.canvas.height){cache.width=E.canvas.width;cache.height=E.canvas.height}
+ cacheCtx.drawImage(E.canvas,0,0);
+ if(E.time-allocation>Math.max(.12,2-E.level*2)){allocation=E.time;allocate(E.rand(),E.rand(),1)}
+ for(const block of pages){
+  if(!E.paused)block.life+=E.dt;
+  const x=block.x*w,y=block.y*h,bw=block.w*w,bh=block.h*h;
+  c.globalAlpha=Math.min(.88,.12+block.life*.04+E.level*.4);
+  c.drawImage(cache,block.sx*cache.width,block.sy*cache.height,Math.max(1,Math.min(cache.width*(block.w*.8),cache.width*(1-block.sx))),Math.max(1,Math.min(cache.height*block.h,cache.height*(1-block.sy))),x,y,bw,bh);
+  c.fillStyle=E.palette[parseInt(block.id,16)%6];c.globalAlpha=.3;c.fillRect(x,y,bw,2);
+  c.globalAlpha=.6;c.font='8px monospace';c.fillStyle='#d5f5ef';c.fillText('0x'+block.id,x+2,y-3);
+  if(block.life>10){c.globalAlpha=.35;c.fillStyle='#03060e';c.fillRect(x+bw*.6,y,bw*.4,bh)}
+ }
+},()=>{pages.length=0;allocation=0});
+E.level=.11;
+document.getElementById('help').innerHTML='MOVE TO ALLOCATE THE WRONG MEMORY<br>THE ADDRESS OUTLIVES THE IMAGE';
+
+E.draw();
+})();
+</script>
+<!-- MILESTONE 005: BITPLANE DIVORCE; PARENT 004-addresses.html -->
+<script>
+(()=>{const E=window.Decay;if(!E)return;E.generation=5;E.title="BITPLANE DIVORCE";
+// Colour channels stop agreeing on which bit belongs to which pixel.
+const bitplane=document.createElement('canvas');bitplane.width=240;bitplane.height=150;
+const bitCtx=bitplane.getContext('2d',{willReadFrequently:true});let refresh=-1;
+E.register('bitplane-divorce',()=>{
+ const {ctx:c,w,h}=E;
+ if(E.time-refresh>.1||E.paused){
+  refresh=E.time;bitCtx.drawImage(E.canvas,0,0,240,150);
+  const pixels=bitCtx.getImageData(0,0,240,150),data=pixels.data;
+  const shift=1+Math.floor(E.level*5),mask=(255<<shift)&255;
+  for(let y=0;y<150;y++)for(let x=0;x<240;x++){
+   const i=(y*240+x)*4,j=(y*240+(x+Math.floor(1+E.level*13))%240)*4;
+   const v=E.grid[Math.min(E.grid.length-1,Math.floor(y/150*E.rows)*E.cols+Math.floor(x/240*E.cols))];
+   if(v>.04||E.hash(Math.floor(x/12)+Math.floor(y/6)*20)<E.level*.45){
+    data[i]=(data[i]&mask)^(E.level>.4?48:16);data[i+1]=data[j+2]&mask;data[i+2]=data[j+1]&mask;
+   }
+  }
+  bitCtx.putImageData(pixels,0,0);
+ }
+ c.imageSmoothingEnabled=false;c.globalAlpha=.16+E.level*.58;c.drawImage(bitplane,0,0,w,h);
+ c.globalAlpha=.12+E.level*.14;c.globalCompositeOperation='screen';
+ c.drawImage(bitplane,Math.sin(E.time*.7)*E.level*24,0,w,h);
+},()=>{refresh=-1;bitCtx.clearRect(0,0,240,150)});
+E.level=.15;
+document.getElementById('help').innerHTML='THE RED CHANNEL REMEMBERS SOMETHING ELSE<br>MOVE TO LOSE ANOTHER BIT';
+
+E.draw();
+})();
+</script>
+<!-- MILESTONE 006: DEAD LETTER OFFICE; PARENT 005-bitplanes.html -->
+<script>
+(()=>{const E=window.Decay;if(!E)return;E.generation=6;E.title="DEAD LETTER OFFICE";
+// Language is another texture allocation. The pointer is no longer singular.
+const echoes=[];E.inputs.push((s,e,d)=>{if(d>.003){echoes.push({x:s.pointer.x,y:s.pointer.y,birth:s.time});if(echoes.length>42)echoes.shift()}});
+const lexicon=['FRAME','LOST','LOST','FOUND?','NULL','STILL HERE','DO NOT RECALL','0x00000000'];
+E.register('dead-letters',()=>{
+ const {ctx:c,w,h}=E,scale=Math.min(w,h);
+ for(let i=0;i<9;i++){
+  const x=E.hash(i+160)*w,y=E.hash(i+192)*h;
+  const word=lexicon[Math.floor(E.hash(i+248)*lexicon.length)];
+  c.save();c.translate(x,y);c.scale(1+E.level*E.hash(i+444)*3,.65+E.hash(i+400));
+  c.font='900 '+(15+E.hash(i+347)*scale*.055)+'px monospace';
+  c.globalAlpha=.05+E.level*.22;c.globalCompositeOperation=i%2?'difference':'screen';c.fillStyle=E.palette[i%6];c.fillText(word,0,0);
+  c.globalAlpha=.03+E.level*.14;c.fillText(word,4+Math.sin(E.time*.2+i)*E.level*15,4);c.restore();
+ }
+ for(let i=0;i<echoes.length;i++){
+  const pt=echoes[i],age=E.time-pt.birth,x=pt.x*w,y=pt.y*h;
+  c.save();c.translate(x+Math.sin(age*.1+i)*E.level*14,y+age*E.level*2);c.scale(1+E.level*2,1+E.level*2);
+  c.globalAlpha=Math.max(.08,.55-age*.02);c.fillStyle=i%3?'#c9f0de':'#f984a0';c.strokeStyle='#03090e';c.lineWidth=1;
+  c.beginPath();c.moveTo(0,0);c.lineTo(0,17);c.lineTo(5,13);c.lineTo(9,22);c.lineTo(12,20);c.lineTo(8,12);c.lineTo(15,12);c.closePath();c.fill();c.stroke();c.restore();
+ }
+},()=>{echoes.length=0});
+E.level=.19;
+document.getElementById('help').innerHTML='YOUR POINTER WAS NOT PROPERLY DEALLOCATED<br>THE WORDS ARE ALSO DAMAGED';
+
+E.draw();
+})();
+</script>
+<!-- MILESTONE 007: SUBSTRATE DELAMINATION; PARENT 006-letters.html -->
+<script>
+(()=>{const E=window.Decay;if(!E)return;E.generation=7;E.title="SUBSTRATE DELAMINATION";
+// The image was only a laminate. Individual tiles separate from their substrate.
+const laminate=E.buffer(),laminateCtx=laminate.getContext('2d');
+E.register('delamination',()=>{
+ const {ctx:c,w,h}=E;if(laminate.width!==E.canvas.width||laminate.height!==E.canvas.height){laminate.width=E.canvas.width;laminate.height=E.canvas.height}
+ laminateCtx.drawImage(E.canvas,0,0);
+ const nx=11,ny=8,tw=w/nx,th=h/ny;
+ for(let j=0;j<ny;j++)for(let i=0;i<nx;i++){
+  const n=j*nx+i,threshold=E.hash(n+1700)*.95;
+  const proximity=Math.max(0,1-Math.hypot((i+.5)/nx-E.pointer.x,(j+.5)/ny-E.pointer.y)*4);
+  const loss=Math.max(0,E.level-threshold)+proximity*E.pressure*.45;if(loss<.02)continue;
+  const x=i*tw,y=j*th,dx=(E.hash(n+1900)-.5)*loss*tw*2,dy=loss*loss*h*.26;
+  c.fillStyle='#03040c';c.fillRect(x-.5,y-.5,tw+1,th+1);
+  c.strokeStyle='#203745';c.lineWidth=.7;c.strokeRect(x+1,y+1,tw-2,th-2);
+  c.save();c.translate(x+tw/2+dx,y+th/2+dy);c.rotate((E.hash(n+2000)-.5)*loss*.5);
+  c.globalAlpha=Math.max(.35,1-loss*.4);
+  c.drawImage(laminate,x*E.dpr,y*E.dpr,Math.min(tw*E.dpr,laminate.width-x*E.dpr),Math.min(th*E.dpr,laminate.height-y*E.dpr),-tw/2,-th/2,tw,th);
+  c.strokeStyle=E.palette[n%6];c.globalAlpha=.4;c.strokeRect(-tw/2,-th/2,tw,th);c.restore();
+  c.strokeStyle='#96c9cd35';c.beginPath();c.moveTo(x,y);c.lineTo(x+dx,y+dy);c.stroke();
+ }
+});
+E.level=.23;
+document.getElementById('help').innerHTML='HOLD TO DETACH THE SUBSTRATE<br>THE SCREEN IS NOT ONE SOLID THING';
+
+E.draw();
+})();
+</script>
+<!-- MILESTONE 008: LIQUID MEMORY; PARENT 007-laminate.html -->
+<script>
+(()=>{const E=window.Decay;if(!E)return;E.generation=8;E.title="LIQUID MEMORY";
+// Discard the neat address labels; reuse their abandoned space as drainage.
+E.hooks=E.hooks.filter(h=>h.name!=='address-space');
+const rain=E.buffer(),rainCtx=rain.getContext('2d');
+const sediment=document.createElement('canvas');sediment.width=160;sediment.height=100;
+const sedimentCtx=sediment.getContext('2d');
+E.register('liquid-memory',()=>{
+ const {ctx:c,w,h}=E;if(rain.width!==E.canvas.width||rain.height!==E.canvas.height){rain.width=E.canvas.width;rain.height=E.canvas.height}
+ rainCtx.drawImage(E.canvas,0,0);
+ const columns=80,cw=w/columns;
+ for(let i=0;i<columns;i++){
+  const seed=E.hash(i+2760),drip=E.level*(.15+seed)*h*.38;
+  const y=h*(.16+E.hash(i+2800)*.61)+Math.sin(E.time*.16+i)*h*.03;
+  if(seed>E.level+.22)continue;
+  const sourceY=Math.min(rain.height-2,Math.max(0,y*E.dpr));
+  c.globalAlpha=.22+E.level*.55;c.imageSmoothingEnabled=false;
+  c.drawImage(rain,i*cw*E.dpr,sourceY,Math.min(cw*E.dpr,rain.width-i*cw*E.dpr),2,i*cw,y,cw+.5,drip);
+  c.globalAlpha=.35;c.fillStyle=E.palette[i%6];c.fillRect(i*cw,y+drip,cw,1);
+ }
+ sedimentCtx.globalAlpha=.055;sedimentCtx.drawImage(E.canvas,0,0,160,100);sedimentCtx.globalAlpha=1;
+ c.globalAlpha=E.level*.55;c.imageSmoothingEnabled=false;
+ c.drawImage(sediment,0,75,160,25,0,h*(.88-E.level*.12),w,h*(.12+E.level*.12));
+},()=>{sedimentCtx.clearRect(0,0,160,100)});
+E.level=.27;
+document.getElementById('help').innerHTML='THE IMAGE HAS BEGUN TO DRAIN<br>MEMORY COLLECTS AT THE BOTTOM';
+
+E.draw();
+})();
+</script>
+<!-- MILESTONE 009: AN INTERIOR FOR NOTHING; PARENT 008-drainage.html -->
+<script>
+(()=>{const E=window.Decay;if(!E)return;E.generation=9;E.title="AN INTERIOR FOR NOTHING";
+// Missing regions develop an interior. Nothing is now another kind of image.
+const wounds=[];
+function wound(x,y){wounds.push({x,y,id:wounds.length+3,age:0});if(wounds.length>7)wounds.shift()}
+wound(.58,.46);wound(.3,.68);
+E.inputs.push((s,e,d)=>{if(s.held&&d>.015&&E.rand()<.2)wound(s.pointer.x,s.pointer.y)});
+E.register('null-interior',()=>{
+ const {ctx:c,w,h}=E;
+ for(const hole of wounds){
+  if(!E.paused)hole.age+=E.dt;
+  const x=hole.x*w,y=hole.y*h;
+  const radius=Math.min(w,h)*(.025+E.level*.21+Math.min(.08,hole.age*.0008));
+  c.save();c.translate(x,y);c.beginPath();
+  for(let i=0;i<40;i++){const a=i/40*Math.PI*2,r=radius*(.75+E.hash(i+hole.id*50)*.45+.05*Math.sin(E.time*.2+i));const xx=Math.cos(a)*r,yy=Math.sin(a)*r;i?c.lineTo(xx,yy):c.moveTo(xx,yy)}c.closePath();c.clip();
+  c.fillStyle='#010207';c.fillRect(-radius*2,-radius*2,radius*4,radius*4);
+  for(let i=0;i<22;i++){
+   const depth=i/22,r=radius*(.08+depth*1.2),shift=Math.sin(i*.13+E.time*.11)*radius*.2;
+   c.strokeStyle=E.palette[(i+hole.id)%6];c.globalAlpha=.12+depth*.5;c.lineWidth=.7;
+   c.beginPath();c.ellipse(shift,Math.cos(i*.11+E.time*.1)*radius*.16,r,r*.7,i*.025,0,Math.PI*2);c.stroke();
+  }
+  c.globalAlpha=.6;c.fillStyle='#c9fbe8';c.font='8px monospace';c.fillText('NOTHING IS HERE',-radius*.5,0);c.restore();
+ }
+},()=>{wounds.length=0;wound(E.rand()*.6+.2,E.rand()*.6+.2)});
+E.level=.31;
+document.getElementById('help').innerHTML='HOLD AND MOVE TO UNMAP THE SURFACE<br>THERE IS SOMETHING INSIDE THE NOTHING';
+
+E.draw();
+})();
+</script>
+<!-- MILESTONE 010: POST IMAGE; PARENT 009-void.html -->
+<script>
+(()=>{const E=window.Decay;if(!E)return;E.generation=10;E.title="POST IMAGE";
+// The calibration image dies. Its descendants continue to process its obituary.
+const relic=document.createElement('canvas');relic.width=480;relic.height=300;
+const relicCtx=relic.getContext('2d');let copied=false;
+E.hooks.unshift({name:'post-image',draw:()=>{
+ const {ctx:c,w,h}=E;
+ if(!copied){relicCtx.drawImage(E.canvas,0,0,480,300);copied=true}
+ c.fillStyle='#04060b';c.fillRect(0,0,w,h);
+ c.globalAlpha=.08+Math.max(0,.32-E.level*.3);c.drawImage(relic,w*.13,h*.13,w*.74,h*.74);
+ c.globalAlpha=.28;c.strokeStyle='#719587';c.lineWidth=.6;
+ for(let i=0;i<24;i++){
+  const x=w*(.08+i/24*.84),height=h*(.12+E.hash(i+4222)*.67);
+  c.beginPath();c.moveTo(x,h*.87);c.lineTo(x,h*.87-height);c.lineTo(x+w*.023,h*.87-height+w*.015);c.lineTo(x+w*.023,h*.87);c.stroke();
+ }
+ c.globalAlpha=.3;c.fillStyle='#a3c9b9';c.font='10px monospace';c.fillText('THIS IS AN IMAGE OF WHERE AN IMAGE USED TO BE',w*.15,h*.12);
+ c.globalAlpha=1;
+}});
+E.resets.push(()=>{copied=false});
+E.hooks=E.hooks.filter(h=>h.name!=='bitplane-divorce');
+E.level=.35;
+document.getElementById('help').innerHTML='THE REFERENCE SURFACE HAS BEEN WITHDRAWN<br>ITS ERRORS CONTINUE WITHOUT IT';
+
+E.draw();
+})();
+</script>
+<!-- MILESTONE 011: CRITICAL PATH; PARENT 010-post-image.html -->
+<script>
+(()=>{const E=window.Decay;if(!E)return;E.generation=11;E.title="CRITICAL PATH";
+// A failure acquires neighbours; the neighbours become its only remaining proof.
+const nodes=Array.from({length:63},(_,i)=>({x:(i%9+.5)/9,y:(Math.floor(i/9)+.5)/7,v:E.hash(i+6000)*.2}));
+E.register('critical-path',()=>{
+ const {ctx:c,w,h}=E;
+ for(let i=0;i<nodes.length;i++){
+  const node=nodes[i],near=Math.max(0,1-Math.hypot(node.x-E.pointer.x,node.y-E.pointer.y)*5);
+  if(!E.paused)node.v=E.clamp(node.v+E.dt*(near*.09+E.level*.008));
+  const v=node.v+E.level*.25,x=node.x*w+Math.sin(E.time*.15+i)*v*24,y=node.y*h+Math.cos(E.time*.12+i)*v*24;
+  for(const j of [i+1,i+9]){
+   if(j>=nodes.length||(j===i+1&&i%9===8))continue;
+   const other=nodes[j],xx=other.x*w,yy=other.y*h;
+   const spread=Math.min(v,other.v+E.level*.25);
+   c.strokeStyle=E.palette[(i+j)%6];c.globalAlpha=.05+spread*.7;c.lineWidth=.5+spread;
+   c.beginPath();c.moveTo(x,y);c.lineTo((x+xx)/2+Math.sin(i)*v*40,y);c.lineTo((x+xx)/2,yy);c.lineTo(xx,yy);c.stroke();
+   if(!E.paused&&v>.4)other.v=E.clamp(other.v+E.dt*v*.03);
+  }
+  c.globalAlpha=.2+v*.7;c.fillStyle=v>.65?'#f4e0a6':E.palette[i%6];
+  c.fillRect(x-2,y-2,4+v*6,4+v*6);
+  if(v>.4){c.font='8px monospace';c.fillText('DEPENDENCY '+i.toString(16),x+8,y-7)}
+ }
+},()=>{nodes.forEach(n=>n.v=0)});
+E.level=.38;
+document.getElementById('help').innerHTML='HOVER TO POISON A DEPENDENCY<br>EVERYTHING IS SOMETHING ELSE’S FAILURE';
+
+E.draw();
+})();
+</script>
+<!-- MILESTONE 012: RECOVERING THE RECOVERY; PARENT 011-dependency.html -->
+<script>
+(()=>{const E=window.Decay;if(!E)return;E.generation=12;E.title="RECOVERING THE RECOVERY";
+// Recovery tries to show a picture of recovery. That picture needs recovery.
+const recursion=E.buffer(),recursionCtx=recursion.getContext('2d');
+E.hooks=E.hooks.filter(h=>h.name!=='dead-letters');
+E.register('recovery-recursion',()=>{
+ const {ctx:c,w,h}=E;if(recursion.width!==E.canvas.width||recursion.height!==E.canvas.height){recursion.width=E.canvas.width;recursion.height=E.canvas.height}
+ recursionCtx.drawImage(E.canvas,0,0);
+ const cx=(E.inside?E.pointer.x:.54)*w,cy=(E.inside?E.pointer.y:.49)*h;
+ for(let i=0;i<11;i++){
+  const t=i/11,scale=Math.pow(.83,i),ww=w*.43*scale,hh=h*.39*scale;
+  const a=i*.35+E.time*.035,rad=E.level*Math.min(w,h)*.13*(1-t);
+  const x=cx-ww*.5+Math.cos(a)*rad,y=cy-hh*.5+Math.sin(a)*rad;
+  c.fillStyle='#02060d';c.globalAlpha=.75;c.fillRect(x-1,y-12,ww+2,hh+14);
+  c.globalAlpha=.22+E.level*.48;c.drawImage(recursion,0,0,recursion.width,recursion.height,x,y,ww,hh);
+  c.strokeStyle=E.palette[i%6];c.globalAlpha=.4;c.lineWidth=.7;c.strokeRect(x,y,ww,hh);
+  c.globalAlpha=.7;c.font='8px monospace';c.fillStyle='#cee5dd';c.fillText('RECOVERING THE RECOVERY '+String(i).padStart(2,'0'),x+3,y-3);
+ }
+});
+E.level=.41;
+document.getElementById('help').innerHTML='THE REPAIR PROCESS HAS BECOME THE DAMAGE<br>MOVE THE RECURSION ELSEWHERE';
+
+E.draw();
+})();
+</script>
+<!-- MILESTONE 013: THERMAL RUNAWAY; PARENT 012-recursion.html -->
+<script>
+(()=>{const E=window.Decay;if(!E)return;E.generation=13;E.title="THERMAL RUNAWAY";
+// The lost energy does not disappear. It occupies neighbouring addresses.
+const sw=96,sh=60;let heat=new Float32Array(sw*sh),next=new Float32Array(sw*sh);
+const thermal=document.createElement('canvas');thermal.width=sw;thermal.height=sh;
+const thermalCtx=thermal.getContext('2d'),thermalPixels=thermalCtx.createImageData(sw,sh);
+E.thermal={get field(){return heat},width:sw,height:sh};
+function deposit(x,y,power){const xx=Math.floor(x*sw),yy=Math.floor(y*sh);for(let j=-3;j<=3;j++)for(let i=-3;i<=3;i++){const a=xx+i,b=yy+j;if(a<1||a>=sw-1||b<1||b>=sh-1)continue;heat[b*sw+a]=Math.min(1.5,heat[b*sw+a]+power/(1+i*i+j*j))}}
+E.inputs.push((s,e,d)=>deposit(s.pointer.x,s.pointer.y,.2+d*8));
+E.register('thermal-runaway',()=>{
+ const {ctx:c,w,h}=E;
+ if(!E.paused){
+  if(E.held)deposit(E.pointer.x,E.pointer.y,E.dt*3);
+  if(E.rand()<.2)deposit(E.rand(),E.rand(),E.level*.6);
+  for(let y=1;y<sh-1;y++)for(let x=1;x<sw-1;x++){const n=y*sw+x,v=heat[n],average=(heat[n-1]+heat[n+1]+heat[n-sw]+heat[n+sw])*.25;next[n]=Math.max(0,v+(average-v)*.23-.0003+v*E.level*.001)}
+  [heat,next]=[next,heat];
+ }
+ const data=thermalPixels.data;
+ for(let i=0;i<heat.length;i++){const v=Math.min(1,heat[i]*1.5),j=i*4;data[j]=Math.min(255,v*540);data[j+1]=Math.max(0,(v-.3)*400);data[j+2]=Math.max(0,(v-.75)*900)+v*20;data[j+3]=Math.min(230,v*400)}
+ thermalCtx.putImageData(thermalPixels,0,0);c.globalCompositeOperation='screen';c.globalAlpha=.45+E.level*.5;c.imageSmoothingEnabled=false;c.drawImage(thermal,0,0,w,h);
+},()=>{heat.fill(0);next.fill(0)});
+for(let i=0;i<8;i++)deposit(E.hash(i+6700),E.hash(i+6800),1);
+E.level=.44;
+document.getElementById('help').innerHTML='MOVE TO LEAVE ENERGY IN THE WRONG PLACE<br>THE DAMAGE HAS BECOME CONTAGIOUS';
+
+E.draw();
+})();
+</script>
+<!-- MILESTONE 014: FALSE COLOUR NECROSIS; PARENT 013-thermal.html -->
+<script>
+(()=>{const E=window.Decay;if(!E)return;E.generation=14;E.title="FALSE COLOUR NECROSIS";
+// The diagnostic colour key itself fails. A cellular colony grows in the heat.
+const tw=E.thermal.width,th=E.thermal.height;
+let colony=new Uint8Array(tw*th),colonyNext=new Uint8Array(tw*th),epoch=-1;
+const falseColour=document.createElement('canvas');falseColour.width=tw;falseColour.height=th;
+const falseCtx=falseColour.getContext('2d'),falsePixels=falseCtx.createImageData(tw,th);
+E.register('false-colour',()=>{
+ const c=E.ctx,heat=E.thermal.field;
+ if(Math.floor(E.time*4)!==epoch||E.paused){
+  epoch=Math.floor(E.time*4);
+  for(let y=1;y<th-1;y++)for(let x=1;x<tw-1;x++){
+   const i=y*tw+x;let neighbours=0;for(const j of [-tw-1,-tw,-tw+1,-1,1,tw-1,tw,tw+1])neighbours+=colony[i+j]>0?1:0;
+   colonyNext[i]=heat[i]>.17?Math.min(255,colony[i]+12):(neighbours===3||neighbours===4?Math.min(255,colony[i]+7):Math.max(0,colony[i]-2));
+  }
+  [colony,colonyNext]=[colonyNext,colony];
+ }
+ const data=falsePixels.data;
+ for(let i=0;i<colony.length;i++){
+  const v=colony[i],j=i*4;
+  data[j]=v>160?230:v>60?35:140;data[j+1]=v>160?25:v>60?245:25;data[j+2]=v>160?155:v>60?189:255;data[j+3]=v?Math.min(220,v*2):0;
+ }
+ falseCtx.putImageData(falsePixels,0,0);c.imageSmoothingEnabled=false;c.globalAlpha=.65;c.globalCompositeOperation='difference';c.drawImage(falseColour,0,0,E.w,E.h);
+},()=>{colony.fill(0);colonyNext.fill(0);epoch=-1});
+E.level=.47;
+document.getElementById('help').innerHTML='THE FAULT MAP HAS STARTED REPRODUCING<br>DIAGNOSIS IS NO LONGER PASSIVE';
+
+E.draw();
+})();
+</script>
+<!-- MILESTONE 015: VERTEX PANIC; PARENT 014-colony.html -->
+<script>
+(()=>{const E=window.Decay;if(!E)return;E.generation=15;E.title="VERTEX PANIC";
+// Address corruption reaches the vertex buffer. The surface develops impossible spikes.
+E.hooks=E.hooks.filter(h=>!['delamination','recovery-recursion'].includes(h.name));
+E.mesh={inversion:0,twist:0};
+const polygonSource=E.buffer(),polygonCtx=polygonSource.getContext('2d');
+function vertex(x,y,i){
+ const loss=Math.max(0,E.level-E.hash(i+7900)*.8);
+ const near=Math.max(0,1-Math.hypot(x/E.w-E.pointer.x,y/E.h-E.pointer.y)*3);
+ const amount=loss+near*E.pressure*.3;
+ let xx=x+Math.sin(i*41.2+E.time*.12)*amount*amount*E.w*.6,yy=y+Math.cos(i*71.3+E.time*.09)*amount*amount*E.h*.8;
+ if(E.mesh.inversion){
+  const cx=E.pointer.x*E.w,cy=E.pointer.y*E.h,dx=(xx-cx)/E.w,dy=(yy-cy)/E.h;
+  const d=Math.max(.016,dx*dx+dy*dy),k=1+( .1/d-1)*E.mesh.inversion*E.level;
+  xx=cx+dx*k*E.w;yy=cy+dy*k*E.h;
+ }
+ return [E.clamp(xx,-E.w,E.w*2),E.clamp(yy,-E.h,E.h*2)];
+}
+E.register('vertex-buffer',()=>{
+ const {ctx:c,w,h}=E;if(polygonSource.width!==E.canvas.width||polygonSource.height!==E.canvas.height){polygonSource.width=E.canvas.width;polygonSource.height=E.canvas.height}
+ polygonCtx.drawImage(E.canvas,0,0);
+ const cols=9,rows=6,tw=w/cols,th=h/rows;
+ for(let j=0;j<rows;j++)for(let i=0;i<cols;i++){
+  const id=j*cols+i;if(E.hash(id+7111)>E.level+.24)continue;
+  const x=i*tw,y=j*th,a=vertex(x,y,id),b=vertex(x+tw,y,id+1),d=vertex(x,y+th,id+cols);
+  c.fillStyle='#02030a';c.beginPath();c.moveTo(x,y);c.lineTo(x+tw,y);c.lineTo(x,y+th);c.closePath();c.fill();
+  c.save();c.beginPath();c.moveTo(...a);c.lineTo(...b);c.lineTo(...d);c.closePath();c.clip();
+  c.transform(b[0]-a[0],b[1]-a[1],d[0]-a[0],d[1]-a[1],a[0],a[1]);
+  c.drawImage(polygonSource,x*E.dpr,y*E.dpr,Math.min(tw*E.dpr,polygonSource.width-x*E.dpr),Math.min(th*E.dpr,polygonSource.height-y*E.dpr),0,0,1,1);c.restore();
+  c.strokeStyle=E.palette[id%6];c.globalAlpha=.17+E.level*.25;c.lineWidth=.7;c.beginPath();c.moveTo(...a);c.lineTo(...b);c.lineTo(...d);c.closePath();c.stroke();c.globalAlpha=1;
+ }
+});
+E.level=.5;
+document.getElementById('help').innerHTML='THE VERTEX BUFFER NO LONGER AGREES WITH SPACE<br>MOVE THROUGH THE BROKEN COORDINATES';
+
+E.draw();
+})();
+</script>
+<!-- MILESTONE 016: INVERTED TOPOLOGY; PARENT 015-vertices.html -->
+<script>
+(()=>{const E=window.Decay;if(!E)return;E.generation=16;E.title="INVERTED TOPOLOGY";
+// Invert the inherited mesh around the pointer: distance becomes its reciprocal.
+E.mesh.inversion=1;
+const horizon=E.buffer(),horizonCtx=horizon.getContext('2d');
+E.register('inverted-topology',()=>{
+ const {ctx:c,w,h}=E;
+ if(horizon.width!==E.canvas.width||horizon.height!==E.canvas.height){horizon.width=E.canvas.width;horizon.height=E.canvas.height}
+ horizonCtx.drawImage(E.canvas,0,0);
+ const cx=E.pointer.x*w,cy=E.pointer.y*h;
+ c.save();c.translate(cx,cy);c.globalAlpha=E.level*.12;c.globalCompositeOperation='screen';
+ c.scale(-1,1);c.drawImage(horizon,-cx,-cy,w,h);c.restore();
+ c.strokeStyle='#e6fcef';c.lineWidth=.6;c.globalAlpha=.23;
+ for(let i=0;i<14;i++){
+  const rad=(i+1)*(i+1)*Math.min(w,h)*.002;
+  c.beginPath();c.ellipse(cx,cy,rad,rad*(.18+E.level*.5),E.time*.03,0,Math.PI*2);c.stroke();
+ }
+ c.globalAlpha=.7;c.fillStyle='#d7fff0';c.font='9px monospace';c.fillText('DISTANCE / DISTANCE / DIVISION BY NEARLY NOTHING',Math.max(12,cx-140),Math.max(70,cy-40));
+});
+E.level=.53;
+document.getElementById('help').innerHTML='NEAR THINGS HAVE BECOME INFINITELY FAR AWAY<br>THERE ARE NOT ENOUGH DIMENSIONS';
+
+E.draw();
+})();
+</script>
+<!-- MILESTONE 017: PRECISION LOSS; PARENT 016-inversion.html -->
+<script>
+(()=>{const E=window.Decay;if(!E)return;E.generation=17;E.title="PRECISION LOSS";
+// As the substrate fails, fewer distinct positions remain representable.
+E.hooks=E.hooks.filter(h=>h.name!=='inverted-topology');
+const crumbs=document.createElement('canvas'),crumbCtx=crumbs.getContext('2d');
+E.register('precision-loss',()=>{
+ const {ctx:c,w,h}=E;
+ const width=Math.max(54,Math.round(330*(1-E.level*.78))),height=Math.max(34,Math.round(width*h/w));
+ if(crumbs.width!==width||crumbs.height!==height){crumbs.width=width;crumbs.height=height}
+ crumbCtx.drawImage(E.canvas,0,0,width,height);
+ c.imageSmoothingEnabled=false;c.globalAlpha=.45+E.level*.5;c.drawImage(crumbs,0,0,w,h);
+ const cw=w/width,ch=h/height;
+ c.globalAlpha=.12+E.level*.14;c.fillStyle='#07071a';
+ for(let x=0;x<w;x+=cw)c.fillRect(x,0,Math.min(1,cw*.2),h);
+ for(let y=0;y<h;y+=ch)c.fillRect(0,y,w,Math.min(1,ch*.2));
+});
+// Keep simulated hardware damage inexpensive on actual hardware.
+function finiteSurface(){E.dpr=Math.min(1,devicePixelRatio||1);E.canvas.width=Math.round(E.w*E.dpr);E.canvas.height=Math.round(E.h*E.dpr);E.ctx.setTransform(E.dpr,0,0,E.dpr,0,0)}
+window.addEventListener('resize',()=>{finiteSurface();E.draw()});finiteSurface();
+E.level=.57;
+document.getElementById('help').innerHTML='THERE ARE FEWER PLACES FOR THE IMAGE TO EXIST<br>PRECISION IS A FINITE RESOURCE';
+
+E.draw();
+})();
+</script>
+<!-- MILESTONE 018: CLOCK SECESSION; PARENT 017-precision.html -->
+<script>
+(()=>{const E=window.Decay;if(!E)return;E.generation=18;E.title="CLOCK SECESSION";
+// The surviving pixel columns unspool into long, mutually incompatible histories.
+const histories=Array.from({length:3},()=>{const c=document.createElement('canvas');c.width=240;c.height=150;return {canvas:c,ctx:c.getContext('2d'),time:-10}});
+E.register('clock-secession',()=>{
+ const {ctx:c,w,h}=E;
+ for(let i=0;i<3;i++){
+  const archive=histories[i],interval=[.09,.47,1.73][i];
+  if(E.time-archive.time>interval||archive.time<0){archive.ctx.drawImage(E.canvas,0,0,240,150);archive.time=E.time}
+ }
+ const bands=36,bw=w/bands;
+ for(let i=0;i<bands;i++){
+  const group=i%3,archive=histories[group];
+  const phase=Math.sin(E.time*.08+i*.34),offset=phase*E.level*h*.06;
+  c.globalAlpha=.22+E.level*.42;c.imageSmoothingEnabled=false;
+  c.drawImage(archive.canvas,i/bands*240,0,240/bands,150,i*bw,offset,bw+.5,h);
+  c.fillStyle=E.palette[group*2];c.globalAlpha=.08;c.fillRect(i*bw,0,1,h);
+ }
+ c.globalAlpha=.55;c.fillStyle='#edffdb';c.font='8px monospace';
+ for(let i=0;i<3;i++)c.fillText('NOW = '+histories[i].time.toFixed(3),w*(.18+i*.28),h*.9);
+},()=>{histories.forEach(a=>{a.time=-10;a.ctx.clearRect(0,0,240,150)})});
+E.level=.6;
+document.getElementById('help').innerHTML='THREE CLOCKS HAVE DECLARED INDEPENDENCE<br>NOT ALL OF THIS IS HAPPENING NOW';
+
+E.draw();
+})();
+</script>
+<!-- MILESTONE 019: MOIRE APPARITION; PARENT 018-clocks.html -->
+<script>
+(()=>{const E=window.Decay;if(!E)return;E.generation=19;E.title="MOIRE APPARITION";
+// Sampling mistakes become more elaborate than the image they were sampling.
+E.register('moire-apparition',()=>{
+ const {ctx:c,w,h}=E,cx=E.pointer.x*w,cy=E.pointer.y*h;
+ const spacing=8+E.level*8,angle=.07+Math.sin(E.time*.03)*.03+E.pointer.speed*.008;
+ c.save();c.translate(cx,cy);c.rotate(angle);c.globalCompositeOperation='screen';
+ for(let layer=0;layer<2;layer++){
+  c.save();c.rotate(layer*.065+E.level*.03);c.strokeStyle=layer?'#fd387b':'#43eedd';c.lineWidth=.7;c.globalAlpha=.12+E.level*.16;
+  for(let i=-Math.ceil(w/spacing);i<=Math.ceil(w/spacing);i++){
+   const x=i*spacing;c.beginPath();c.moveTo(x,-h);c.bezierCurveTo(x+Math.sin(i*.04+E.time*.06)*w*.15,-h*.3,x-Math.cos(i*.04)*w*.15,h*.3,x,h);c.stroke();
+  }c.restore();
+ }
+ c.restore();
+ c.save();c.globalCompositeOperation='difference';c.strokeStyle='#b0ffcf';c.globalAlpha=.12+E.level*.17;c.lineWidth=.8;
+ const rad=Math.min(w,h)*(.18+E.level*.15);
+ for(let i=0;i<36;i++){const rr=rad+i*3.3;c.beginPath();c.ellipse(cx,cy,rr,rr*.77,.4,0,Math.PI*2);c.stroke()}
+ c.restore();
+});
+E.level=.63;
+document.getElementById('help').innerHTML='THE SAMPLER IS INVENTING ITS OWN SUBJECT<br>DETAIL WITHOUT INFORMATION';
+
+E.draw();
+})();
+</script>
+<!-- MILESTONE 020: PHOSPHOR BLOOM; PARENT 019-moire.html -->
+<script>
+(()=>{const E=window.Decay;if(!E)return;E.generation=20;E.title="PHOSPHOR BLOOM";
+// Light leaks past the address of the pixel that emitted it.
+const phosphor=document.createElement('canvas');phosphor.width=128;phosphor.height=80;
+const phosphorCtx=phosphor.getContext('2d',{willReadFrequently:true});
+let persistence=new Float32Array(128*80*3);
+E.register('phosphor-bloom',()=>{
+ const {ctx:c,w,h}=E;
+ phosphorCtx.drawImage(E.canvas,0,0,128,80);const image=phosphorCtx.getImageData(0,0,128,80),data=image.data;
+ for(let i=0;i<128*80;i++)for(let k=0;k<3;k++){
+  const v=data[i*4+k],index=i*3+k,glow=Math.max(0,v-35)*(1+E.level*.7);
+  persistence[index]=Math.min(255,persistence[index]*.88+glow*.22);data[i*4+k]=persistence[index];
+ }
+ phosphorCtx.putImageData(image,0,0);
+ c.globalCompositeOperation='screen';c.imageSmoothingEnabled=true;
+ c.globalAlpha=.13+E.level*.24;
+ const shift=4+E.level*12;c.drawImage(phosphor,-shift,-shift,w+shift*2,h+shift*2);
+ c.globalAlpha=.09+E.level*.1;c.drawImage(phosphor,shift,-shift*.5,w,h);c.drawImage(phosphor,-shift,shift*.5,w,h);
+},()=>{persistence.fill(0);phosphorCtx.clearRect(0,0,128,80)});
+E.level=.66;
+document.getElementById('help').innerHTML='LIGHT HAS ESCAPED THE PIXELS<br>THE DARK REGIONS ARE NO LONGER OFF';
+
+E.draw();
+})();
+</script>
+<!-- DESCENDANT INSERTION POINT -->
+</body></html>
