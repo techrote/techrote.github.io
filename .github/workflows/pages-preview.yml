@@ -88,6 +88,8 @@ jobs:
         uses: actions/deploy-pages@v4
 
       - name: Post preview link
+        # A denied comment must not invalidate a successful Pages deployment.
+        continue-on-error: true
         if: github.event_name == 'pull_request_target' && github.event.action != 'closed'
         uses: actions/github-script@v8
         env:
@@ -127,6 +129,8 @@ jobs:
             }
 
       - name: Mark closed preview removed
+        # Comment permissions can be restricted independently of Pages permissions.
+        continue-on-error: true
         if: github.event_name == 'pull_request_target' && github.event.action == 'closed'
         uses: actions/github-script@v8
         with:
