@@ -45,7 +45,9 @@ function harness(plan = () => ({})) {
   }
   const document = { getElementById: get, querySelectorAll: selector => selector === '.mode' ? modes : modes.concat([get('duration'), get('streams'), get('budget'), get('countdown')]), createElement: id => new Element(id), body: new Element('body'), addEventListener() {}, hidden: false };
   const window = { devicePixelRatio: 1, addEventListener() {}, connectionLabAssets: { images: [{ file: 'art.jpg', size: 100, title: 'Art', text: 'Example' }], articles: [{ file: 'article.json', size: 100 }] } };
+  class SimulatedDate extends Date { constructor(...args) { super(...(args.length ? args : [1700000000000 + now])); } static now() { return 1700000000000 + now; } }
   const context = vm.createContext({ document, window, navigator: { userAgent: 'simulated-test-browser' }, performance: { now: () => now }, XMLHttpRequest: XHR, Blob, Uint8Array, crypto: crypto.webcrypto, URL: { createObjectURL: blob => { const url = 'blob:' + (++next); blobs.set(url, blob); return url; }, revokeObjectURL: url => blobs.delete(url) }, setTimeout: (fn, ms) => schedule(fn, ms), clearTimeout: id => timers.delete(id), setInterval: (fn, ms) => schedule(fn, ms, ms), clearInterval: id => timers.delete(id), console });
+  context.Date = SimulatedDate;
   vm.runInContext(fs.readFileSync(__dirname + '/lab.js', 'utf8'), context);
   async function flush() { for (let i = 0; i < 12; i++) await Promise.resolve(); }
   async function tick(ms) {
@@ -59,7 +61,7 @@ function harness(plan = () => ({})) {
     }
     throw Error('Clock did not settle');
   }
-  return { get, requests, tick, start(mode) { modes.find(el => el.dataset.mode === mode).click(); return get('start').click(); }, stop() { get('stop').click(); }, async report() { get('save').click(); return JSON.parse(await downloads[downloads.length - 1].text()); } };
+  return { get, requests, tick, startSuite() { return get('start-suite').click(); }, start(mode) { modes.find(el => el.dataset.mode === mode).click(); return get('start').click(); }, stop() { get('stop').click(); }, async report() { get('save').click(); return JSON.parse(await downloads[downloads.length - 1].text()); } };
 }
 
 (async () => {
@@ -118,5 +120,46 @@ function harness(plan = () => ({})) {
     const done = h.start('download'); await h.tick(6000); await done; const r = await h.report();
     assert.equal(r.request_errors, 3); assert(r.reason.includes('three times')); assert.equal(h.requests.length, 3);
   }
-  console.log('PASS: shared budgets, fresh URLs, confirmed upload accounting, cancellation/partial progress, pauses, reading breaks, deadlines, endpoint failure, countdown stop, bounded retries.');
+  {
+    const h = harness(xhr => ({ delay: xhr.body && xhr.body.size === 1024 ? 20 : 10000 }));
+    const done = h.startSuite(); await h.tick(600000); await done;
+    const s = await h.report(); assert.equal(s.type, 'traffic-suite'); assert.equal(s.suite_version, 'traffic-v1');
+    assert.equal(s.reason, 'Suite complete'); assert.equal(s.completed_stages, 8); assert.equal(s.stages.length, 8);
+    assert.deepEqual(s.stages.map(r => r.mode), ['browse', 'download', 'upload', 'duplex', 'download', 'upload', 'duplex', 'browse-upload']);
+    assert.deepEqual(s.stages.map(r => r.parallel_requests_per_direction), [4, 1, 1, 1, 4, 4, 4, 4]);
+    assert.equal(s.stages[7].upload_parallel_requests, 1);
+    assert.equal(s.reserved_bytes, s.stages.reduce((sum, r) => sum + r.reserved_bytes, 0)); assert(s.reserved_bytes <= s.budget_bytes);
+    s.stages.forEach((r, index) => {
+      assert.equal(r.stage_index, index + 1); assert.equal(r.duration_s, 60); assert.equal(r.request_errors, 0);
+      assert(r.samples.length >= 60 && r.samples.length <= 62);
+      if (index) assert(Date.parse(r.started_utc) - Date.parse(s.stages[index - 1].ended_utc) >= 5000);
+    });
+    assert(h.requests.every(r => r.done), 'No request may leak beyond its stage');
+    assert.equal(h.get('start-suite').disabled, false);
+  }
+  {
+    const h = harness(() => ({ pending: true })), done = h.startSuite();
+    await h.tick(61000); h.stop(); await h.tick(6000); await done;
+    const s = await h.report(); assert.equal(s.reason, 'Stopped by you'); assert.equal(s.stages.length, 1);
+    assert.equal(s.completed_stages, 1); assert(h.requests.every(r => r.done));
+  }
+  {
+    const h = harness(); h.get('countdown').checked = true; const done = h.startSuite();
+    await h.tick(1500); h.stop(); await h.tick(2000); await done;
+    const s = await h.report(); assert.equal(s.stages.length, 0); assert.equal(s.reason, 'Stopped by you'); assert.equal(h.requests.length, 0);
+  }
+  {
+    const h = harness(xhr => xhr.body ? { networkError: true } : { delay: 10000 });
+    const done = h.startSuite(); await h.tick(600000); await done;
+    const s = await h.report(); assert.equal(s.stages.length, 8); assert.equal(s.completed_stages, 3);
+    assert(s.stages[2].reason.includes('could not continue')); assert.equal(s.stages[4].reason, 'Time limit reached');
+    assert(s.reason.includes('incomplete'));
+  }
+  {
+    const h = harness(), done = h.startSuite(); await h.tick(200000);
+    assert.equal(h.get('start-suite').disabled, false, 'Budget-limited suite must finish'); await done;
+    const s = await h.report(); assert(s.reason.includes('budget reached')); assert(s.stages.length < 8);
+    assert(s.reserved_bytes <= 500000000); assert(h.requests.every(r => r.done));
+  }
+  console.log('PASS: standalone lifecycle plus full eight-stage suite, fixed settings/durations, isolated stages, aggregate budget/export, cancellation during gap/countdown, endpoint failure continuation and early budget stop.');
 })().catch(error => { console.error(error); process.exitCode = 1; });

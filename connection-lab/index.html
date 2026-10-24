@@ -6,13 +6,13 @@
   <meta name="theme-color" content="#101c21">
   <meta name="description" content="A browser connection endurance test: real page loads, sustained transfers, and a timestamped record of pauses.">
   <title>Connection lab · techrote</title>
-  <link rel="stylesheet" href="style.css?v=2">
+  <link rel="stylesheet" href="style.css?v=3">
   <script src="assets/manifest.js?v=1" defer></script>
-  <script src="lab.js?v=2" defer></script>
+  <script src="lab.js?v=3" defer></script>
 </head>
 <body>
 <main>
-  <header><a href="../">techrote / workbench</a><span class="tag">CONNECTION LAB · v1.1</span></header>
+  <header><a href="../">techrote / workbench</a><span class="tag">CONNECTION LAB · v1.2</span></header>
   <div class="intro"><p class="eyebrow">A little pressure. A clearer picture.</p><h1>How steady is<br>your connection?</h1><p>Load a stream of real page assets, or keep a transfer running. Watch for pauses while your device does the work.</p></div>
   <section class="panel controls" aria-labelledby="test-heading">
     <h2 id="test-heading">Choose your workload</h2>
@@ -30,10 +30,18 @@
     <p id="mode-note" class="hint">Browse loads a fresh gallery and short article data, then pauses for 2 seconds between pages. All downloads come from this GitHub site.</p>
     <label class="check"><input id="countdown" type="checkbox" checked> Give me a 5-second countdown</label>
     <div class="actions"><button id="start" class="primary">Start test</button><button id="stop" disabled>Stop</button><span id="status" role="status" aria-live="polite">Ready when you are.</span></div>
+    <div class="suite-control">
+      <h2>One button. The same traffic suite.</h2>
+      <p class="hint">Eight stages, <b>60 seconds each</b>, with 5 seconds to settle between stages. About 9 minutes including checks. Uses a fixed 500 MB total budget; the individual settings above apply only to Start test.</p>
+      <ol class="suite-plan"><li>Browsing · 4 requests</li><li>Download · 1 request</li><li>Upload · 1 request</li><li>Both ways · 1 each</li><li>Download · 4 requests</li><li>Upload · 4 requests</li><li>Both ways · 4 each</li><li>Browsing · 4 + upload · 1</li></ol>
+      <button id="start-suite" class="primary">Run traffic suite · 8 × 60 s</button>
+      <p class="hint">Stop ends the whole suite. A failed stage is recorded and the suite continues, so an upload service problem does not hide download results. The data cap ends the suite early. Keep this tab visible and the screen on.</p>
+    </div>
     <progress id="progress" max="100" value="0" aria-label="Test progress"></progress>
     <noscript>Enable JavaScript to run this test.</noscript>
   </section>
   <section class="panel" id="live-measurements" aria-label="Live measurements">
+    <p id="suite-progress" class="suite-progress" role="status" aria-live="polite"></p>
     <div class="gauges">
       <div class="gauge-card"><span>↓ Download</span><canvas id="down-gauge" role="img" aria-label="Live download speed needle"></canvas><strong id="down">0.00 <small>Mbps</small></strong><p id="down-state" class="flow-state">Ready</p></div>
       <div class="gauge-card"><span>↑ Upload · browser reported</span><canvas id="up-gauge" role="img" aria-label="Live upload speed needle"></canvas><strong id="up">0.00 <small>Mbps</small></strong><p id="up-state" class="flow-state">Ready</p></div>
@@ -47,6 +55,7 @@
     <canvas id="chart" height="210" role="img" aria-label="Throughput graph. Download and upload speeds are also shown above."></canvas>
     <p id="summary" class="hint">Needles update 10 times a second; the history graph and saved samples update once a second. Nothing transfers until you press Start.</p>
     <div class="actions"><button id="stop-live" disabled>Stop test</button><button id="mark" disabled>I saw a freeze</button><button id="save" disabled>Save results</button><button id="copy" disabled>Copy summary</button></div>
+    <ol id="suite-results" class="suite-results" aria-label="Completed suite stages"></ol>
   </section>
   <section id="gallery-section" class="panel">
     <div class="chart-head"><h2>A page worth loading</h2><span id="pages">Waiting for the first page</span></div>
@@ -59,7 +68,7 @@
     <p>A pause means at least 2 seconds with no browser progress while a transfer is pending. Planned reading breaks do not count. Upload progress can run ahead of server receipt; the saved report separates browser-reported bytes from server-confirmed requests. Browser buffering and background-tab throttling can affect the graph.</p>
     <p>Downloads use fresh URLs and already compressed images or incompressible binary data. Rates count application payload, excluding TCP, Wi-Fi, and TLS overhead. MB and Mbps use decimal units. Keep this tab in the foreground and the screen on. A hidden tab is marked in the report.</p>
     <p>GitHub Pages is static hosting, so Upload and Both ways send random test data to <a href="https://github.com/cloudflare/speedtest">Cloudflare’s public speed-test endpoint</a>. No files, credentials, or ESP diagnostics are uploaded. If that endpoint is blocked or unavailable, those modes report the error; Browse and Download remain independent. Results stay in this browser unless you save or copy them.</p>
-    <p>The data budget limits requested payload; network overhead and the small upload availability check are additional. Stop and the time limit cancel outstanding requests. A test is not started again automatically.</p>
+    <p>The data budget limits requested payload; network overhead and the small upload availability checks are additional. Stop and the time limit cancel outstanding requests. The traffic suite advances automatically only after you press its button; standalone tests do not repeat. Save results includes every suite stage, its settings, timestamps, progress samples, requests and errors in one JSON. Drops and temperature come from the separate PC diagnostics.</p>
   </details>
   <footer><span>Small page. Real traffic.</span><a href="https://github.com/techrote/techrote.github.io/tree/main/connection-lab">Source & methodology</a></footer>
 </main>

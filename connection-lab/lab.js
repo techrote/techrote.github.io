@@ -1,9 +1,22 @@
 /* Buildless and deliberately uses XHR progress for older Firefox on Android. */
 (function () {
   'use strict';
-  var VERSION = '1.1.0', MB = 1000000, UP_URL = 'https://speed.cloudflare.com/__up';
+  var VERSION = '1.2.0', MB = 1000000, UP_URL = 'https://speed.cloudflare.com/__up';
   var $ = function (id) { return document.getElementById(id); };
-  var mode = 'browse', run = null, galleryURLs = [], requestSequence = 0;
+  var mode = 'browse', run = null, suite = null, galleryURLs = [], requestSequence = 0;
+  // Fixed order and settings make firmware comparisons reproducible.
+  var SUITE = [
+    { name: 'Browsing', mode: 'browse', streams: 4 },
+    { name: 'Download · 1 request', mode: 'download', streams: 1 },
+    { name: 'Upload · 1 request', mode: 'upload', streams: 1 },
+    { name: 'Both ways · 1 each', mode: 'duplex', streams: 1 },
+    { name: 'Download · 4 requests', mode: 'download', streams: 4 },
+    { name: 'Upload · 4 requests', mode: 'upload', streams: 4 },
+    { name: 'Both ways · 4 each', mode: 'duplex', streams: 4 },
+    { name: 'Browsing during upload', mode: 'browse-upload', streams: 4, uploadStreams: 1 }
+  ];
+  function hasUpload(r) { return r.mode === 'upload' || r.mode === 'duplex' || r.mode === 'browse-upload'; }
+  function stageText() { return suite && suite.live ? 'Stage ' + (suite.index + 1) + '/' + SUITE.length + ' · ' + SUITE[suite.index].name + ' · ' : ''; }
   var notes = {
     browse: 'Browse loads a fresh gallery and short article data, then pauses for 2 seconds between pages. All downloads come from this GitHub site.',
     download: 'Continuously download 2 MB blocks from this GitHub site. Parallel requests may share an HTTP/2 connection.',
@@ -25,7 +38,8 @@
   function busy(value) {
     document.querySelectorAll('.mode, select, #countdown').forEach(function (el) { el.disabled = value; });
     $('start').disabled = value; $('stop').disabled = !value; $('stop-live').disabled = !value;
-    $('save').disabled = value || !run; $('copy').disabled = value || !run;
+    $('start-suite').disabled = value;
+    $('save').disabled = value || (!run && !suite); $('copy').disabled = value || (!run && !suite);
     $('mark').disabled = !value;
   }
   function stop(r, reason) {
@@ -122,7 +136,7 @@
     $('pauses').textContent = r.pauses;
     var elapsed = (now - r.startedMono) / 1000;
     $('progress').value = Math.min(100, elapsed / r.duration * 100);
-    if (r.live) $('status').textContent = Math.max(0, Math.ceil(r.duration - elapsed)) + ' s remaining · ' + r.errors + ' request errors';
+    if (r.live) $('status').textContent = stageText() + Math.max(0, Math.ceil(r.duration - elapsed)) + ' s remaining · ' + r.errors + ' request errors';
     draw(r);
     if (r.live && elapsed >= r.duration) stop(r, 'Time limit reached');
   }
@@ -159,7 +173,7 @@
         if (elapsed > 0) speed = (d.bytes - first.bytes) * 8 / MB / (elapsed / 1000);
         if (now - d.lastProgress >= 500) speed = 0;
         if (speed > r.gaugeMax) r.gaugeMax = Math.pow(10, Math.ceil(Math.log10(speed)));
-        var enabled = direction === 'down' ? r.mode !== 'upload' : r.mode === 'upload' || r.mode === 'duplex';
+        var enabled = direction === 'down' ? r.mode !== 'upload' : hasUpload(r);
         var moving = Array.from(r.active).some(function (xhr) { return xhr._direction === direction && xhr._isSending(); });
         if (!r.live) { text = 'Finished'; speed = 0; }
         else if (!enabled) text = 'Not active in this mode';
@@ -261,15 +275,17 @@
   }
   function directionState() { return { bytes: 0, confirmed: 0, pending: 0, sampleBytes: 0, lastProgress: performance.now(), pauseStart: null, visual: [] }; }
   function report(r) {
-    return { version: VERSION, run_id: r.id, mode: r.mode, started_utc: r.startedUTC, ended_utc: r.endedUTC, reason: r.reason, duration_s: r.elapsed, parallel_requests_per_direction: r.streams, budget_bytes: r.budget, reserved_bytes: r.reserved, download_bytes: r.down.bytes, upload_browser_bytes: r.up.bytes, upload_server_confirmed_bytes: r.up.confirmed, pauses: r.pauses, longest_pause_s: r.longestPause, request_errors: r.errors, pages: r.pages, user_agent: navigator.userAgent, samples: r.samples, events: r.events, requests: r.requests, interpretation: 'Application payload, not wire rate. Upload progress is browser-reported; HTTP success confirms complete upload requests. Pauses are progress gaps, not proof of packet loss. Hidden tabs may throttle timers. Failed and cancelled requests can contain partial traffic.' };
+    return { version: VERSION, run_id: r.id, mode: r.mode, started_utc: r.startedUTC, ended_utc: r.endedUTC, reason: r.reason, duration_s: r.elapsed, parallel_requests_per_direction: r.streams, upload_parallel_requests: r.uploadStreams, budget_bytes: r.budget, reserved_bytes: r.reserved, download_bytes: r.down.bytes, upload_browser_bytes: r.up.bytes, upload_server_confirmed_bytes: r.up.confirmed, pauses: r.pauses, longest_pause_s: r.longestPause, request_errors: r.errors, pages: r.pages, user_agent: navigator.userAgent, samples: r.samples, events: r.events, requests: r.requests, interpretation: 'Application payload, not wire rate. Upload progress is browser-reported; HTTP success confirms complete upload requests. Pauses are progress gaps, not proof of packet loss. Hidden tabs may throttle timers. Failed and cancelled requests can contain partial traffic.' };
   }
   function summaryText(r) {
     var seconds = r.elapsed || 1;
     return 'Connection lab ' + VERSION + ' · ' + r.mode + '\n' + (r.startedUTC || 'Not started') + '\n' + r.reason + '\n' + seconds.toFixed(1) + ' s, ' + r.streams + ' parallel requests/direction\nDownload average: ' + (r.down.bytes * 8 / MB / seconds).toFixed(2) + ' Mbps\nUpload average (browser): ' + (r.up.bytes * 8 / MB / seconds).toFixed(2) + ' Mbps\nUpload confirmed: ' + (r.up.confirmed / MB).toFixed(2) + ' MB\n' + r.pauses + ' progress pauses ≥2 s, ' + r.errors + ' request errors, ' + r.pages + ' pages\nRun: ' + r.id;
   }
-  async function start() {
+  async function start(options) {
+    options = options || {};
     if (run && run.live) return;
-    var r = run = { id: Date.now().toString(36), mode: mode, live: true, active: new Set(), startedMono: null, startedUTC: null, endedUTC: null, elapsed: 0, reason: '', duration: +$('duration').value, streams: +$('streams').value, budget: +$('budget').value * MB, reserved: 0, down: directionState(), up: directionState(), samples: [], requests: [], events: [], pauses: 0, longestPause: 0, errors: 0, pages: 0, gaugeMax: 10, reading: false };
+    if (!options.suite) { if (suite && suite.live) return; suite = null; $('suite-progress').textContent = ''; $('suite-results').textContent = ''; }
+    var r = run = { id: Date.now().toString(36), mode: options.mode || mode, live: true, active: new Set(), startedMono: null, startedUTC: null, endedUTC: null, elapsed: 0, reason: '', duration: options.duration || +$('duration').value, streams: options.streams || +$('streams').value, uploadStreams: options.uploadStreams || options.streams || +$('streams').value, budget: options.budget === undefined ? +$('budget').value * MB : options.budget, reserved: 0, down: directionState(), up: directionState(), samples: [], requests: [], events: [], pauses: 0, longestPause: 0, errors: 0, pages: 0, gaugeMax: 10, reading: false };
     busy(true); $('events').textContent = ''; $('status').classList.remove('error'); $('progress').value = 0; draw(r);
     $('down').innerHTML = '0.00 <small>Mbps</small>'; $('up').innerHTML = '0.00 <small>Mbps</small>';
     $('data').innerHTML = '0.0 <small>MB</small>'; $('pauses').textContent = '0';
@@ -277,14 +293,14 @@
     var timer, visualTimer;
     liveDisplay(r);
     try {
-      if (mode === 'upload' || mode === 'duplex') {
+      if (hasUpload(r)) {
         $('status').textContent = 'Checking upload receiver…'; event(r, 'Checking Cloudflare upload availability (1 KB).');
         var data = new Uint8Array(MB); for (var offset = 0; offset < data.length; offset += 65536) crypto.getRandomValues(data.subarray(offset, Math.min(offset + 65536, data.length)));
         r.uploadBody = new Blob([data], { type: 'application/octet-stream' });
         await request(r, { direction: 'up', size: 1024, kind: 'availability-check', check: true, url: UP_URL, body: r.uploadBody.slice(0, 1024) });
         event(r, 'Upload receiver accepted the check.');
       }
-      if ($('countdown').checked) for (var i = 5; i > 0 && r.live; i--) { $('status').textContent = 'Starting in ' + i + '…'; await sleep(1000); }
+      if (!options.suite && $('countdown').checked) for (var i = 5; i > 0 && r.live; i--) { $('status').textContent = 'Starting in ' + i + '…'; await sleep(1000); }
       if (!r.live) return;
       r.startedMono = performance.now(); r.lastSample = r.startedMono; r.startedUTC = iso();
       r.down.visual.push({at: r.startedMono, bytes: 0}); r.up.visual.push({at: r.startedMono, bytes: 0});
@@ -296,6 +312,11 @@
       var deadline = setTimeout(function () { stop(r, 'Time limit reached'); }, r.duration * 1000);
       try {
         if (r.mode === 'browse') await browse(r);
+        else if (r.mode === 'browse-upload') {
+          var mixedJobs = [browse(r)];
+          for (var u = 0; u < r.uploadStreams; u++) mixedJobs.push(worker(r, 'up'));
+          await Promise.all(mixedJobs);
+        }
         else {
           var jobs = []; for (var n = 0; n < r.streams; n++) { if (r.mode !== 'upload') jobs.push(worker(r, 'down')); if (r.mode !== 'download') jobs.push(worker(r, 'up')); }
           await Promise.all(jobs);
@@ -303,32 +324,79 @@
         if (r.live) stop(r, 'Data budget reached');
       } finally { clearTimeout(deadline); }
     } catch (error) {
-      if (r.live) { r.errors++; event(r, error.message + (r.mode === 'upload' || r.mode === 'duplex' ? '. External upload receiver unavailable; Browse and Download do not need it.' : ''), true); stop(r, 'Test could not continue: ' + error.message); $('status').classList.add('error'); }
+      if (r.live) { r.errors++; event(r, error.message + (hasUpload(r) ? '. External upload receiver unavailable; Browse and Download do not need it.' : ''), true); stop(r, 'Test could not continue: ' + error.message); $('status').classList.add('error'); }
     } finally {
       clearInterval(timer); clearInterval(visualTimer); r.live = false;
       if (r.startedMono) { sample(r); r.elapsed = ((r.stopMono || performance.now()) - r.startedMono) / 1000; }
       r.endedUTC = r.endedUTC || iso(); r.uploadBody = null;
       event(r, 'END · ' + r.reason); $('status').textContent = r.reason;
-      $('summary').textContent = summaryText(r).replace(/\n/g, ' · '); busy(false);
+      $('summary').textContent = summaryText(r).replace(/\n/g, ' · '); if (!options.suite) busy(false);
       liveDisplay(r);
     }
+  }
+  function suiteSummary(s) {
+    return 'Connection lab ' + VERSION + ' · Traffic suite ' + s.suite_version + '\n' + s.reason + '\n' +
+      s.stages.length + '/' + SUITE.length + ' stages recorded; ' + s.completed_stages + ' ran for the full 60 seconds.\n' +
+      s.stages.map(function (r) { var seconds = r.duration_s || 1; return r.stage_name + ': ↓ ' + (r.download_bytes * 8 / MB / seconds).toFixed(2) + ' Mbps, ↑ ' + (r.upload_server_confirmed_bytes * 8 / MB / seconds).toFixed(2) + ' Mbps confirmed, ' + r.pauses + ' pauses, ' + r.request_errors + ' errors · ' + r.reason; }).join('\n');
+  }
+  function stageResult(r, config, index) {
+    var row = document.createElement('li');
+    var seconds = r.duration_s || 1;
+    row.textContent = config.name + ' · ↓ ' + (r.download_bytes * 8 / MB / seconds).toFixed(2) + ' / ↑ ' + (r.upload_server_confirmed_bytes * 8 / MB / seconds).toFixed(2) + ' Mbps confirmed · ' + r.pauses + ' pauses · ' + r.reason;
+    $('suite-results').appendChild(row);
+  }
+  async function startSuite() {
+    if ((run && run.live) || (suite && suite.live)) return;
+    var s = suite = { version: VERSION, suite_version: 'traffic-v1', type: 'traffic-suite', run_id: Date.now().toString(36), live: true, index: 0, started_utc: iso(), ended_utc: null, reason: '', stage_duration_s: 60, settling_gap_s: 5, budget_bytes: 500 * MB, reserved_bytes: 0, completed_stages: 0, plan: SUITE, stages: [], user_agent: navigator.userAgent };
+    run = null; busy(true); $('suite-results').textContent = ''; $('suite-progress').textContent = 'Preparing traffic suite…';
+    try {
+      if ($('countdown').checked) for (var i = 5; i > 0 && s.live; i--) { $('status').textContent = 'Suite starting in ' + i + '…'; await sleep(1000); }
+      for (var index = 0; index < SUITE.length && s.live; index++) {
+        s.index = index;
+        var config = SUITE[index];
+        $('suite-progress').textContent = stageText() + '60 seconds';
+        await start({ suite: true, mode: config.mode, streams: config.streams, uploadStreams: config.uploadStreams, duration: 60, budget: s.budget_bytes - s.reserved_bytes });
+        var result = report(run); result.stage_name = config.name; result.stage_index = index + 1;
+        s.stages.push(result); s.reserved_bytes += result.reserved_bytes;
+        if (result.reason === 'Time limit reached') s.completed_stages++;
+        stageResult(result, config, index);
+        if (!s.live) break;
+        if (result.reason === 'Data budget reached') { s.reason = '500 MB suite budget reached; remaining stages not run'; break; }
+        if (index < SUITE.length - 1) for (var gap = 5; gap > 0 && s.live; gap--) {
+          $('status').textContent = 'Settling · ' + gap + ' s · next: ' + SUITE[index + 1].name;
+          $('suite-progress').textContent = 'Between stages · no test traffic';
+          await sleep(1000);
+        }
+      }
+      if (!s.reason) s.reason = s.completed_stages === SUITE.length ? 'Suite complete' : 'Suite finished with incomplete stages; inspect individual results';
+    } catch (error) { s.reason = 'Suite stopped: ' + error.message; }
+    finally {
+      s.live = false; s.ended_utc = iso();
+      $('suite-progress').textContent = s.reason + ' · ' + s.completed_stages + '/' + SUITE.length + ' full-duration stages';
+      $('status').textContent = s.reason; $('summary').textContent = suiteSummary(s).replace(/\n/g, ' · '); busy(false);
+    }
+  }
+  function stopAll(reason) {
+    if (suite && suite.live) { suite.live = false; suite.reason = reason; }
+    if (run && run.live) stop(run, reason);
   }
   document.querySelectorAll('.mode').forEach(function (button) { button.addEventListener('click', function () {
     mode = button.dataset.mode;
     document.querySelectorAll('.mode').forEach(function (b) { var chosen = b === button; b.classList.toggle('selected', chosen); b.setAttribute('aria-pressed', String(chosen)); });
     $('mode-note').textContent = notes[mode];
   }); });
-  $('start').addEventListener('click', start);
-  $('stop').addEventListener('click', function () { if (run) stop(run, 'Stopped by you'); });
-  $('stop-live').addEventListener('click', function () { if (run) stop(run, 'Stopped by you'); });
+  $('start').addEventListener('click', function () { return start(); });
+  $('start-suite').addEventListener('click', startSuite);
+  $('stop').addEventListener('click', function () { stopAll('Stopped by you'); });
+  $('stop-live').addEventListener('click', function () { stopAll('Stopped by you'); });
   $('mark').addEventListener('click', function () { if (run && run.live) event(run, 'USER MARKER: I saw a freeze.', true); });
   $('save').addEventListener('click', function () {
-    if (!run) return; var url = URL.createObjectURL(new Blob([JSON.stringify(report(run), null, 2)], { type: 'application/json' }));
-    var a = document.createElement('a'); a.href = url; a.download = 'connection-lab-' + run.id + '.json'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(url); }, 10000);
+    if (!run && !suite) return; var result = suite || report(run); var url = URL.createObjectURL(new Blob([JSON.stringify(result, null, 2)], { type: 'application/json' }));
+    var a = document.createElement('a'); a.href = url; a.download = 'connection-lab-' + result.run_id + '.json'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(url); }, 10000);
   });
-  $('copy').addEventListener('click', async function () { try { await navigator.clipboard.writeText(summaryText(run)); $('status').textContent = 'Summary copied.'; } catch (_) { $('status').textContent = 'Copy unavailable. Use Save results instead.'; } });
+  $('copy').addEventListener('click', async function () { try { await navigator.clipboard.writeText(suite ? suiteSummary(suite) : summaryText(run)); $('status').textContent = 'Summary copied.'; } catch (_) { $('status').textContent = 'Copy unavailable. Use Save results instead.'; } });
   document.addEventListener('visibilitychange', function () { if (run && run.live) event(run, document.hidden ? 'Tab hidden: browser timers and traffic may be throttled.' : 'Tab visible again.', document.hidden); });
-  window.addEventListener('pagehide', function () { if (run && run.live) stop(run, 'Page left'); });
+  window.addEventListener('pagehide', function () { stopAll('Page left'); });
   window.addEventListener('resize', function () { draw(run); liveDisplay(run); });
   draw(null);
   liveDisplay(null);
