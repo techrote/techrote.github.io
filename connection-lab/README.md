@@ -8,6 +8,8 @@ Version 1.1 adds two analogue needle gauges and live numbers updated at 10 Hz fr
 
 ## Workloads
 
+Version 1.2.2 updates the distance choices to **60 cm / 120 cm**, default 60 cm, for the next trials. The traffic-v2-short timing and workload plan are unchanged. Historical reports with 30 cm remain valid.
+
 Version 1.2.1 shortens the default suite to **traffic-v2-short**: the same eight traffic patterns, 25 seconds each, with three idle seconds between stages. With the initial five-second countdown and upload receiver checks it normally takes about four minutes. Slow receiver checks or retries may extend setup. The 500 MB aggregate cap and standalone tests remain unchanged. The new Board distance selector records 30 cm, 60 cm, or an unspecified distance in suite JSON; filenames include a distance suffix when selected. This is a different suite version from the earlier 60-second traffic-v1 and must be compared using its own stage durations. Short stages cannot exercise the existing 45-second individual-request timeout.
 
 The paragraph below describes the previous v1.2 / traffic-v1 baseline; its eight workload patterns and export semantics still apply, but its timing is superseded by traffic-v2-short.

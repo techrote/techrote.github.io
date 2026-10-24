@@ -20,7 +20,7 @@ function harness(plan = () => ({})) {
     get textContent() { return this.text; }
   }
   const elements = new Map(), get = id => { if (!elements.has(id)) elements.set(id, new Element(id)); return elements.get(id); };
-  get('duration').value = '60'; get('streams').value = '4'; get('budget').value = '100'; get('distance').value = '30';
+  get('duration').value = '60'; get('streams').value = '4'; get('budget').value = '100'; get('distance').value = '60';
   const modes = ['browse', 'download', 'upload', 'duplex'].map(mode => { const el = new Element(mode); el.dataset.mode = mode; return el; });
   function schedule(fn, ms, interval = 0) { const id = ++next; timers.set(id, { fn, due: now + ms, interval }); return id; }
   class XHR {
@@ -124,7 +124,7 @@ function harness(plan = () => ({})) {
     const h = harness(xhr => ({ delay: xhr.body && xhr.body.size === 1024 ? 20 : 10000 }));
     const done = h.startSuite(); await h.tick(600000); await done;
     const s = await h.report(); assert.equal(s.type, 'traffic-suite'); assert.equal(s.suite_version, 'traffic-v2-short');
-    assert.equal(s.reason, 'Suite complete'); assert(Date.parse(s.ended_utc) - Date.parse(s.started_utc) < 240000, 'Normal short suite must finish within four minutes'); assert.equal(s.completed_stages, 8); assert.equal(s.distance_cm, 30); assert.equal(s.stage_duration_s, 25); assert.equal(s.settling_gap_s, 3); assert.equal(s.stages.length, 8);
+    assert.equal(s.reason, 'Suite complete'); assert(Date.parse(s.ended_utc) - Date.parse(s.started_utc) < 240000, 'Normal short suite must finish within four minutes'); assert.equal(s.completed_stages, 8); assert.equal(s.distance_cm, 60); assert.equal(s.stage_duration_s, 25); assert.equal(s.settling_gap_s, 3); assert.equal(s.stages.length, 8);
     assert.deepEqual(s.stages.map(r => r.mode), ['browse', 'download', 'upload', 'duplex', 'download', 'upload', 'duplex', 'browse-upload']);
     assert.deepEqual(s.stages.map(r => r.parallel_requests_per_direction), [4, 1, 1, 1, 4, 4, 4, 4]);
     assert.equal(s.stages[7].upload_parallel_requests, 1);
@@ -144,9 +144,9 @@ function harness(plan = () => ({})) {
     assert.equal(s.completed_stages, 1); assert(h.requests.every(r => r.done));
   }
   {
-    const h = harness(); h.get('countdown').checked = true; const done = h.startSuite();
+    const h = harness(); h.get('countdown').checked = true; h.get('distance').value = '120'; const done = h.startSuite();
     await h.tick(1500); h.stop(); await h.tick(2000); await done;
-    const s = await h.report(); assert.equal(s.stages.length, 0); assert.equal(s.reason, 'Stopped by you'); assert.equal(h.requests.length, 0);
+    const s = await h.report(); assert.equal(s.stages.length, 0); assert.equal(s.distance_cm, 120); assert.equal(s.reason, 'Stopped by you'); assert.equal(h.requests.length, 0);
   }
   {
     const h = harness(xhr => xhr.body ? { networkError: true } : { delay: 10000 });

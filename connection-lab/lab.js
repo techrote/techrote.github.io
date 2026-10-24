@@ -1,7 +1,7 @@
 /* Buildless and deliberately uses XHR progress for older Firefox on Android. */
 (function () {
   'use strict';
-  var VERSION = '1.2.1', MB = 1000000, UP_URL = 'https://speed.cloudflare.com/__up';
+  var VERSION = '1.2.2', MB = 1000000, UP_URL = 'https://speed.cloudflare.com/__up';
   var $ = function (id) { return document.getElementById(id); };
   var mode = 'browse', run = null, suite = null, galleryURLs = [], requestSequence = 0;
   // Fixed order and settings make firmware comparisons reproducible.
