@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#101c21">
+  <meta name="description" content="A browser connection endurance test: real page loads, sustained transfers, and a timestamped record of pauses.">
+  <title>Connection lab · techrote</title>
+  <link rel="stylesheet" href="style.css?v=1">
+  <script src="assets/manifest.js?v=1" defer></script>
+  <script src="lab.js?v=1" defer></script>
+</head>
+<body>
+<main>
+  <header><a href="../">techrote / workbench</a><span class="tag">CONNECTION LAB · v1</span></header>
+  <div class="intro"><p class="eyebrow">A little pressure. A clearer picture.</p><h1>How steady is<br>your connection?</h1><p>Load a stream of real page assets, or keep a transfer running. Watch for pauses while your device does the work.</p></div>
+  <section class="panel controls" aria-labelledby="test-heading">
+    <h2 id="test-heading">Choose your workload</h2>
+    <div class="modes" role="group" aria-label="Workload">
+      <button data-mode="browse" class="mode selected" aria-pressed="true"><b>Browse</b><span>Images + small requests, in bursts</span></button>
+      <button data-mode="download" class="mode" aria-pressed="false"><b>Download</b><span>A continuous incoming transfer</span></button>
+      <button data-mode="upload" class="mode" aria-pressed="false"><b>Upload</b><span>Send generated data to Cloudflare</span></button>
+      <button data-mode="duplex" class="mode" aria-pressed="false"><b>Both ways</b><span>Download + upload together</span></button>
+    </div>
+    <div class="settings">
+      <label>Run for<select id="duration"><option value="60">1 minute</option><option value="180" selected>3 minutes</option><option value="300">5 minutes</option><option value="600">10 minutes</option></select></label>
+      <label>Parallel requests per direction<select id="streams"><option value="1">1 · gentle</option><option value="4" selected>4 · busy</option><option value="8">8 · heavy</option></select></label>
+      <label>Data budget, both directions<select id="budget"><option value="100">100 MB</option><option value="250" selected>250 MB</option><option value="500">500 MB</option></select></label>
+    </div>
+    <p id="mode-note" class="hint">Browse loads a fresh gallery and short article data, then pauses for 2 seconds between pages. All downloads come from this GitHub site.</p>
+    <label class="check"><input id="countdown" type="checkbox" checked> Give me a 5-second countdown</label>
+    <div class="actions"><button id="start" class="primary">Start test</button><button id="stop" disabled>Stop</button><span id="status" role="status" aria-live="polite">Ready when you are.</span></div>
+    <progress id="progress" max="100" value="0" aria-label="Test progress"></progress>
+    <noscript>Enable JavaScript to run this test.</noscript>
+  </section>
+  <section class="panel" aria-label="Live measurements">
+    <div class="metrics">
+      <div><span>↓ Download</span><strong id="down">0.00 <small>Mbps</small></strong></div>
+      <div><span>↑ Upload · browser reported</span><strong id="up">0.00 <small>Mbps</small></strong></div>
+      <div><span>Transferred · payload</span><strong id="data">0.0 <small>MB</small></strong></div>
+      <div><span>Pauses ≥ 2 seconds</span><strong id="pauses">0</strong></div>
+    </div>
+    <div class="chart-head"><h2>Throughput over time</h2><span><i class="key down"></i>Download <i class="key up"></i>Upload</span></div>
+    <canvas id="chart" height="210" role="img" aria-label="Throughput graph. Download and upload speeds are also shown above."></canvas>
+    <p id="summary" class="hint">The graph updates once a second. Nothing transfers until you press Start.</p>
+    <div class="actions"><button id="mark" disabled>I saw a freeze</button><button id="save" disabled>Save results</button><button id="copy" disabled>Copy summary</button></div>
+  </section>
+  <section id="gallery-section" class="panel">
+    <div class="chart-head"><h2>A page worth loading</h2><span id="pages">Waiting for the first page</span></div>
+    <p class="hint">A small field journal with original procedural illustrations. Browse mode replaces these cards as each new page arrives.</p>
+    <div id="gallery" class="gallery"><div class="placeholder">Coastlines</div><div class="placeholder">High ground</div><div class="placeholder">Night signals</div><div class="placeholder">Open water</div></div>
+  </section>
+  <section class="panel"><h2>Run notes</h2><ol id="events" class="events"><li>Your start time, pauses, errors, and freeze markers will appear here.</li></ol></section>
+  <details class="panel"><summary>What these numbers mean</summary>
+    <p>This is an Internet workload, including your browser, Wi-Fi, router, ISP, and the remote host. It cannot identify packet loss or prove which part caused a pause. Parallel HTTP requests may share one HTTP/2 connection.</p>
+    <p>A pause means at least 2 seconds with no browser progress while a transfer is pending. Planned reading breaks do not count. Upload progress can run ahead of server receipt; the saved report separates browser-reported bytes from server-confirmed requests. Browser buffering and background-tab throttling can affect the graph.</p>
+    <p>Downloads use fresh URLs and already compressed images or incompressible binary data. Rates count application payload, excluding TCP, Wi-Fi, and TLS overhead. MB and Mbps use decimal units. Keep this tab in the foreground and the screen on. A hidden tab is marked in the report.</p>
+    <p>GitHub Pages is static hosting, so Upload and Both ways send random test data to <a href="https://github.com/cloudflare/speedtest">Cloudflare’s public speed-test endpoint</a>. No files, credentials, or ESP diagnostics are uploaded. If that endpoint is blocked or unavailable, those modes report the error; Browse and Download remain independent. Results stay in this browser unless you save or copy them.</p>
+    <p>The data budget limits requested payload; network overhead and the small upload availability check are additional. Stop and the time limit cancel outstanding requests. A test is not started again automatically.</p>
+  </details>
+  <footer><span>Small page. Real traffic.</span><a href="https://github.com/techrote/techrote.github.io/tree/main/connection-lab">Source & methodology</a></footer>
+</main>
+</body></html>
