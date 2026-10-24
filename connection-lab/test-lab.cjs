@@ -87,6 +87,16 @@ function harness(plan = () => ({})) {
     assert.equal(r.pauses, 1); assert(r.longest_pause_s >= 3); assert.equal(r.request_errors, 0);
   }
   {
+    const h = harness(() => ({ pending: true, partial: 2000 })), done = h.start('download');
+    await h.tick(100); assert(parseFloat(h.get('down').innerHTML) > 0);
+    await h.tick(600); assert.equal(parseFloat(h.get('down').innerHTML), 0);
+    assert(h.get('down-state').textContent.startsWith('Waiting'));
+    await h.tick(1500); assert(h.get('down-state').textContent.startsWith('PAUSED'));
+    h.stop(); await done; const r = await h.report();
+    assert(r.samples.length <= 4, '10 Hz display must not multiply saved 1 Hz samples');
+    assert.equal(r.pauses, 1); assert.equal(h.get('down-state').textContent, 'Finished');
+  }
+  {
     const h = harness(), done = h.start('browse'); await h.tick(7000); h.stop(); await h.tick(2000); await done;
     const r = await h.report(); assert.equal(r.pauses, 0); assert(r.pages >= 3);
   }

@@ -1,7 +1,7 @@
 /* Buildless and deliberately uses XHR progress for older Firefox on Android. */
 (function () {
   'use strict';
-  var VERSION = '1.0.0', MB = 1000000, UP_URL = 'https://speed.cloudflare.com/__up';
+  var VERSION = '1.1.0', MB = 1000000, UP_URL = 'https://speed.cloudflare.com/__up';
   var $ = function (id) { return document.getElementById(id); };
   var mode = 'browse', run = null, galleryURLs = [], requestSequence = 0;
   var notes = {
@@ -24,7 +24,7 @@
   }
   function busy(value) {
     document.querySelectorAll('.mode, select, #countdown').forEach(function (el) { el.disabled = value; });
-    $('start').disabled = value; $('stop').disabled = !value;
+    $('start').disabled = value; $('stop').disabled = !value; $('stop-live').disabled = !value;
     $('save').disabled = value || !run; $('copy').disabled = value || !run;
     $('mark').disabled = !value;
   }
@@ -118,8 +118,6 @@
       }
     });
     point.hidden = document.hidden; r.samples.push(point); r.lastSample = now;
-    $('down').innerHTML = point.down_mbps.toFixed(2) + ' <small>Mbps</small>';
-    $('up').innerHTML = point.up_mbps.toFixed(2) + ' <small>Mbps</small>';
     $('data').innerHTML = ((r.down.bytes + r.up.bytes) / MB).toFixed(1) + ' <small>MB</small>';
     $('pauses').textContent = r.pauses;
     var elapsed = (now - r.startedMono) / 1000;
@@ -127,6 +125,67 @@
     if (r.live) $('status').textContent = Math.max(0, Math.ceil(r.duration - elapsed)) + ' s remaining · ' + r.errors + ' request errors';
     draw(r);
     if (r.live && elapsed >= r.duration) stop(r, 'Time limit reached');
+  }
+  function gauge(direction, speed, maximum) {
+    var canvas = $(direction + '-gauge'), width = Math.max(130, canvas.clientWidth), height = width * .58;
+    var scale = Math.min(window.devicePixelRatio || 1, 2);
+    if (canvas.width !== Math.round(width * scale) || canvas.height !== Math.round(height * scale)) {
+      canvas.width = Math.round(width * scale); canvas.height = Math.round(height * scale);
+    }
+    var c = canvas.getContext('2d'); c.setTransform(scale, 0, 0, scale, 0, 0); c.clearRect(0, 0, width, height);
+    var x = width / 2, y = height - 12, radius = width * .39;
+    c.strokeStyle = '#35494e'; c.lineWidth = 9; c.beginPath(); c.arc(x, y, radius, Math.PI, 2 * Math.PI); c.stroke();
+    c.strokeStyle = direction === 'down' ? '#b7efb1' : '#7bc9e7'; c.lineWidth = 4;
+    var angle = Math.PI + Math.min(1, Math.max(0, speed / maximum)) * Math.PI;
+    c.beginPath(); c.arc(x, y, radius, Math.PI, angle); c.stroke();
+    c.fillStyle = '#a9b8b8'; c.font = Math.max(9, width * .035) + 'px system-ui'; c.textAlign = 'center';
+    for (var i = 0; i <= 4; i++) {
+      var a = Math.PI + i * Math.PI / 4;
+      c.fillText((maximum * i / 4).toFixed(maximum <= 10 ? 1 : 0), x + Math.cos(a) * (radius - 19), y + Math.sin(a) * (radius - 19) + 4);
+    }
+    c.lineWidth = 3; c.beginPath(); c.moveTo(x, y); c.lineTo(x + Math.cos(angle) * (radius - 5), y + Math.sin(angle) * (radius - 5)); c.stroke();
+    c.fillStyle = direction === 'down' ? '#b7efb1' : '#7bc9e7'; c.beginPath(); c.arc(x, y, 5, 0, 2 * Math.PI); c.fill();
+  }
+  function liveDisplay(r) {
+    var now = r && r.stopMono ? r.stopMono : performance.now();
+    ['down', 'up'].forEach(function (direction) {
+      var speed = 0, text = 'Ready', severity = '';
+      if (r && r.startedMono) {
+        var d = r[direction], points = d.visual;
+        points.push({ at: now, bytes: d.bytes });
+        // Retain the sample immediately before the rolling half-second boundary.
+        while (points.length > 2 && points[1].at <= now - 500) points.shift();
+        var first = points[0], elapsed = now - first.at;
+        if (elapsed > 0) speed = (d.bytes - first.bytes) * 8 / MB / (elapsed / 1000);
+        if (now - d.lastProgress >= 500) speed = 0;
+        if (speed > r.gaugeMax) r.gaugeMax = Math.pow(10, Math.ceil(Math.log10(speed)));
+        var enabled = direction === 'down' ? r.mode !== 'upload' : r.mode === 'upload' || r.mode === 'duplex';
+        var moving = Array.from(r.active).some(function (xhr) { return xhr._direction === direction && xhr._isSending(); });
+        if (!r.live) { text = 'Finished'; speed = 0; }
+        else if (!enabled) text = 'Not active in this mode';
+        else if (r.reading && direction === 'down') text = 'Reading break · intentional';
+        else if (!moving && d.pending > 0) text = 'Waiting for server reply';
+        else if (!moving) text = 'Between requests';
+        else {
+          var gap = Math.max(0, (now - d.lastProgress) / 1000);
+          if (gap >= 2) {
+            text = 'PAUSED · ' + gap.toFixed(1) + ' s without progress'; severity = 'stalled';
+            if (d.pauseStart === null) {
+              d.pauseStart = d.lastProgress; r.pauses++;
+              event(r, direction + ': at least 2 s without browser progress.', true);
+              $('pauses').textContent = r.pauses;
+            }
+          }
+          else if (gap >= .5) { text = 'Waiting · ' + gap.toFixed(1) + ' s without progress'; severity = 'waiting'; }
+          else text = 'Transferring';
+        }
+      } else if (r && r.live) text = 'Preparing';
+      $(direction).innerHTML = speed.toFixed(2) + ' <small>Mbps</small>';
+      $(direction + '-state').textContent = text;
+      $(direction + '-state').classList.toggle('stalled', severity === 'stalled');
+      $(direction + '-state').classList.toggle('waiting', severity === 'waiting');
+      gauge(direction, speed, r ? r.gaugeMax : 10);
+    });
   }
   function draw(r) {
     var canvas = $('chart'), width = Math.max(240, canvas.clientWidth), height = 210;
@@ -185,7 +244,9 @@
       if (budgetEnd) { stop(r, 'Data budget reached'); break; }
       if (failed) { if (++failures >= 3) { stop(r, 'Three page loads failed in succession'); break; } }
       else { failures = 0; r.pages++; renderGallery(batch); $('pages').textContent = 'Page ' + r.pages + ' loaded'; }
+      r.reading = true;
       await sleep(2000);
+      r.reading = false;
     }
   }
   function renderGallery(items) {
@@ -198,7 +259,7 @@
       figure.appendChild(img); figure.appendChild(caption); $('gallery').appendChild(figure);
     });
   }
-  function directionState() { return { bytes: 0, confirmed: 0, pending: 0, sampleBytes: 0, lastProgress: performance.now(), pauseStart: null }; }
+  function directionState() { return { bytes: 0, confirmed: 0, pending: 0, sampleBytes: 0, lastProgress: performance.now(), pauseStart: null, visual: [] }; }
   function report(r) {
     return { version: VERSION, run_id: r.id, mode: r.mode, started_utc: r.startedUTC, ended_utc: r.endedUTC, reason: r.reason, duration_s: r.elapsed, parallel_requests_per_direction: r.streams, budget_bytes: r.budget, reserved_bytes: r.reserved, download_bytes: r.down.bytes, upload_browser_bytes: r.up.bytes, upload_server_confirmed_bytes: r.up.confirmed, pauses: r.pauses, longest_pause_s: r.longestPause, request_errors: r.errors, pages: r.pages, user_agent: navigator.userAgent, samples: r.samples, events: r.events, requests: r.requests, interpretation: 'Application payload, not wire rate. Upload progress is browser-reported; HTTP success confirms complete upload requests. Pauses are progress gaps, not proof of packet loss. Hidden tabs may throttle timers. Failed and cancelled requests can contain partial traffic.' };
   }
@@ -208,12 +269,13 @@
   }
   async function start() {
     if (run && run.live) return;
-    var r = run = { id: Date.now().toString(36), mode: mode, live: true, active: new Set(), startedMono: null, startedUTC: null, endedUTC: null, elapsed: 0, reason: '', duration: +$('duration').value, streams: +$('streams').value, budget: +$('budget').value * MB, reserved: 0, down: directionState(), up: directionState(), samples: [], requests: [], events: [], pauses: 0, longestPause: 0, errors: 0, pages: 0 };
+    var r = run = { id: Date.now().toString(36), mode: mode, live: true, active: new Set(), startedMono: null, startedUTC: null, endedUTC: null, elapsed: 0, reason: '', duration: +$('duration').value, streams: +$('streams').value, budget: +$('budget').value * MB, reserved: 0, down: directionState(), up: directionState(), samples: [], requests: [], events: [], pauses: 0, longestPause: 0, errors: 0, pages: 0, gaugeMax: 10, reading: false };
     busy(true); $('events').textContent = ''; $('status').classList.remove('error'); $('progress').value = 0; draw(r);
     $('down').innerHTML = '0.00 <small>Mbps</small>'; $('up').innerHTML = '0.00 <small>Mbps</small>';
     $('data').innerHTML = '0.0 <small>MB</small>'; $('pauses').textContent = '0';
     $('summary').textContent = 'Preparing this run. Keep the tab visible and the screen on.';
-    var timer;
+    var timer, visualTimer;
+    liveDisplay(r);
     try {
       if (mode === 'upload' || mode === 'duplex') {
         $('status').textContent = 'Checking upload receiver…'; event(r, 'Checking Cloudflare upload availability (1 KB).');
@@ -225,9 +287,12 @@
       if ($('countdown').checked) for (var i = 5; i > 0 && r.live; i--) { $('status').textContent = 'Starting in ' + i + '…'; await sleep(1000); }
       if (!r.live) return;
       r.startedMono = performance.now(); r.lastSample = r.startedMono; r.startedUTC = iso();
+      r.down.visual.push({at: r.startedMono, bytes: 0}); r.up.visual.push({at: r.startedMono, bytes: 0});
       $('status').textContent = 'Loading…';
+      if (typeof $('live-measurements').scrollIntoView === 'function') $('live-measurements').scrollIntoView({ block: 'start' });
       event(r, 'START ' + r.mode + ' · ' + r.streams + ' parallel requests/direction · ' + r.duration + ' s · ' + r.budget / MB + ' MB budget.');
       timer = setInterval(function () { sample(r); }, 1000);
+      visualTimer = setInterval(function () { liveDisplay(r); }, 100);
       var deadline = setTimeout(function () { stop(r, 'Time limit reached'); }, r.duration * 1000);
       try {
         if (r.mode === 'browse') await browse(r);
@@ -240,11 +305,12 @@
     } catch (error) {
       if (r.live) { r.errors++; event(r, error.message + (r.mode === 'upload' || r.mode === 'duplex' ? '. External upload receiver unavailable; Browse and Download do not need it.' : ''), true); stop(r, 'Test could not continue: ' + error.message); $('status').classList.add('error'); }
     } finally {
-      clearInterval(timer); r.live = false;
+      clearInterval(timer); clearInterval(visualTimer); r.live = false;
       if (r.startedMono) { sample(r); r.elapsed = ((r.stopMono || performance.now()) - r.startedMono) / 1000; }
       r.endedUTC = r.endedUTC || iso(); r.uploadBody = null;
       event(r, 'END · ' + r.reason); $('status').textContent = r.reason;
       $('summary').textContent = summaryText(r).replace(/\n/g, ' · '); busy(false);
+      liveDisplay(r);
     }
   }
   document.querySelectorAll('.mode').forEach(function (button) { button.addEventListener('click', function () {
@@ -254,6 +320,7 @@
   }); });
   $('start').addEventListener('click', start);
   $('stop').addEventListener('click', function () { if (run) stop(run, 'Stopped by you'); });
+  $('stop-live').addEventListener('click', function () { if (run) stop(run, 'Stopped by you'); });
   $('mark').addEventListener('click', function () { if (run && run.live) event(run, 'USER MARKER: I saw a freeze.', true); });
   $('save').addEventListener('click', function () {
     if (!run) return; var url = URL.createObjectURL(new Blob([JSON.stringify(report(run), null, 2)], { type: 'application/json' }));
@@ -262,6 +329,7 @@
   $('copy').addEventListener('click', async function () { try { await navigator.clipboard.writeText(summaryText(run)); $('status').textContent = 'Summary copied.'; } catch (_) { $('status').textContent = 'Copy unavailable. Use Save results instead.'; } });
   document.addEventListener('visibilitychange', function () { if (run && run.live) event(run, document.hidden ? 'Tab hidden: browser timers and traffic may be throttled.' : 'Tab visible again.', document.hidden); });
   window.addEventListener('pagehide', function () { if (run && run.live) stop(run, 'Page left'); });
-  window.addEventListener('resize', function () { draw(run); });
+  window.addEventListener('resize', function () { draw(run); liveDisplay(run); });
   draw(null);
+  liveDisplay(null);
 }());

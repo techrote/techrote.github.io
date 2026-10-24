@@ -2,7 +2,9 @@
 
 Live page: https://techrote.github.io/connection-lab/
 
-A small, buildless browser workload for investigating intermittent connection stalls. It runs on GitHub Pages and needs no software on the test device or local PC server. Designed for Firefox on Android, including older devices: XMLHttpRequest progress events, bounded response Blobs, a reused 1 MB upload body, system fonts, and a graph drawn once per second.
+A small, buildless browser workload for investigating intermittent connection stalls. It runs on GitHub Pages and needs no software on the test device or local PC server. Designed for Firefox on Android, including older devices: XMLHttpRequest progress events, bounded response Blobs, a reused 1 MB upload body, system fonts, and a history graph drawn once per second.
+
+Version 1.1 adds two analogue needle gauges and live numbers updated at 10 Hz from a rolling half-second payload window. Values fall to zero after 0.5 seconds without progress; an amber waiting label shows the gap, changing to a red PAUSED indicator at two seconds. The display does not add artificial jitter or smooth away stalls. Browse's intentional two-second reading breaks and upload server-response waits have separate labels. A Stop test button stays alongside the gauges, and the page scrolls to the live view when the workload begins. The gauge starts with a 10 Mbps scale and increases the range if necessary, keeping that scale for the rest of the run.
 
 ## Workloads
 
@@ -19,7 +21,7 @@ GitHub Pages cannot receive uploads or run a receiver. Upload availability is ch
 
 The test starts only on a click. A five-second countdown is enabled by default. Each run has a selected 1–10 minute time limit and a 100/250/500 MB requested-payload budget. The budget reserves full requests before sending, including retries, so actual payload can be slightly below the cap. HTTP/TLS overhead, initial page assets, and the availability check are additional. Stop, page exit, deadline, and three consecutive failures in a worker cancel outstanding requests. Planned reading breaks do not count as pauses.
 
-The graph samples XHR progress once per second. A pause is at least two seconds without progress while a data transfer is pending. Progress events are browser-buffered, and hidden tabs can throttle execution, so this indicates a symptom rather than packet loss. Upload progress is explicitly **browser reported**. The JSON separately records payload in uploads whose HTTP requests succeeded; unfinished or failed uploads may have transmitted partially. A receiver acknowledging an HTTP request does not prove end-to-end application persistence.
+The history graph and exported samples use one-second intervals; the faster gauges use the same counters without changing the request schedule or creating network traffic. A pause is at least two seconds without progress while a data transfer is pending. Progress events are browser-buffered, and hidden tabs can throttle execution, so this indicates a symptom rather than packet loss. Upload progress is explicitly **browser reported**. The JSON separately records payload in uploads whose HTTP requests succeeded; unfinished or failed uploads may have transmitted partially. A receiver acknowledging an HTTP request does not prove end-to-end application persistence.
 
 Save results exports JSON with UTC start/end times, per-second payload counters/rates, pause/resume events, manual freeze markers, request status/duration, hidden-tab events, browser version, and the test settings. Results are held in memory until saved; nothing is sent to an analytics collector. Use the UTC timestamps to align the report with separate firmware diagnostics.
 

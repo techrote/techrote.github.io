@@ -6,13 +6,13 @@
   <meta name="theme-color" content="#101c21">
   <meta name="description" content="A browser connection endurance test: real page loads, sustained transfers, and a timestamped record of pauses.">
   <title>Connection lab · techrote</title>
-  <link rel="stylesheet" href="style.css?v=1">
+  <link rel="stylesheet" href="style.css?v=2">
   <script src="assets/manifest.js?v=1" defer></script>
-  <script src="lab.js?v=1" defer></script>
+  <script src="lab.js?v=2" defer></script>
 </head>
 <body>
 <main>
-  <header><a href="../">techrote / workbench</a><span class="tag">CONNECTION LAB · v1</span></header>
+  <header><a href="../">techrote / workbench</a><span class="tag">CONNECTION LAB · v1.1</span></header>
   <div class="intro"><p class="eyebrow">A little pressure. A clearer picture.</p><h1>How steady is<br>your connection?</h1><p>Load a stream of real page assets, or keep a transfer running. Watch for pauses while your device does the work.</p></div>
   <section class="panel controls" aria-labelledby="test-heading">
     <h2 id="test-heading">Choose your workload</h2>
@@ -33,17 +33,20 @@
     <progress id="progress" max="100" value="0" aria-label="Test progress"></progress>
     <noscript>Enable JavaScript to run this test.</noscript>
   </section>
-  <section class="panel" aria-label="Live measurements">
+  <section class="panel" id="live-measurements" aria-label="Live measurements">
+    <div class="gauges">
+      <div class="gauge-card"><span>↓ Download</span><canvas id="down-gauge" role="img" aria-label="Live download speed needle"></canvas><strong id="down">0.00 <small>Mbps</small></strong><p id="down-state" class="flow-state">Ready</p></div>
+      <div class="gauge-card"><span>↑ Upload · browser reported</span><canvas id="up-gauge" role="img" aria-label="Live upload speed needle"></canvas><strong id="up">0.00 <small>Mbps</small></strong><p id="up-state" class="flow-state">Ready</p></div>
+    </div>
+    <p class="hint">Needles update 10 times a second using the last 0.5 seconds of progress. They drop to zero when progress stops; no artificial jitter or long smoothing. In Browse mode, <b>Reading break</b> is intentional.</p>
     <div class="metrics">
-      <div><span>↓ Download</span><strong id="down">0.00 <small>Mbps</small></strong></div>
-      <div><span>↑ Upload · browser reported</span><strong id="up">0.00 <small>Mbps</small></strong></div>
       <div><span>Transferred · payload</span><strong id="data">0.0 <small>MB</small></strong></div>
       <div><span>Pauses ≥ 2 seconds</span><strong id="pauses">0</strong></div>
     </div>
     <div class="chart-head"><h2>Throughput over time</h2><span><i class="key down"></i>Download <i class="key up"></i>Upload</span></div>
     <canvas id="chart" height="210" role="img" aria-label="Throughput graph. Download and upload speeds are also shown above."></canvas>
-    <p id="summary" class="hint">The graph updates once a second. Nothing transfers until you press Start.</p>
-    <div class="actions"><button id="mark" disabled>I saw a freeze</button><button id="save" disabled>Save results</button><button id="copy" disabled>Copy summary</button></div>
+    <p id="summary" class="hint">Needles update 10 times a second; the history graph and saved samples update once a second. Nothing transfers until you press Start.</p>
+    <div class="actions"><button id="stop-live" disabled>Stop test</button><button id="mark" disabled>I saw a freeze</button><button id="save" disabled>Save results</button><button id="copy" disabled>Copy summary</button></div>
   </section>
   <section id="gallery-section" class="panel">
     <div class="chart-head"><h2>A page worth loading</h2><span id="pages">Waiting for the first page</span></div>
