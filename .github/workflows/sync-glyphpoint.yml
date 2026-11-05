@@ -5,6 +5,7 @@ on:
   schedule:
     - cron: '17 4 * * *'
   push:
+    branches: [main]
     paths:
       - '.github/workflows/sync-glyphpoint.yml'
 
@@ -30,32 +31,32 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p glyphpoint
-          curl --fail --location --silent --show-error \
-            'https://raw.githubusercontent.com/techrote/GlyphPoint/main/GlyphPoint-v1a.html' \
+          curl --fail --location --silent --show-error --retry 3 \
+            'https://raw.githubusercontent.com/techrote/GlyphPoint/main/GlyphPoint-RC.html' \
             --output glyphpoint/index.html.tmp
-          test "$(wc -c < glyphpoint/index.html.tmp)" -gt 100000
+          test "$(wc -c < glyphpoint/index.html.tmp)" -gt 500000
           grep -q 'Precision Glyph Grid Editor' glyphpoint/index.html.tmp
+          grep -q 'glyphpoint-v3' glyphpoint/index.html.tmp
+          grep -q 'DejaVu Sans Mono' glyphpoint/index.html.tmp
           mv glyphpoint/index.html.tmp glyphpoint/index.html
 
-      - name: Ensure homepage OPEN link
+      - name: Verify GlyphPoint tile and project information
         shell: python
         run: |
           from pathlib import Path
 
-          path = Path('index.html')
-          text = path.read_text(encoding='utf-8')
-          old = '<div class="actions"><a href="https://github.com/techrote/GlyphPoint#readme">INFO</a><a href="https://github.com/techrote/GlyphPoint">GITHUB</a></div>'
-          new = '<div class="actions"><a href="glyphpoint/">OPEN</a><a href="https://github.com/techrote/GlyphPoint#readme">INFO</a><a href="https://github.com/techrote/GlyphPoint">GITHUB</a></div>'
-          if new not in text:
-              if old not in text:
-                  raise SystemExit('GlyphPoint action block not found; refusing an ambiguous edit')
-              path.write_text(text.replace(old, new, 1), encoding='utf-8')
+          text = Path('index.html').read_text(encoding='utf-8')
+          expected = '<div class="actions"><a href="glyphpoint/">OPEN</a><a href="projects/glyphpoint.html">INFO</a><a href="https://github.com/techrote/GlyphPoint">GITHUB</a></div>'
+          if text.count('<h3>GlyphPoint</h3>') != 1 or text.count(expected) != 1:
+              raise SystemExit('Expected one current GlyphPoint tile with OPEN/INFO/GITHUB links')
+          if not Path('projects/glyphpoint.html').is_file():
+              raise SystemExit('GlyphPoint project information page missing')
 
       - name: Commit mirror when changed
         shell: bash
         run: |
           set -euo pipefail
-          git add glyphpoint/index.html index.html
+          git add glyphpoint/index.html
           if git diff --cached --quiet; then
             echo 'GlyphPoint mirror already current.'
             exit 0
