@@ -12,7 +12,7 @@ The homepage is an editable layered reconstruction of the **6 November 2026** in
 - `scene/workshop.js` and `scene/workshop.css` provide the engine and presentation, independent of the images and layout.
 - `directory.html` is the optional accessible text index and fallback.
 
-The repository uses lightweight **transparent WebP at runtime** for performance. The complete separately cropped **transparent PNG source parts** are included in the accompanying source-asset archive, and may be substituted directly by changing `.webp` to `.png` in the manifest. The PNG files can also be committed under `scene/parts/` and `scene/screens/` when refined.
+The repository uses lightweight **transparent WebP at runtime** for performance. The complete **transparent PNG source parts**, per-component **alpha mask PNGs**, and independent PNG screen layers are committed alongside the optimized WebP runtime assets. To use the PNGs at runtime, change each `.webp` asset path to its `.png` sibling in `scene/scene.json`; subsequent photographic edits can replace just one PNG without altering any other component.
 
 ## Coordinates
 
