@@ -82,6 +82,6 @@ body.debug .tile-mask{display:grid}
  .paper-link{font-size:clamp(13px,3.6vw,19px)}
  .service-bolt{min-width:22px;min-height:22px}
 }
-@media(max-width:365px){.top-actions #hints-toggle{display:none}.mobile-nav button{padding:6px 5px;font-size:8px}.foot-link{display:none}}
+@media(max-width:365px){.mobile-nav button{padding:6px 5px;font-size:8px}.foot-link{display:none}}
 @media(max-height:440px){.site{grid-template-rows:32px minmax(0,1fr) 31px}.site-bar,.site-foot{font-size:9px}.group-title{font-size:8px}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
