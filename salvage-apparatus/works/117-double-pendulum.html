@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#04060c"><title>S117 — DOUBLE PENDULUM</title><script src="kit.js"></script></head><body>
+<script>
+(()=>{'use strict';
+// Two copies of the same pendulum that differ by a hair. For a while you cannot tell them apart. Find the starting angles that last longest.
+const G=9.81,L1=1,L2=1,M1=1,M2=1;
+let A=null,B=null,t=0,eps=1e-3,a1=2.1,a2=1.2,running=false,div=null,best=0,bestCfg=null,runs=0,trailA=[],trailB=[],sc=100,sep=0,hist=[];
+function deriv(s){const [t1,t2,w1,w2]=s,d=t1-t2,den=2*M1+M2-M2*Math.cos(2*d);
+ const dw1=(-G*(2*M1+M2)*Math.sin(t1)-M2*G*Math.sin(t1-2*t2)-2*Math.sin(d)*M2*(w2*w2*L2+w1*w1*L1*Math.cos(d)))/(L1*den),dw2=(2*Math.sin(d)*(w1*w1*L1*(M1+M2)+G*(M1+M2)*Math.cos(t1)+w2*w2*L2*M2*Math.cos(d)))/(L2*den);return[w1,w2,dw1,dw2]}
+function rk(s,h){const k1=deriv(s),k2=deriv(s.map((v,i)=>v+k1[i]*h/2)),k3=deriv(s.map((v,i)=>v+k2[i]*h/2)),k4=deriv(s.map((v,i)=>v+k3[i]*h));return s.map((v,i)=>v+h/6*(k1[i]+2*k2[i]+2*k3[i]+k4[i]))}
+const tip=(s)=>{const x1=Math.sin(s[0])*L1,y1=Math.cos(s[0])*L1;return[x1,y1,x1+Math.sin(s[1])*L2,y1+Math.cos(s[1])*L2]};
+function start(K){A=[a1,a2,0,0];B=[a1+eps,a2,0,0];t=0;div=null;running=true;trailA=[];trailB=[];hist=[];runs++}
+Salvage({id:'S117',title:'DOUBLE PENDULUM',parent:'018 CLOCK SECESSION',bg:'#04060c',scanlines:false,
+ help:'<kbd>←</kbd><kbd>→</kbd> FIRST ANGLE &nbsp;<kbd>↑</kbd><kbd>↓</kbd> SECOND ANGLE &nbsp;<kbd>SPACE</kbd> RELEASE &nbsp;<kbd>Q</kbd><kbd>E</kbd> SIZE OF THE DIFFERENCE<br>FIND START ANGLES THAT KEEP THE TWO TOGETHER LONGEST / DRAG THE BOBS WITH THE POINTER TO SET THEM, LET GO TO RELEASE',
+ aria:'A chaos demonstration and game. Two double pendulums, cyan and rose, start almost identically, differing in the first angle by a tiny amount. Left and right arrows set the first angle, up and down set the second, Space releases them and Q and E change how large the initial difference is. The pendulums trace coloured paths and the time at which they visibly diverge is recorded. The aim is to find starting angles that keep them together as long as possible. Dragging the bobs with the pointer sets the angles and releasing launches them.',
+ reset(K){a1=2.1;a2=1.2;eps=1e-3;best=0;bestCfg=null;runs=0;running=false;A=[a1,a2,0,0];B=[a1+eps,a2,0,0];t=0;div=null;trailA=[];trailB=[];hist=[]},
+ key(K,e,fresh){
+  if(e.code==='Space'){if(fresh)start(K);return true}
+  if(fresh&&e.code==='KeyQ'){eps=Math.max(1e-7,eps/3);return true}if(fresh&&e.code==='KeyE'){eps=Math.min(.1,eps*3);return true}
+  const d={ArrowLeft:[-1,0],KeyA:[-1,0],ArrowRight:[1,0],KeyD:[1,0],ArrowUp:[0,1],KeyW:[0,1],ArrowDown:[0,-1],KeyS:[0,-1]}[e.code];if(d){a1=K.clamp(a1+d[0]*.04,-Math.PI,Math.PI);a2=K.clamp(a2+d[1]*.04,-Math.PI,Math.PI);if(!running){A=[a1,a2,0,0];B=[a1+eps,a2,0,0]}return true}
+ },
+ down(K,x,y){running=false;return false},
+ up(K){start(K)},
+ step(K,dt){
+  const p=K.pointer;sc=Math.min(K.w,K.h)*.2;const cx=K.w/2,cy=K.h*.36;
+  if(p.held&&p.inside){const dx=p.x-cx,dy=p.y-cy;const t1=Math.atan2(dx,dy),x1=Math.sin(t1)*L1*sc,y1=Math.cos(t1)*L1*sc;a1=t1;a2=Math.atan2(p.x-cx-x1,p.y-cy-y1);running=false;A=[a1,a2,0,0];B=[a1+eps,a2,0,0];t=0;div=null;trailA=[];trailB=[]}
+  if(running){const n=Math.ceil(dt/.004);for(let i=0;i<n;i++){A=rk(A,dt/n);B=rk(B,dt/n)}t+=dt;const ta=tip(A),tb=tip(B);sep=Math.hypot(ta[2]-tb[2],ta[3]-tb[3]);hist.push(sep);if(hist.length>240)hist.shift();trailA.push([ta[2],ta[3]]);trailB.push([tb[2],tb[3]]);if(trailA.length>260){trailA.shift();trailB.shift()}
+   if(div===null&&sep>.5){div=t;if(div>best){best=div;bestCfg=[a1,a2,eps];K.note('TOGETHER FOR '+div.toFixed(1)+'s / NEW BEST')}else K.live('Diverged at '+div.toFixed(1)+'s')}
+   if(t>60)running=false}
+ },
+ draw(K,c){
+  const {w,h,TAU,pointer:p}=K,cx=w/2,cy=h*.36;c.fillStyle='#04060c';c.fillRect(0,0,w,h);
+  const show=(s,col,tr)=>{c.strokeStyle=col;c.globalAlpha=.35;c.beginPath();tr.forEach(([x,y],i)=>i?c.lineTo(cx+x*sc,cy+y*sc):c.moveTo(cx+x*sc,cy+y*sc));c.stroke();c.globalAlpha=1;const [x1,y1,x2,y2]=tip(s);c.lineWidth=2.4;c.beginPath();c.moveTo(cx,cy);c.lineTo(cx+x1*sc,cy+y1*sc);c.lineTo(cx+x2*sc,cy+y2*sc);c.stroke();c.lineWidth=1;c.fillStyle=col;c.beginPath();c.arc(cx+x1*sc,cy+y1*sc,6,0,TAU);c.fill();c.beginPath();c.arc(cx+x2*sc,cy+y2*sc,8,0,TAU);c.fill()};
+  c.globalCompositeOperation='lighter';show(B,'#ed4e8c',trailB);show(A,'#28e3f4',trailA);c.globalCompositeOperation='source-over';
+  c.fillStyle='#faffdb';c.beginPath();c.arc(cx,cy,4,0,TAU);c.fill();
+  const gx=w*.1,gy=h*.74,gw=w*.8,gh=h*.14;c.strokeStyle='#17283a';c.strokeRect(gx,gy,gw,gh);c.strokeStyle=div!==null?'#ed4e8c':'#10f4cf';c.beginPath();hist.forEach((v,i)=>{const x=gx+i/240*gw,y=gy+gh-Math.min(1,v/2)*gh;i?c.lineTo(x,y):c.moveTo(x,y)});c.stroke();c.strokeStyle='#faffdb55';c.setLineDash([3,4]);c.beginPath();c.moveTo(gx,gy+gh-.25*gh);c.lineTo(gx+gw,gy+gh-.25*gh);c.stroke();c.setLineDash([]);
+  c.font='9px monospace';c.fillStyle='#9fc4d6';c.fillText('SEPARATION OF THE TWO LOWER BOBS',gx,gy-6);c.fillStyle='#faffdb';c.fillText('θ1 '+(a1*180/Math.PI).toFixed(0)+'° / θ2 '+(a2*180/Math.PI).toFixed(0)+'° / DIFFERENCE '+eps.toExponential(0)+' rad',gx,gy+gh+16);
+  c.fillText('TIME '+t.toFixed(1)+'s / '+(div!==null?'DIVERGED AT '+div.toFixed(1)+'s':running?'STILL TOGETHER':'READY')+' / BEST '+best.toFixed(1)+'s'+(bestCfg?' ('+(bestCfg[0]*180/Math.PI).toFixed(0)+'°, '+(bestCfg[1]*180/Math.PI).toFixed(0)+'°)':''),gx,gy+gh+30);
+  if(p.inside){c.globalAlpha=.5;c.strokeStyle='#faffdb';c.beginPath();c.arc(p.x,p.y,10,0,TAU);c.stroke();c.globalAlpha=1;c.fillText(p.held?'SETTING ANGLES':'DRAG TO SET, RELEASE TO LAUNCH',p.x+14,p.y-8)}
+ },
+ readout:K=>['TOGETHER '+(div!==null?div.toFixed(1):running?t.toFixed(1):'—')+'s','BEST '+best.toFixed(1)+'s / RUNS '+K.pad(runs)+' / ε '+eps.toExponential(0)]
+});
+})();
+</script></body></html>

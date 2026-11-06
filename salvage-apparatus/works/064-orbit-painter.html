@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#03050b"><title>S064 — ORBIT PAINTER</title><script src="kit.js"></script></head><body>
+<script>
+(()=>{'use strict';
+// Every body paints its own path. Keep eight of them in orbit at once.
+const MAXB=10;
+let bodies=[],tc=null,tg=null,ln={x:0,y:0,vx:0,vy:0},cx=0,cy=0,m=600,GM=1,launched=0,lostN=0,heldT=0,best=0,hue=0;
+function canv(K){const old=tc;tc=document.createElement('canvas');tc.width=Math.round(K.w*K.dpr);tc.height=Math.round(K.h*K.dpr);tg=tc.getContext('2d');tg.setTransform(K.dpr,0,0,K.dpr,0,0);tg.lineCap='round';if(old)tg.drawImage(old,0,0,K.w,K.h)}
+function launch(K){
+ if(bodies.length>=MAXB)bodies.shift();
+ const dx=ln.x-cx,dy=ln.y-cy,r=Math.hypot(dx,dy);if(r<30)return;const v=Math.sqrt(GM/r)*(.75+K.rand()*.5);hue=(hue+47)%360;
+ bodies.push({x:ln.x,y:ln.y,vx:-dy/r*v,vy:dx/r*v,h:hue,px:ln.x,py:ln.y,age:0});launched++;
+}
+Salvage({id:'S064',title:'ORBIT PAINTER',parent:'029 ORPHANED BUS',bg:'#03050b',scanlines:false,
+ help:'<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> MOVE THE LAUNCHER &nbsp;<kbd>SPACE</kbd> LAUNCH A BODY<br>HOLD EIGHT IN ORBIT / THE POINTER ADDS A SECOND MASS, HOLD FOR A HEAVIER ONE',
+ aria:'An orbit simulation that paints trails. Arrow keys move a launcher and Space launches a body that circles a central mass, leaving a coloured trail. Bodies that fall in or escape are lost. The goal is to keep eight bodies in orbit together for ten seconds. The pointer is a second gravitational mass that pulls the bodies and holding it makes it much heavier.',
+ reset(K){m=Math.min(K.w,K.h);cx=K.w/2;cy=K.h/2+6;GM=.017*m*m*m;canv(K);bodies=[];ln={x:cx+m*.22,y:cy,vx:0,vy:0};launched=lostN=0;heldT=best=0;hue=0;tg.clearRect(0,0,K.w,K.h)},
+ resize(K){m=Math.min(K.w,K.h);cx=K.w/2;cy=K.h/2+6;canv(K)},
+ key(K,e,fresh){if(e.code==='Space'){if(fresh)launch(K);return true}if(/^Arrow|^Key[WASD]$/.test(e.code))return true},
+ step(K,dt){
+  const dx=(K.keys.has('ArrowRight')||K.keys.has('KeyD')?1:0)-(K.keys.has('ArrowLeft')||K.keys.has('KeyA')?1:0),dy=(K.keys.has('ArrowDown')||K.keys.has('KeyS')?1:0)-(K.keys.has('ArrowUp')||K.keys.has('KeyW')?1:0);
+  ln.vx+=dx*1200*dt;ln.vy+=dy*1200*dt;const f=Math.exp(-dt*6);ln.vx*=f;ln.vy*=f;ln.x=K.clamp(ln.x+ln.vx*dt,0,K.w);ln.y=K.clamp(ln.y+ln.vy*dt,0,K.h);
+  const p=K.pointer,n=4;
+  for(let s=0;s<n;s++){const d=dt/n;for(const b of bodies){let ax=0,ay=0;const rx=cx-b.x,ry=cy-b.y,r2=rx*rx+ry*ry+100,r=Math.sqrt(r2);ax+=rx/r*GM/r2;ay+=ry/r*GM/r2;
+   if(p.inside){const px=p.x-b.x,py=p.y-b.y,pr2=px*px+py*py+400,pr=Math.sqrt(pr2),g=GM*(p.held?.7:.18);ax+=px/pr*g/pr2;ay+=py/pr*g/pr2}
+   b.vx+=ax*d;b.vy+=ay*d;b.x+=b.vx*d;b.y+=b.vy*d}}
+  for(let i=bodies.length-1;i>=0;i--){const b=bodies[i];b.age+=dt;tg.strokeStyle='hsl('+b.h+',90%,62%)';tg.lineWidth=1.6;tg.beginPath();tg.moveTo(b.px,b.py);tg.lineTo(b.x,b.y);tg.stroke();b.px=b.x;b.py=b.y;
+   const r=Math.hypot(b.x-cx,b.y-cy);if(r<16||r>m*.75){bodies.splice(i,1);lostN++;K.live('A body was lost')}}
+  tg.save();tg.globalCompositeOperation='destination-out';tg.fillStyle='rgba(0,0,0,'+(dt*.08)+')';tg.fillRect(0,0,K.w,K.h);tg.restore();
+  if(bodies.length>=8){heldT+=dt;best=Math.max(best,heldT);if(heldT>10){K.note('EIGHT HELD FOR TEN SECONDS');heldT=0;for(let k=0;k<3;k++)bodies.shift()}}else heldT=Math.max(0,heldT-dt);
+ },
+ draw(K,c){
+  const {w,h,TAU,pointer:p}=K;c.fillStyle='#03050b';c.fillRect(0,0,w,h);
+  c.globalCompositeOperation='lighter';c.drawImage(tc,0,0,w,h);c.globalCompositeOperation='source-over';
+  const g=c.createRadialGradient(cx,cy,0,cx,cy,30);g.addColorStop(0,'#fffde0');g.addColorStop(1,'#fffde000');c.fillStyle=g;c.fillRect(cx-30,cy-30,60,60);c.fillStyle='#fffde0';c.beginPath();c.arc(cx,cy,5,0,TAU);c.fill();
+  for(const b of bodies){c.fillStyle='hsl('+b.h+',90%,70%)';c.beginPath();c.arc(b.x,b.y,4,0,TAU);c.fill()}
+  c.strokeStyle='#faffdb';c.lineWidth=1.4;c.beginPath();c.arc(ln.x,ln.y,7,0,TAU);c.moveTo(ln.x-12,ln.y);c.lineTo(ln.x+12,ln.y);c.moveTo(ln.x,ln.y-12);c.lineTo(ln.x,ln.y+12);c.stroke();c.lineWidth=1;
+  const r=Math.hypot(ln.x-cx,ln.y-cy);c.globalAlpha=.25;c.setLineDash([3,5]);c.beginPath();c.arc(cx,cy,r,0,TAU);c.stroke();c.setLineDash([]);c.globalAlpha=1;
+  c.font='9px monospace';c.fillStyle='#faffdb';c.fillText('LAUNCHER r='+r.toFixed(0)+' / v₀='+Math.sqrt(GM/Math.max(30,r)).toFixed(0),ln.x+14,ln.y-12);
+  c.fillStyle='#ffffff22';c.fillRect(w/2-80,h-62,160,4);c.fillStyle=bodies.length>=8?'#f4d84e':'#9fc4d6';c.fillRect(w/2-80,h-62,160*Math.min(1,heldT/10),4);c.fillText('HOLD 8 FOR 10s / '+bodies.length+' IN ORBIT',w/2-70,h-68);
+  if(p.inside){c.globalAlpha=.5;c.strokeStyle='#ed4e8c';c.beginPath();c.arc(p.x,p.y,p.held?14:7,0,TAU);c.stroke();c.globalAlpha=1;c.fillText(p.held?'HEAVY MASS':'MASS',p.x+16,p.y-8)}
+ },
+ readout:K=>['ORBITING '+K.pad(bodies.length,2)+' / '+MAXB,'LOST '+K.pad(lostN)+' / LAUNCHED '+K.pad(launched)]
+});
+})();
+</script></body></html>

@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#05070e"><title>S099 — BUBBLE SHOOTER</title><script src="kit.js"></script></head><body>
+<script>
+(()=>{'use strict';
+// A hanging cluster of coloured bubbles that creeps down the screen. Three of a colour and they drop away, taking what hung from them.
+const COLS=12,MAXR=16;
+let g=null,par=0,shot=null,aim=-Math.PI/2,cur=0,nxt=0,score=0,shots=0,every=6,left=0,best=0,over=0,pops=[],R=20,ox=0,oy=0,cleared=0;
+const rowOff=r=>((r+par)%2)*.5,cx=(r,c)=>ox+(c+.5+rowOff(r))*R*2,cy=r=>oy+R+r*R*1.732;
+const id=(r,c)=>r*COLS+c,inb=(r,c)=>r>=0&&r<MAXR&&c>=0&&c<COLS-((r+par)%2?1:0);
+const NB=(r,c)=>{const o=(r+par)%2;return o===0?[[r,c-1],[r,c+1],[r-1,c-1],[r-1,c],[r+1,c-1],[r+1,c]]:[[r,c-1],[r,c+1],[r-1,c],[r-1,c+1],[r+1,c],[r+1,c+1]]};
+const cols=()=>{const a=new Set();for(const v of g)if(v>=0)a.add(v);return a.size?[...a]:[0,1,2]};
+function init(K){R=Math.min(24,K.w/(COLS*2+2),K.h*.7/(MAXR*1.732));ox=(K.w-COLS*R*2)/2;oy=K.h*.1;g=new Int8Array(COLS*MAXR).fill(-1);par=0;for(let r=0;r<6;r++)for(let c=0;c<COLS-(r%2);c++)g[id(r,c)]=Math.floor(K.rand()*5);cur=pick(K);nxt=pick(K);shot=null;score=0;shots=0;left=every;over=0;pops=[];cleared=0}
+function pick(K){const c=cols();return c[Math.floor(K.rand()*c.length)]%5}
+function group(r,c){const v=g[id(r,c)],seen=new Set([id(r,c)]),st=[[r,c]];while(st.length){const [a,b]=st.pop();for(const [x,y] of NB(a,b)){if(!inb(x,y))continue;const k=id(x,y);if(!seen.has(k)&&g[k]===v){seen.add(k);st.push([x,y])}}}return[...seen]}
+function floaters(){const ok=new Set(),st=[];for(let c=0;c<COLS;c++)if(g[id(0,c)]>=0){ok.add(id(0,c));st.push([0,c])}while(st.length){const [a,b]=st.pop();for(const [x,y] of NB(a,b)){if(!inb(x,y))continue;const k=id(x,y);if(g[k]>=0&&!ok.has(k)){ok.add(k);st.push([x,y])}}}const out=[];for(let i=0;i<g.length;i++)if(g[i]>=0&&!ok.has(i))out.push(i);return out}
+function snap(K){let best=null,bd=1e9;for(let r=0;r<MAXR;r++)for(let c=0;c<COLS-((r+par)%2?1:0);c++){if(g[id(r,c)]>=0)continue;const d=Math.hypot(cx(r,c)-shot.x,cy(r)-shot.y);if(d<bd){bd=d;best=[r,c]}}
+ if(!best){shot=null;return}const [r,c]=best;g[id(r,c)]=shot.v;const gr=group(r,c);let n=0;
+ if(gr.length>=3){for(const i of gr){pops.push({x:cx(Math.floor(i/COLS),i%COLS),y:cy(Math.floor(i/COLS)),t:0,c:K.DAMAGE[g[i]]});g[i]=-1;n++}const fl=floaters();for(const i of fl){pops.push({x:cx(Math.floor(i/COLS),i%COLS),y:cy(Math.floor(i/COLS)),t:0,c:K.DAMAGE[g[i]],fall:1});g[i]=-1;n++}score+=n*10+(n>5?(n-5)*15:0);cleared+=n;if(fl.length>2)K.note(fl.length+' DROPPED')}
+ shot=null;cur=nxt;nxt=pick(K);shots++;left--;
+ if(left<=0&&!over){left=every;for(let r=MAXR-2;r>=0;r--)for(let q=0;q<COLS;q++)g[id(r+1,q)]=g[id(r,q)];for(let q=0;q<COLS;q++)g[q]=-1;par=(par+1)%2;for(let q=0;q<COLS-((0+par)%2);q++)g[q]=Math.floor(K.rand()*5);for(let q=COLS-((0+par)%2);q<COLS;q++)g[q]=-1;for(let r=0;r<MAXR;r++)for(let q=COLS-((r+par)%2?1:0);q<COLS;q++)g[id(r,q)]=-1}
+ for(let q=0;q<COLS;q++)if(g[id(MAXR-3,q)]>=0&&!over){over=1;best=Math.max(best,score);K.note('THEY REACHED THE FLOOR / SPACE TO RESTART')}
+ if(!g.some(v=>v>=0)){K.note('CLEARED / +500');score+=500;init2(K)}
+}
+function init2(K){for(let r=0;r<5;r++)for(let c=0;c<COLS-((r+par)%2?1:0);c++)g[id(r,c)]=Math.floor(K.rand()*5)}
+function fire(K){if(shot||over)return;shot={x:K.w/2,y:K.h*.9,vx:Math.cos(aim)*820,vy:Math.sin(aim)*820,v:cur}}
+Salvage({id:'S099',title:'BUBBLE SHOOTER',parent:'025 CODEC LARVAE',
+ help:'<kbd>←</kbd><kbd>→</kbd> AIM &nbsp;<kbd>SPACE</kbd> SHOOT<br>MATCH THREE OR MORE / THE POINTER AIMS, CLICK SHOOTS',
+ aria:'A bubble-shooter game. A cluster of coloured bubbles hangs from the top; left and right arrows aim a launcher at the bottom and Space shoots the current bubble, which bounces off the side walls and sticks where it lands. Groups of three or more of one colour pop, and anything left hanging with nothing above it falls. Every few shots the whole cluster drops a row. With the pointer, the launcher points at the pointer and clicking shoots. The game ends if the cluster reaches the floor.',
+ reset(K){best=0;init(K)},
+ resize(K){init(K)},
+ key(K,e,fresh){if(e.code==='Space'||e.code==='Enter'){if(fresh){if(over)init(K);else fire(K)}return true}if(/^Arrow|^Key[WASD]$/.test(e.code))return true},
+ down(K,x,y){if(over){init(K);return true}fire(K);return true},
+ step(K,dt){
+  const d=(K.keys.has('ArrowRight')||K.keys.has('KeyD')?1:0)-(K.keys.has('ArrowLeft')||K.keys.has('KeyA')?1:0);aim=K.clamp(aim+d*dt*1.6,-Math.PI+.12,-.12);
+  const p=K.pointer;if(p.inside&&!shot&&(p.speed>.03)){aim=K.clamp(Math.atan2(p.y-K.h*.9,p.x-K.w/2),-Math.PI+.12,-.12)}
+  if(shot){const n=4;for(let s=0;s<n;s++){shot.x+=shot.vx*dt/n;shot.y+=shot.vy*dt/n;if(shot.x<ox+R){shot.x=ox+R;shot.vx=Math.abs(shot.vx)}if(shot.x>ox+COLS*R*2-R){shot.x=ox+COLS*R*2-R;shot.vx=-Math.abs(shot.vx)}
+   if(shot.y<oy+R){snap(K);break}let hit=false;for(let i=0;i<g.length;i++){if(g[i]<0)continue;const r=Math.floor(i/COLS),c=i%COLS;if(Math.hypot(cx(r,c)-shot.x,cy(r)-shot.y)<R*1.8){hit=true;break}}if(hit){snap(K);break}}}
+  for(let i=pops.length-1;i>=0;i--){const q=pops[i];q.t+=dt;if(q.fall)q.y+=q.t*q.t*900;if(q.t>.5)pops.splice(i,1)}
+ },
+ draw(K,c){
+  const {w,h,TAU,pointer:p}=K;c.fillStyle='#05070e';c.fillRect(0,0,w,h);c.strokeStyle='#17283a';c.strokeRect(ox-.5,oy-.5,COLS*R*2+1,h*.84);
+  for(let r=0;r<MAXR;r++)for(let q=0;q<COLS;q++){const v=g[id(r,q)];if(v<0)continue;c.fillStyle=K.DAMAGE[v];c.beginPath();c.arc(cx(r,q),cy(r),R-1,0,TAU);c.fill();c.fillStyle='#ffffff55';c.beginPath();c.arc(cx(r,q)-R*.3,cy(r)-R*.3,R*.25,0,TAU);c.fill()}
+  for(const q of pops){c.globalAlpha=1-q.t/.5;c.fillStyle=q.c;c.beginPath();c.arc(q.x,q.y,R*(1+q.t),0,TAU);c.fill()}c.globalAlpha=1;
+  const lx=w/2,ly=h*.9;c.strokeStyle='#faffdb';c.setLineDash([3,6]);c.beginPath();c.moveTo(lx,ly);let ax=lx,ay=ly,dx=Math.cos(aim),dy=Math.sin(aim);for(let k=0;k<2;k++){let t=1e9;if(dx>0)t=Math.min(t,(ox+COLS*R*2-R-ax)/dx);else if(dx<0)t=Math.min(t,(ox+R-ax)/dx);if(dy<0)t=Math.min(t,(oy+R-ay)/dy);ax+=dx*t;ay+=dy*t;c.lineTo(ax,ay);dx=-dx}c.stroke();c.setLineDash([]);
+  c.fillStyle=K.DAMAGE[cur];c.beginPath();c.arc(lx,ly,R-1,0,TAU);c.fill();c.strokeStyle='#faffdb';c.lineWidth=2;c.beginPath();c.moveTo(lx,ly);c.lineTo(lx+Math.cos(aim)*R*2,ly+Math.sin(aim)*R*2);c.stroke();c.lineWidth=1;
+  c.fillStyle=K.DAMAGE[nxt];c.beginPath();c.arc(lx-R*3.5,ly+R*.5,R*.6,0,TAU);c.fill();c.font='8px monospace';c.fillStyle='#9fc4d6';c.fillText('NEXT',lx-R*3.5-12,ly+R*1.9);
+  if(shot){c.fillStyle=K.DAMAGE[shot.v];c.beginPath();c.arc(shot.x,shot.y,R-1,0,TAU);c.fill()}
+  c.font='9px monospace';c.fillStyle='#9fc4d6';c.fillText('DROP IN '+left+' SHOTS',ox,oy-12);
+  if(over){c.fillStyle='#05070ecc';c.fillRect(w/2-150,h*.4,300,50);c.fillStyle='#ed4e8c';c.textAlign='center';c.font='13px monospace';c.fillText('OVERRUN / SPACE',w/2,h*.4+30);c.textAlign='left'}
+  if(p.inside){c.globalAlpha=.5;c.fillStyle='#faffdb';c.fillText('AIMING',p.x+10,p.y-8);c.globalAlpha=1}
+ },
+ readout:K=>['SCORE '+K.pad(score,5),'SHOTS '+K.pad(shots)+' / CLEARED '+K.pad(cleared)+' / BEST '+K.pad(best,5)]
+});
+})();
+</script></body></html>

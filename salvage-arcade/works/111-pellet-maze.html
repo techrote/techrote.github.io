@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#04060c"><title>S111 — PELLET MAZE</title><script src="kit.js"></script></head><body>
+<script>
+(()=>{'use strict';
+// Eat every pellet in the corridors. Three things that remember you are looking for you.
+const DIRS=[[0,-1],[1,0],[0,1],[-1,0]];
+let S=15,grid=null,pel=null,me=null,gh=[],cell=30,ox=0,oy=0,score=0,lives=3,level=0,want=-1,power=0,best=0,over=0,left=0,flash=0,path=[],pt=0,won=0,deaths=0,eaten=0;
+const id=(x,y)=>y*S+x,free=(x,y)=>x>=0&&y>=0&&x<S&&y<S&&grid[id(x,y)]===0;
+function gen(K){
+ const M=Math.min(10,5+level);S=2*M+1;grid=new Uint8Array(S*S).fill(1);const st=[[1,1]];grid[id(1,1)]=0;
+ while(st.length){const [x,y]=st[st.length-1],o=[[2,0],[-2,0],[0,2],[0,-2]].filter(([dx,dy])=>{const a=x+dx,b=y+dy;return a>0&&b>0&&a<S-1&&b<S-1&&grid[id(a,b)]});if(!o.length){st.pop();continue}const [dx,dy]=o[Math.floor(K.rand()*o.length)];grid[id(x+dx/2,y+dy/2)]=0;grid[id(x+dx,y+dy)]=0;st.push([x+dx,y+dy])}
+ for(let k=0;k<S*S*.06;k++){const x=1+Math.floor(K.rand()*(S-2)),y=1+Math.floor(K.rand()*(S-2));if(grid[id(x,y)]&&((free(x-1,y)&&free(x+1,y))||(free(x,y-1)&&free(x,y+1))))grid[id(x,y)]=0}
+ pel=new Uint8Array(S*S);left=0;for(let i=0;i<S*S;i++)if(!grid[i]){pel[i]=1;left++}
+ for(const [x,y] of [[1,S-2],[S-2,1],[S-2,S-2],[1,1]])if(!grid[id(x,y)]&&!(x===1&&y===1)){if(pel[id(x,y)]!==2){pel[id(x,y)]=2}}
+ pel[id(1,1)]=0;left--;me={x:1,y:1,px:1,py:1,d:0,t:0,moving:false};want=-1;power=0;path=[];
+ gh=[];const cx=Math.floor(S/2),cy=Math.floor(S/2);let spots=[];for(let r=0;r<S&&spots.length<3;r++)for(let q=0;q<S&&spots.length<3;q++){const x=cx+(q%2?q:-q)*0,y=cy;}
+ const cand=[];for(let y=Math.floor(S/2)-1;y<=Math.floor(S/2)+1;y++)for(let x=Math.floor(S/2)-2;x<=Math.floor(S/2)+2;x++)if(free(x,y))cand.push([x,y]);
+ for(let i=0;i<3;i++){const [x,y]=cand[i%cand.length]||[S-2,S-2];gh.push({x,y,px:x,py:y,d:0,t:0,col:K.DAMAGE[[3,0,2][i]],home:[x,y],dead:0})}
+ cell=Math.min(K.w*.9/S,K.h*.76/S,44);ox=(K.w-cell*S)/2;oy=(K.h-cell*S)/2+8;won=0;flash=0;
+}
+const spd=()=>5.2+level*.25;
+function nextDir(e,want){const opts=[];for(let d=0;d<4;d++)if(free(e.x+DIRS[d][0],e.y+DIRS[d][1]))opts.push(d);return opts}
+function bfs(sx,sy,tx,ty){if(!free(tx,ty))return[];const prev=new Map(),q=[[sx,sy]];prev.set(id(sx,sy),null);while(q.length){const [x,y]=q.shift();if(x===tx&&y===ty)break;for(let d=0;d<4;d++){const nx=x+DIRS[d][0],ny=y+DIRS[d][1];if(free(nx,ny)&&!prev.has(id(nx,ny))){prev.set(id(nx,ny),[x,y,d]);q.push([nx,ny])}}}if(!prev.has(id(tx,ty)))return[];const out=[];let k=id(tx,ty);while(prev.get(k)){const [a,b,d]=prev.get(k);out.unshift(d);k=id(a,b)}return out}
+function eat(K){const i=id(me.x,me.y);if(pel[i]===1){pel[i]=0;left--;score+=10}else if(pel[i]===2){pel[i]=0;left--;score+=50;power=7;K.note('THEY CAN BE TURNED OFF FOR A MOMENT')}if(left<=0){won=.001;score+=200;K.note('CLEARED / LEVEL '+K.pad(level+1))}}
+const KD={ArrowUp:0,KeyW:0,ArrowRight:1,KeyD:1,ArrowDown:2,KeyS:2,ArrowLeft:3,KeyA:3};
+Salvage({id:'S111',title:'PELLET MAZE',parent:'025 CODEC LARVAE',bg:'#04060c',
+ help:'<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> STEER (THE TURN HAPPENS AT THE NEXT OPENING)<br>EAT EVERY PELLET, THE BRIGHT ONES TURN THE TABLES / CLICK A CORRIDOR CELL TO WALK THERE AUTOMATICALLY',
+ aria:'A pellet-eating maze game. Arrow keys steer a yellow circle through corridors, eating every pellet; the turn you request happens at the next opening. Three coloured ghosts chase you; touching one costs a life, unless you have just eaten a bright power pellet, in which case it can be eaten instead. Clicking a corridor cell with the pointer makes you walk there by the shortest route. Clearing the maze starts a bigger one.',
+ reset(K){level=0;score=0;lives=3;best=0;over=0;deaths=0;eaten=0;gen(K)},
+ resize(K){cell=Math.min(K.w*.9/S,K.h*.76/S,44);ox=(K.w-cell*S)/2;oy=(K.h-cell*S)/2+8},
+ key(K,e,fresh){if(e.code==='Space'){if(fresh&&over){level=0;score=0;lives=3;over=0;gen(K)}return true}const d=KD[e.code];if(d!==undefined){want=d;path=[];return true}},
+ down(K,x,y){const c=Math.floor((x-ox)/cell),r=Math.floor((y-oy)/cell);if(c<0||r<0||c>=S||r>=S||over)return false;const tx=me.t>=.5?me.x+DIRS[me.d][0]:me.x,ty=me.t>=.5?me.y+DIRS[me.d][1]:me.y;path=bfs(tx,ty,c,r);return true},
+ step(K,dt){
+  if(over||won){if(won){won+=dt;if(won>1.8){level++;gen(K)}}return}
+  const p=K.pointer;power=Math.max(0,power-dt);flash=Math.max(0,flash-dt*3);
+  // Player movement on the grid with interpolation.
+  const choose=()=>{let d=-1;if(path.length)d=path.shift();else if(want>=0&&free(me.x+DIRS[want][0],me.y+DIRS[want][1]))d=want;else if(free(me.x+DIRS[me.d][0],me.y+DIRS[me.d][1]))d=me.d;
+   if(d>=0&&free(me.x+DIRS[d][0],me.y+DIRS[d][1])){me.d=d;me.moving=true}else{me.moving=false;me.t=0}};
+  if(me.moving&&want>=0&&want===(me.d+2)%4){me.x+=DIRS[me.d][0];me.y+=DIRS[me.d][1];me.d=want;me.t=1-me.t;path=[]}
+  if(!me.moving)choose();
+  if(me.moving){me.t+=dt*spd();while(me.moving&&me.t>=1){me.t-=1;me.x+=DIRS[me.d][0];me.y+=DIRS[me.d][1];eat(K);choose()}}
+  me.px=me.x+DIRS[me.d][0]*me.t;me.py=me.y+DIRS[me.d][1]*me.t;
+  // Ghosts: choose a direction at each cell, chase mostly, never reverse unless forced.
+  for(const g of gh){if(g.dead>0){g.dead-=dt;if(g.dead<=0){g.x=g.home[0];g.y=g.home[1];g.t=0}else continue}
+   const sp=spd()*(power>0?.62:.9)*(p.inside&&Math.hypot(p.x-(ox+(g.px+.5)*cell),p.y-(oy+(g.py+.5)*cell))<cell*3?.7:1);g.t+=dt*sp;
+   while(g.t>=1){g.t-=1;g.x+=DIRS[g.d][0];g.y+=DIRS[g.d][1];const opts=nextDir(g).filter(d=>d!==(g.d+2)%4);const all=opts.length?opts:nextDir(g);
+    let pick=all[Math.floor(K.rand()*all.length)];if(K.rand()<.6){let bs=1e9;for(const d of all){const nx=g.x+DIRS[d][0],ny=g.y+DIRS[d][1],dd=Math.abs(nx-Math.round(me.px))+Math.abs(ny-Math.round(me.py));const s=power>0?-dd:dd;if(s<bs){bs=s;pick=d}}}g.d=pick}
+   g.px=g.x+DIRS[g.d][0]*g.t;g.py=g.y+DIRS[g.d][1]*g.t;
+   if(Math.hypot(g.px-me.px,g.py-me.py)<.6){if(power>0){g.dead=4;score+=200;eaten++;K.note('+200')}else{lives--;deaths++;flash=1;K.note('CAUGHT / '+Math.max(0,lives)+' LEFT');if(lives<=0){over=1;best=Math.max(best,score);K.note('NO LIVES / SPACE TO RESTART')}else{me={x:1,y:1,px:1,py:1,d:0,t:0,moving:false};for(const q of gh){q.x=q.home[0];q.y=q.home[1];q.px=q.x;q.py=q.y;q.t=0}want=-1;path=[]}break}}}
+  best=Math.max(best,score);
+ },
+ draw(K,c){
+  const {w,h,TAU,pointer:p}=K;c.fillStyle='#04060c';c.fillRect(0,0,w,h);
+  for(let y=0;y<S;y++)for(let x=0;x<S;x++){const px=ox+x*cell,py=oy+y*cell;if(grid[id(x,y)]){c.fillStyle='#14224a';c.fillRect(px+1,py+1,cell-2,cell-2);c.strokeStyle='#2a3d7e';c.strokeRect(px+1.5,py+1.5,cell-3,cell-3)}else{const v=pel[id(x,y)];if(v===1){c.fillStyle='#e9d9a6';c.fillRect(px+cell/2-2,py+cell/2-2,4,4)}else if(v===2){c.fillStyle='#fff';c.beginPath();c.arc(px+cell/2,py+cell/2,cell*.18+Math.sin(K.time*8)*1.5,0,TAU);c.fill()}}}
+  for(const g of gh){if(g.dead>0)continue;const x=ox+(g.px+.5)*cell,y=oy+(g.py+.5)*cell;c.fillStyle=power>0?(power<2&&Math.floor(K.time*8)%2?'#fff':'#2a50ff'):g.col;c.beginPath();c.arc(x,y-2,cell*.36,Math.PI,0);c.lineTo(x+cell*.36,y+cell*.34);for(let k=0;k<3;k++)c.lineTo(x+cell*.36-(k+1)*cell*.24,y+cell*.34-(k%2?0:5));c.lineTo(x-cell*.36,y+cell*.34);c.closePath();c.fill();c.fillStyle='#fff';c.fillRect(x-cell*.2,y-cell*.12,cell*.14,cell*.14);c.fillRect(x+cell*.06,y-cell*.12,cell*.14,cell*.14)}
+  const mx=ox+(me.px+.5)*cell,my=oy+(me.py+.5)*cell,mouth=.25+Math.abs(Math.sin(K.time*14))*.4,ang=me.d*Math.PI/2-Math.PI/2;c.fillStyle='#f4d84e';c.beginPath();c.moveTo(mx,my);c.arc(mx,my,cell*.38,ang+mouth,ang+TAU-mouth);c.closePath();c.fill();
+  if(flash){c.fillStyle='#ed4e8c';c.globalAlpha=flash*.15;c.fillRect(0,0,w,h);c.globalAlpha=1}
+  c.font='9px monospace';c.fillStyle='#9fc4d6';c.fillText('LEFT '+left+' / '+'●'.repeat(Math.max(0,lives))+(power>0?' / POWER '+power.toFixed(0)+'s':''),ox,oy-12);
+  if(over){c.fillStyle='#04060ccc';c.fillRect(w/2-150,h*.44,300,50);c.fillStyle='#ed4e8c';c.textAlign='center';c.font='13px monospace';c.fillText('NO LIVES / SPACE',w/2,h*.44+30);c.textAlign='left'}
+  if(p.inside){const c2=Math.floor((p.x-ox)/cell),r2=Math.floor((p.y-oy)/cell);if(c2>=0&&r2>=0&&c2<S&&r2<S&&free(c2,r2)){c.strokeStyle='#faffdb';c.globalAlpha=.6;c.strokeRect(ox+c2*cell+2,oy+r2*cell+2,cell-4,cell-4);c.globalAlpha=1;c.fillStyle='#faffdb';c.fillText('CLICK: WALK HERE',p.x+12,p.y-8)}}
+ },
+ readout:K=>['SCORE '+K.pad(score,5),'LEFT '+K.pad(left,3)+' / LIVES '+Math.max(0,lives)+' / LEVEL '+K.pad(level+1)+' / BEST '+K.pad(best,5)]
+});
+})();
+</script></body></html>

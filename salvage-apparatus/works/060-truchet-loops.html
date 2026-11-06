@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#05070e"><title>S060 — TRUCHET LOOPS</title><script src="kit.js"></script></head><body>
+<script>
+(()=>{'use strict';
+// Every tile is two quarter-arcs. Flip tiles until one loop is as long as the lineage can remember.
+const N=0,E=1,S=2,W=3,opp=s=>(s+2)%4,DX=[0,1,0,-1],DY=[-1,0,1,0];
+const ARCS=[[[N,W],[S,E]],[[N,E],[S,W]]];
+let cols=14,rows=9,o=null,cell=40,ox=0,oy=0,cur={r:0,c:0},loopId=null,loops=[],goal=24,wins=0,flips=0,best=0,solved=0;
+const tid=(r,c)=>r*cols+c;
+function arcOf(t,side){const a=ARCS[o[t]];return a[0].includes(side)?0:1}
+function analyse(){
+ loopId=new Int16Array(cols*rows*2).fill(-1);loops=[];
+ for(let t=0;t<cols*rows;t++)for(let a=0;a<2;a++){
+  if(loopId[t*2+a]>=0)continue;const id=loops.length;let len=0,closed=false,tt=t,aa=a,out=ARCS[o[t]][a][1];
+  // Walk forward from the arc's second side; if it returns to the start arc the path is a closed loop.
+  const stack=[];loopId[t*2+a]=id;len=1;
+  for(let step=0;step<1000;step++){const r=Math.floor(tt/cols),c=tt%cols,nr=r+DY[out],nc=c+DX[out];if(nr<0||nc<0||nr>=rows||nc>=cols)break;const nt=tid(nr,nc),enter=opp(out),na=arcOf(nt,enter);if(nt===t&&na===a){closed=true;break}if(loopId[nt*2+na]>=0)break;loopId[nt*2+na]=id;len++;const pair=ARCS[o[nt]][na];out=pair[0]===enter?pair[1]:pair[0];tt=nt;aa=na}
+  if(!closed){// walk the other way to claim the rest of an open path
+   tt=t;aa=a;out=ARCS[o[t]][a][0];for(let step=0;step<1000;step++){const r=Math.floor(tt/cols),c=tt%cols,nr=r+DY[out],nc=c+DX[out];if(nr<0||nc<0||nr>=rows||nc>=cols)break;const nt=tid(nr,nc),enter=opp(out),na=arcOf(nt,enter);if(loopId[nt*2+na]>=0)break;loopId[nt*2+na]=id;len++;const pair=ARCS[o[nt]][na];out=pair[0]===enter?pair[1]:pair[0];tt=nt;aa=na}}
+  loops.push({len,closed});
+ }
+}
+function longest(){let m=0;for(const l of loops)if(l.closed&&l.len>m)m=l.len;return m}
+function gen(K){cols=Math.min(20,14+wins);rows=Math.min(13,9+Math.floor(wins/2));cell=Math.min(K.w*.9/cols,K.h*.74/rows);ox=(K.w-cell*cols)/2;oy=(K.h-cell*rows)/2+8;o=new Uint8Array(cols*rows);for(let i=0;i<o.length;i++)o[i]=K.rand()<.5?1:0;cur={r:Math.floor(rows/2),c:Math.floor(cols/2)};goal=24+wins*8;solved=0;analyse()}
+function flip(K,r,c){if(solved)return;o[tid(r,c)]^=1;flips++;analyse();const L=longest();best=Math.max(best,L);if(L>=goal){wins++;solved=.001;K.note('LOOP OF '+L+' / GOAL '+goal+' MET')}}
+const at=(K,x,y)=>{const c=Math.floor((x-ox)/cell),r=Math.floor((y-oy)/cell);return r>=0&&c>=0&&r<rows&&c<cols?[r,c]:null};
+Salvage({id:'S060',title:'TRUCHET LOOPS',parent:'037 FAILURE WEAVE',
+ help:'<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> MOVE &nbsp;<kbd>SPACE</kbd> FLIP A TILE<br>MAKE ONE CLOSED LOOP AT LEAST AS LONG AS THE GOAL / HOVER A TILE TO SEE ITS LOOP, CLICK TO FLIP',
+ aria:'A grid of Truchet tiles, each showing two quarter-circle arcs. Arrow keys move a cursor and Space flips the tile, which changes how the arcs join. Arcs link into paths that are either open or closed loops. The goal is to build one closed loop at least as long as a given number of tiles. Hovering over a tile highlights its path and shows the length; clicking flips the tile.',
+ reset(K){wins=0;flips=0;best=0;gen(K)},
+ resize(K){cell=Math.min(K.w*.9/cols,K.h*.74/rows);ox=(K.w-cell*cols)/2;oy=(K.h-cell*rows)/2+8},
+ key(K,e,fresh){
+  if(e.code==='Space'||e.code==='Enter'){if(fresh)flip(K,cur.r,cur.c);return true}
+  const d={ArrowLeft:[0,-1],KeyA:[0,-1],ArrowRight:[0,1],KeyD:[0,1],ArrowUp:[-1,0],KeyW:[-1,0],ArrowDown:[1,0],KeyS:[1,0]}[e.code];if(d){if(fresh){cur.r=K.clamp(cur.r+d[0],0,rows-1);cur.c=K.clamp(cur.c+d[1],0,cols-1)}return true}
+ },
+ down(K,x,y){const a=at(K,x,y);if(!a)return false;cur={r:a[0],c:a[1]};flip(K,a[0],a[1]);return true},
+ step(K,dt){if(solved){solved+=dt;if(solved>2.4)gen(K)}},
+ draw(K,c){
+  const {w,h,TAU,pointer:p}=K;c.fillStyle='#05070e';c.fillRect(0,0,w,h);
+  const hv=p.inside?at(K,p.x,p.y):null;let hid=-1;if(hv){hid=loopId[tid(hv[0],hv[1])*2]}
+  let hl=-1;if(hv){const t=tid(hv[0],hv[1]),a=(p.x-ox)/cell-hv[1],b=(p.y-oy)/cell-hv[0],cen=ARCS[o[t]].map(pr=>{const k=pr[0]+','+pr[1];return k==='0,3'||k==='3,0'?[0,0]:k==='2,1'||k==='1,2'?[1,1]:k==='0,1'||k==='1,0'?[1,0]:[0,1]});let bd=9;cen.forEach((q,ai)=>{const d=Math.abs(Math.hypot(a-q[0],b-q[1])-.5);if(d<bd){bd=d;hl=loopId[t*2+ai]}})}
+  const L=longest();let bestLoop=-1;loops.forEach((l,i)=>{if(l.closed&&l.len===L)bestLoop=i});
+  for(let r=0;r<rows;r++)for(let q=0;q<cols;q++){
+   const t=tid(r,q),x=ox+q*cell,y=oy+r*cell;c.strokeStyle='#0c1624';c.strokeRect(x+.5,y+.5,cell-1,cell-1);
+   for(let a=0;a<2;a++){const id=loopId[t*2+a],lp=loops[id],isBest=id===bestLoop,hot=id===hl;
+    c.strokeStyle=hot?'#faffdb':isBest?'#f4d84e':lp.closed?K.DAMAGE[id%6]:'#3a4b66';c.lineWidth=hot||isBest?4:lp.closed?3:2;c.globalAlpha=lp.closed||hot?1:.7;
+    const pair=ARCS[o[t]][a],key=pair[0]+','+pair[1];c.beginPath();
+    if(key==='0,3'||key==='3,0')c.arc(x,y,cell/2,0,Math.PI/2);else if(key==='2,1'||key==='1,2')c.arc(x+cell,y+cell,cell/2,Math.PI,1.5*Math.PI);else if(key==='0,1'||key==='1,0')c.arc(x+cell,y,cell/2,Math.PI/2,Math.PI);else c.arc(x,y+cell,cell/2,1.5*Math.PI,2*Math.PI);
+    c.stroke()}
+   c.globalAlpha=1;c.lineWidth=1}
+  const cx=ox+cur.c*cell,cy=oy+cur.r*cell,b=3+Math.sin(K.time*5);c.strokeStyle='#faffdb';c.lineWidth=2;c.strokeRect(cx+b,cy+b,cell-b*2,cell-b*2);c.lineWidth=1;
+  c.font='9px monospace';c.fillStyle='#9fc4d6';c.fillText('LONGEST CLOSED LOOP '+L+' / GOAL '+goal,ox,oy-12);
+  if(hv&&hl>=0){const lp=loops[hl];c.fillStyle='#faffdb';c.fillText((lp.closed?'LOOP ':'OPEN PATH ')+lp.len+' ARCS',p.x+14,p.y-8)}
+  if(solved){c.globalAlpha=.3+.2*Math.sin(K.time*8);c.strokeStyle='#faffdb';c.strokeRect(ox-5,oy-5,cell*cols+10,cell*rows+10);c.globalAlpha=1}
+ },
+ readout:K=>['LOOP '+K.pad(longest(),3)+' / GOAL '+K.pad(goal,3),'FLIPS '+K.pad(flips)+' / MET '+K.pad(wins)]
+});
+})();
+</script></body></html>

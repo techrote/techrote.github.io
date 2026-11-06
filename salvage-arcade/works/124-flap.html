@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#05070e"><title>S124 — FLAP</title><script src="kit.js"></script></head><body>
+<script>
+(()=>{'use strict';
+// A small frame with the smallest possible wings, and a corridor of corrupted columns to get through.
+const GRAV=1500,FLAP=-520;
+let bird={x:0,y:0,vy:0,rot:0},pipes=[],dist=0,score=0,best=0,over=0,wait=1,started=false,flash=0,deaths=0,gapH=170,speed=190,t0=0,parts=[];
+function newPipe(K,x){const gh=Math.max(120,gapH-score*1.5),top=K.h*.15+K.rand()*(K.h*.7-gh);return{x,top,gh,pass:false,seed:K.rand()*99}}
+function init(K){bird={x:K.w*.28,y:K.h/2,vy:0,rot:0};pipes=[];for(let i=0;i<4;i++)pipes.push(newPipe(K,K.w*.7+i*K.w*.34));score=0;over=0;started=false;flash=0;speed=190;parts=[]}
+function flap(K){if(over){init(K);return}started=true;bird.vy=FLAP;for(let i=0;i<4;i++)parts.push({x:bird.x-8,y:bird.y+6,vx:-30-K.rand()*40,vy:30+K.rand()*40,t:0})}
+Salvage({id:'S124',title:'FLAP',parent:'035 VERTICAL DEATH',
+ help:'<kbd>SPACE</kbd> / <kbd>↑</kbd> FLAP &nbsp;<kbd>↓</kbd> DIVE<br>FLY THROUGH THE GAPS / CLICK TO FLAP, HOLD THE POINTER TO SLOW EVERYTHING DOWN A LITTLE',
+ aria:'A flap-to-fly game. Space or Up gives the small square a flap upward; gravity pulls it down and Down dives. It must fly through gaps in rows of glitching columns that scroll toward it, scoring a point for each gap. Touching a column or the floor ends the run and the next flap restarts. Clicking with the pointer flaps, and holding the pointer slows the world slightly.',
+ reset(K){best=0;deaths=0;init(K)},
+ resize(K){},
+ key(K,e,fresh){if(e.code==='Space'||e.code==='ArrowUp'||e.code==='KeyW'){if(fresh)flap(K);return true}if(e.code==='ArrowDown'||e.code==='KeyS'||/^Arrow/.test(e.code))return true},
+ down(K,x,y){flap(K);return true},
+ step(K,dt0){
+  const p=K.pointer,dt=dt0*(p.inside&&p.held?.65:1);for(const q of parts)q.t+=dt0;parts=parts.filter(q=>q.t<.5);flash=Math.max(0,flash-dt0*3);
+  if(over||!started){bird.y+=Math.sin(K.time*4)*.4*(started?0:1);if(over){bird.vy+=GRAV*dt0;bird.y=Math.min(K.h-12,bird.y+bird.vy*dt0)}return}
+  const dive=K.keys.has('ArrowDown')||K.keys.has('KeyS');bird.vy+=(GRAV+(dive?900:0))*dt;bird.y+=bird.vy*dt;bird.rot=K.clamp(bird.vy/700,-.5,1.1);speed=190+Math.min(130,score*4);dist+=speed*dt;
+  for(const q of pipes){q.x-=speed*dt;if(!q.pass&&q.x+26<bird.x-10){q.pass=true;score++;best=Math.max(best,score);if(score%10===0)K.note('SCORE '+score)}}
+  if(pipes[0].x<-60){pipes.shift();pipes.push(newPipe(K,pipes[pipes.length-1].x+K.w*.34))}
+  let hit=bird.y>K.h-12||bird.y<-20;for(const q of pipes){if(bird.x+10>q.x&&bird.x-10<q.x+52&&(bird.y-10<q.top||bird.y+10>q.top+q.gh))hit=true}
+  if(hit){over=1;deaths++;flash=1;K.note('FLAP TO TRY AGAIN / '+score)}
+ },
+ draw(K,c){
+  const {w,h,pointer:p}=K;const g=c.createLinearGradient(0,0,0,h);g.addColorStop(0,'#08101c');g.addColorStop(1,'#101a2c');c.fillStyle=g;c.fillRect(0,0,w,h);
+  for(let i=0;i<40;i++){c.globalAlpha=.2+K.hash(i)*.3;c.fillStyle='#b7f6ff';c.fillRect(((K.hash(i*3.1)*w*1.3-dist*.15*(1+K.hash(i)))%w+w)%w,K.hash(i*7.7)*h*.8,1.3,1.3)}c.globalAlpha=1;
+  for(const q of pipes){for(const [y0,y1] of [[0,q.top],[q.top+q.gh,h]]){for(let y=y0;y<y1;y+=16){const k=K.hash(Math.floor(y/16)*7+q.seed)*.6;c.fillStyle='hsl('+(170+k*140)+',60%,'+(28+k*20)+'%)';c.fillRect(q.x,y,52,15);if(K.hash(Math.floor(y/16)+q.seed+Math.floor(K.time*8))>.93){c.fillStyle='#ed4e8c';c.fillRect(q.x+K.hash(y)*40,y,10,15)}}c.strokeStyle='#faffdb66';c.strokeRect(q.x+.5,y0+.5,51,y1-y0-1)}}
+  c.fillStyle='#0f1c10';c.fillRect(0,h-6,w,6);
+  for(const q of parts){c.globalAlpha=1-q.t/.5;c.fillStyle='#faffdb';c.fillRect(bird.x-8+q.vx*q.t,bird.y+6+q.vy*q.t,3,3)}c.globalAlpha=1;
+  c.save();c.translate(bird.x,bird.y);c.rotate(bird.rot);const gr=c.createLinearGradient(-10,0,10,0);K.SPECTRUM.forEach((s,i)=>gr.addColorStop(i/5,s));c.fillStyle=over?'#ed4e8c':gr;c.fillRect(-10,-10,20,20);c.strokeStyle='#faffdb';c.strokeRect(-9.5,-9.5,19,19);c.fillStyle='#05070e';c.fillRect(3,-5,4,4);const wy=Math.sin(K.time*(started&&!over?30:6))*5;c.fillStyle='#faffdb';c.fillRect(-12,-2+wy,9,4);c.restore();
+  if(flash){c.fillStyle='#ed4e8c';c.globalAlpha=flash*.15;c.fillRect(0,0,w,h);c.globalAlpha=1}
+  c.font='22px monospace';c.textAlign='center';c.fillStyle='#faffdb';c.fillText(score,w/2,h*.2);c.font='9px monospace';c.fillStyle='#9fc4d6';c.fillText(started?'':'FLAP TO START',w/2,h*.2+20);c.textAlign='left';
+  if(p.inside){c.fillStyle='#faffdb';c.fillText(p.held?'SLOW':'CLICK: FLAP',p.x+12,p.y-8)}
+ },
+ readout:K=>['SCORE '+K.pad(score,3),'BEST '+K.pad(best,3)+' / CRASHES '+K.pad(deaths)]
+});
+})();
+</script></body></html>

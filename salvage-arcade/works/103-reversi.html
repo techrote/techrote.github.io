@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#04100c"><title>S103 — REVERSI</title><script src="kit.js"></script></head><body>
+<script>
+(()=>{'use strict';
+// Flank a line of the other colour and it turns. Corners are the only places that cannot be taken back.
+const N=8,DIRS=[[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]],W=[[100,-20,10,5,5,10,-20,100],[-20,-50,-2,-2,-2,-2,-50,-20],[10,-2,1,1,1,1,-2,10],[5,-2,1,0,0,1,-2,5],[5,-2,1,0,0,1,-2,5],[10,-2,1,1,1,1,-2,10],[-20,-50,-2,-2,-2,-2,-50,-20],[100,-20,10,5,5,10,-20,100]];
+let b=null,turn=1,cur={r:3,c:2},depth=2,wins=0,losses=0,draws=0,over=0,thinking=0,flips=[],cell=56,ox=0,oy=0,passN=0;
+const idx=(r,c)=>r*N+c;
+function flipsFor(bd,r,c,p){if(bd[idx(r,c)])return[];const out=[];for(const [dr,dc] of DIRS){const line=[];let rr=r+dr,cc=c+dc;while(rr>=0&&rr<N&&cc>=0&&cc<N&&bd[idx(rr,cc)]===3-p){line.push(idx(rr,cc));rr+=dr;cc+=dc}if(line.length&&rr>=0&&rr<N&&cc>=0&&cc<N&&bd[idx(rr,cc)]===p)out.push(...line)}return out}
+function moves(bd,p){const m=[];for(let r=0;r<N;r++)for(let c=0;c<N;c++){const f=flipsFor(bd,r,c,p);if(f.length)m.push([r,c,f])}return m}
+function apply(bd,m,p){const nb=bd.slice();nb[idx(m[0],m[1])]=p;for(const i of m[2])nb[i]=p;return nb}
+function evalB(bd,p){let s=0,mob=0;for(let i=0;i<64;i++){const v=bd[i];if(v===p)s+=W[Math.floor(i/8)][i%8];else if(v)s-=W[Math.floor(i/8)][i%8]}mob=moves(bd,p).length-moves(bd,3-p).length;return s+mob*3}
+function mm(bd,d,al,be,p,me){const ms=moves(bd,p);if(d===0)return evalB(bd,me);if(!ms.length){const o=moves(bd,3-p);if(!o.length){let a=0,c=0;for(const v of bd){if(v===me)a++;else if(v)c++}return(a-c)*50}return mm(bd,d-1,al,be,3-p,me)}
+ let best=p===me?-1e9:1e9;for(const m of ms){const v=mm(apply(bd,m,p),d-1,al,be,3-p,me);if(p===me){best=Math.max(best,v);al=Math.max(al,v)}else{best=Math.min(best,v);be=Math.min(be,v)}if(al>=be)break}return best}
+function count(){let a=0,c=0;for(const v of b){if(v===1)a++;else if(v===2)c++}return[a,c]}
+function place(K,r,c,p){const f=flipsFor(b,r,c,p);if(!f.length)return false;b[idx(r,c)]=p;for(const i of f){b[i]=p;flips.push({i,t:0})}return true}
+function next(K){const mine=moves(b,turn===1?2:1);if(mine.length){turn=turn===1?2:1;passN=0;if(turn===2)thinking=.4}else{const same=moves(b,turn);if(same.length){K.note((turn===1?'THE BOARD':'YOU')+' HAS NO MOVE / PASSES');if(turn===2)thinking=.4}else{over=1;const [a,c]=count();if(a>c){wins++;depth=Math.min(5,depth+1);K.note('YOU WIN '+a+'–'+c+' / DEPTH '+depth)}else if(c>a){losses++;K.note('THE BOARD WINS '+c+'–'+a)}else{draws++;K.note('DRAW')}}}}
+function init(K){b=new Array(64).fill(0);b[idx(3,3)]=2;b[idx(4,4)]=2;b[idx(3,4)]=1;b[idx(4,3)]=1;turn=1;over=0;flips=[];thinking=0;cur={r:2,c:3};cell=Math.min(K.w*.8/N,K.h*.74/N,76);ox=(K.w-cell*N)/2;oy=(K.h-cell*N)/2+8}
+const at=(K,x,y)=>{const c=Math.floor((x-ox)/cell),r=Math.floor((y-oy)/cell);return r>=0&&c>=0&&r<N&&c<N?{r,c}:null};
+Salvage({id:'S103',title:'REVERSI',parent:'033 WHITEOUT MEMORY',bg:'#04100c',
+ help:'<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> MOVE &nbsp;<kbd>SPACE</kbd> PLACE A DISC (ONLY ON MARKED SQUARES)<br>THE MOST DISCS WHEN THE BOARD FILLS WINS / HOVER A SQUARE TO SEE WHAT IT WOULD TURN, CLICK TO PLAY',
+ aria:'A reversi game against a computer opponent. You play cyan discs and the computer plays rose. Arrow keys move a cursor and Space places a disc on a legal square, turning every line of the opponent colour flanked by it. Legal squares are marked. Whoever has more discs when neither side can move wins. The opponent looks further ahead each time you beat it. Hovering a legal square outlines the discs it would turn, and clicking plays it.',
+ reset(K){wins=losses=draws=0;depth=2;init(K)},
+ resize(K){cell=Math.min(K.w*.8/N,K.h*.74/N,76);ox=(K.w-cell*N)/2;oy=(K.h-cell*N)/2+8},
+ key(K,e,fresh){
+  if(e.code==='Space'||e.code==='Enter'){if(fresh){if(over)init(K);else if(turn===1){if(place(K,cur.r,cur.c,1))next(K);else K.note('NOT A LEGAL SQUARE')}}return true}
+  const d={ArrowLeft:[0,-1],KeyA:[0,-1],ArrowRight:[0,1],KeyD:[0,1],ArrowUp:[-1,0],KeyW:[-1,0],ArrowDown:[1,0],KeyS:[1,0]}[e.code];if(d){if(fresh){cur.r=K.clamp(cur.r+d[0],0,N-1);cur.c=K.clamp(cur.c+d[1],0,N-1)}return true}
+ },
+ down(K,x,y){const a=at(K,x,y);if(!a)return false;cur=a;if(over){init(K);return true}if(turn===1){if(place(K,a.r,a.c,1))next(K);else K.note('NOT A LEGAL SQUARE')}return true},
+ step(K,dt){
+  for(const f of flips)f.t+=dt;flips=flips.filter(f=>f.t<.35);
+  if(!over&&turn===2){thinking-=dt;if(thinking<=0){const ms=moves(b,2);if(ms.length){let best=null,bv=-1e9;for(const m of ms){const v=mm(apply(b,m,2),depth-1,-1e9,1e9,1,2)+Math.random()*.3;if(v>bv){bv=v;best=m}}place(K,best[0],best[1],2);next(K)}else next(K)}}
+  if(!over&&turn===1&&!moves(b,1).length){next(K)}
+ },
+ draw(K,c){
+  const {w,h,TAU,pointer:p}=K;c.fillStyle='#04100c';c.fillRect(0,0,w,h);c.fillStyle='#0c4a36';c.fillRect(ox,oy,cell*N,cell*N);c.strokeStyle='#07301f';for(let i=0;i<=N;i++){c.beginPath();c.moveTo(ox+i*cell+.5,oy);c.lineTo(ox+i*cell+.5,oy+N*cell);c.moveTo(ox,oy+i*cell+.5);c.lineTo(ox+N*cell,oy+i*cell+.5);c.stroke()}
+  const hv=p.inside?at(K,p.x,p.y):null,legal=turn===1&&!over?moves(b,1):[],lm=new Map(legal.map(m=>[idx(m[0],m[1]),m]));
+  for(let r=0;r<N;r++)for(let q=0;q<N;q++){const i=idx(r,q),v=b[i],x=ox+(q+.5)*cell,y=oy+(r+.5)*cell,f=flips.find(f=>f.i===i);if(v){const s=f?Math.abs(Math.cos(f.t/.35*Math.PI)):1;c.fillStyle=v===1?'#28e3f4':'#ed4e8c';c.beginPath();c.ellipse(x,y,cell*.4*Math.max(.05,s),cell*.4,0,0,TAU);c.fill()}
+   else if(lm.has(i)){c.fillStyle='#faffdb';c.globalAlpha=.5;c.beginPath();c.arc(x,y,cell*.08,0,TAU);c.fill();c.globalAlpha=1}}
+  if(hv&&lm.has(idx(hv.r,hv.c))){for(const i of lm.get(idx(hv.r,hv.c))[2]){c.strokeStyle='#faffdb';c.lineWidth=2;c.beginPath();c.arc(ox+(i%N+.5)*cell,oy+(Math.floor(i/N)+.5)*cell,cell*.44,0,TAU);c.stroke();c.lineWidth=1}}
+  const cx=ox+cur.c*cell,cy=oy+cur.r*cell,bb=3+Math.sin(K.time*5);c.strokeStyle='#faffdb';c.lineWidth=2;c.strokeRect(cx+bb,cy+bb,cell-bb*2,cell-bb*2);c.lineWidth=1;
+  const [a,cc]=count();c.font='11px monospace';c.fillStyle='#28e3f4';c.fillText('YOU '+a,ox,oy-14);c.fillStyle='#ed4e8c';c.fillText('BOARD '+cc,ox+90,oy-14);c.fillStyle='#9fc4d6';c.font='9px monospace';c.fillText('OPPONENT DEPTH '+depth+' / '+(over?'GAME OVER':turn===1?'YOUR MOVE':'THINKING…'),ox+190,oy-14);
+  if(over){c.fillStyle='#04100ccc';c.fillRect(w/2-140,h*.04,280,40);c.fillStyle=a>cc?'#10f4cf':a<cc?'#ed4e8c':'#f4d84e';c.textAlign='center';c.font='12px monospace';c.fillText((a>cc?'YOU WIN':a<cc?'THE BOARD WINS':'DRAW')+' / SPACE FOR ANOTHER',w/2,h*.04+25);c.textAlign='left'}
+ },
+ readout:K=>{const [a,c]=count();return['YOU '+K.pad(a,2)+' – BOARD '+K.pad(c,2),'WON '+K.pad(wins)+' / LOST '+K.pad(losses)+' / DEPTH '+depth]}
+});
+})();
+</script></body></html>
