@@ -47,8 +47,24 @@ try{
    await page.screenshot({path:`screenshots/groupjects/${vp.width}x${vp.height}-workshop.png`,animations:'disabled'});
    await page.locator('[data-command="hints"]').click();assert.equal(await page.locator('#hints').getAttribute('aria-pressed'),'true');
    await page.locator('[data-command="grid"]').click();assert.equal(await page.locator('#grid').getAttribute('aria-pressed'),'true');
-   await page.locator('[data-command="reference"]').click({force:true});assert.equal(await page.locator('#reference').getAttribute('aria-pressed'),'true');
-   await page.locator('[data-command="reference"]').click({force:true});assert.equal(await page.locator('#reference').getAttribute('aria-pressed'),'false');
+   const compare=page.locator('[data-command="reference"]');
+   if(vp.width<=420){
+     assert.equal(await compare.isVisible(),false,'COMPARE should be hidden on narrow screens');
+     await page.keyboard.press('r');
+     assert.equal(await compare.getAttribute('aria-pressed'),'true','R shortcut should enable comparison');
+     assert.equal(await page.locator('.reference-layer').isVisible(),true);
+     await page.keyboard.press('r');
+     assert.equal(await compare.getAttribute('aria-pressed'),'false','R shortcut should disable comparison');
+     assert.equal(await page.locator('.reference-layer').isVisible(),false);
+   }else{
+     assert.equal(await compare.isVisible(),true);
+     await compare.click();
+     assert.equal(await compare.getAttribute('aria-pressed'),'true');
+     assert.equal(await page.locator('.reference-layer').isVisible(),true);
+     await compare.click();
+     assert.equal(await compare.getAttribute('aria-pressed'),'false');
+     assert.equal(await page.locator('.reference-layer').isVisible(),false);
+   }
    await page.locator('[data-command="edit"]').click();assert.equal(await page.locator('#edit').getAttribute('aria-pressed'),'true');
    assert.equal(await page.locator('#inspector').isVisible(),true);
    await page.locator('#object-picker').selectOption('cad');
