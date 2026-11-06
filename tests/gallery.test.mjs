@@ -67,20 +67,19 @@ try {
   const page = await browser.newPage({viewport:{width:1366,height:768}});
   try {
     await page.goto(origin + '/', {waitUntil:'domcontentloaded'});
-    await page.waitForFunction(() => document.querySelectorAll('.groupject').length === 5);
-    assert.deepEqual(await page.locator('.groupject').evaluateAll(nodes => nodes.map(n => n.dataset.id)),
-      ['retro','gaming','cad','calculator','paper']);
-    assert.equal(await page.locator('.groupject a[href="relay_moth_beta/"]').count(), 1);
-    assert.equal(await page.locator('.groupject a[href="relay-moth-forest/"], .groupject a[href="relay-moth-forest-stable/"]').count(), 0);
-    const bolts = await page.locator('.service-bolt').evaluateAll(nodes => nodes.map(n => ({href:n.getAttribute('href'),label:n.getAttribute('aria-label')})));
-    assert.deepEqual(bolts.map(x => x.href), paths.map(p => p + '/'));
-    assert.ok(bolts.every(x => x.label?.includes('gallery')));
-    for (const link of bolts) {
-      const response = await page.request.get(origin + '/' + link.href);
-      assert.equal(response.status(), 200, 'Hidden gallery is reachable: ' + link.href);
+    await page.waitForFunction(() => document.querySelectorAll('.group').length === 6 && document.getElementById('loading')?.hidden);
+    assert.deepEqual(await page.locator('.group').evaluateAll(nodes=>nodes.map(n=>n.dataset.id)),
+      ['retro','gaming','cad','curiosity','calculator','paper']);
+    assert.equal(await page.locator('.group .target[href="relay_moth_beta/"]').count(),1);
+    assert.equal(await page.locator('.group .target[href="relay-moth-forest/"], .group .target[href="relay-moth-forest-stable/"]').count(),0);
+    const links=await page.locator('.group .target').evaluateAll(els=>els.map(e=>e.getAttribute('href')));
+    assert.ok(paths.every(path=>links.includes(path + '/')), 'Hidden gallery links missing from gaming service plate');
+    for (const path of paths) {
+      const response = await page.request.get(origin + '/' + path + '/');
+      assert.equal(response.status(), 200, 'Hidden gallery reachable: '+path);
     }
   } finally { await page.close(); }
-  console.log('PASS groupject homepage beta-only and 4 discrete hidden gallery entries');
+  console.log('PASS six groupjects, beta-only featured game, and four hidden galleries');
 } finally {
   await browser.close();
   await new Promise(ok => server.close(ok));
