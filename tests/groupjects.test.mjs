@@ -43,6 +43,22 @@ try{
    assert.ok(scene.scrollH<=scene.docH+1,'Vertical scroll '+JSON.stringify({vp,scene}));
    assert.ok(scene.sceneW<=scene.stageW && scene.sceneH<=scene.stageH,'Scene exceeds stage '+JSON.stringify({vp,scene}));
    assert.ok(scene.assetStatus.every(x=>x.loaded),'Broken SVG asset '+JSON.stringify(scene.assetStatus));
+   const hitCoverage=await page.evaluate(()=>{
+     return [...document.querySelectorAll('.groupject')].filter(g=>getComputedStyle(g).display!=='none')
+       .flatMap(g=>[...g.querySelectorAll('a')].filter(a=>getComputedStyle(a).display!=='none').map(a=>{
+         const rect=a.getBoundingClientRect(),x=rect.left+rect.width/2,y=rect.top+rect.height/2;
+         const hit=document.elementFromPoint(x,y);
+         return {name:a.getAttribute('aria-label'),x,y,w:rect.width,h:rect.height,
+           inside:x>=0&&y>=0&&x<=innerWidth&&y<=innerHeight,
+           interactive:hit===a||a.contains(hit)};
+       }));
+   });
+   assert.ok(hitCoverage.every(x=>x.inside&&x.interactive),'Blocked/out-of-viewport hotspots: '+JSON.stringify(hitCoverage.filter(x=>!x.inside||!x.interactive)));
+   const artAspects=await page.evaluate(()=>[...document.querySelectorAll('.groupject')].map(host=>{
+     const b=host.querySelector('.art-board').getBoundingClientRect(),img=host.querySelector('img');
+     return {id:host.dataset.id,actual:b.width/b.height,intrinsic:img.naturalWidth/img.naturalHeight};
+   }));
+   assert.ok(artAspects.every(x=>Math.abs(x.actual-x.intrinsic)<0.003),'Distorted art: '+JSON.stringify(artAspects));
    const mobile=vp.width<=740;
    assert.equal(await page.locator('.groupject:visible').count(),mobile?1:5,'Visible categories at '+vp.width);
    const count=await page.locator('.groupject a').count();
