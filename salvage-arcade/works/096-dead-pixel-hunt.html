@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#05070e"><title>S096 — DEAD PIXEL HUNT</title><script src="kit.js"></script></head><body>
+<script>
+(()=>{'use strict';
+// Sixty seconds. Pixels fail one at a time and recover if you leave them. Press on the bad ones and nothing else.
+const COLS=5,ROWS=3,ROUND=60;
+let cells=[],cur={r:1,c:2},timeLeft=ROUND,score=0,hits=0,false_=0,miss=0,streak=0,best=0,bestScore=0,spawn=0,active=true,cd=0,rounds=0,fx=[];
+const geo=K=>{const cs=Math.min(K.w*.14,K.h*.2,120),gap=cs*.12,tw=COLS*cs+(COLS-1)*gap,x0=(K.w-tw)/2,y0=(K.h-(ROWS*cs+(ROWS-1)*gap))/2+8;return{cs,gap,x0,y0}};
+function newRound(K){cells=Array.from({length:COLS*ROWS},()=>({bad:0,life:0,flash:0}));timeLeft=ROUND;score=hits=false_=miss=streak=0;spawn=.6;active=true;fx=[]}
+function press(K,r,c){if(!active){newRound(K);return}cur={r,c};const cl=cells[r*COLS+c];
+ if(cl.bad>0){const bonus=Math.round(100*(cl.bad/cl.life)+20);score+=bonus+streak*5;hits++;streak++;best=Math.max(best,streak);cl.bad=0;cl.flash=1;const g=geo(K);for(let i=0;i<10;i++){const a=K.rand()*K.TAU,v=60+K.rand()*140;fx.push({x:g.x0+c*(g.cs+g.gap)+g.cs/2,y:g.y0+r*(g.cs+g.gap)+g.cs/2,vx:Math.cos(a)*v,vy:Math.sin(a)*v,t:0,c:K.DAMAGE[i%6]})}}
+ else{score=Math.max(0,score-30);false_++;streak=0;cl.flash=-1}}
+Salvage({id:'S096',title:'DEAD PIXEL HUNT',parent:'002 AFTERIMAGE DEBT',
+ help:'<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> MOVE &nbsp;<kbd>SPACE</kbd> HIT THE FLICKERING PIXEL<br>FAST HITS SCORE MORE, FALSE ALARMS COST POINTS / CLICK DIRECTLY OR HOVER TO PEEK AT TIME LEFT',
+ aria:'A whack-a-mole style reflex game on a three by five grid. Pixels flicker red as they fail and recover if left alone. Arrow keys move a cursor and Space hits the cell under it; clicking a cell hits it directly. Hitting a failing pixel scores more the sooner you act, and hitting a healthy one loses points. Rounds last sixty seconds.',
+ reset(K){bestScore=0;best=0;rounds=0;newRound(K)},
+ key(K,e,fresh){
+  if(e.code==='Space'||e.code==='Enter'){if(fresh)press(K,cur.r,cur.c);return true}
+  const d={ArrowLeft:[0,-1],KeyA:[0,-1],ArrowRight:[0,1],KeyD:[0,1],ArrowUp:[-1,0],KeyW:[-1,0],ArrowDown:[1,0],KeyS:[1,0]}[e.code];if(d){if(fresh){cur.r=K.clamp(cur.r+d[0],0,ROWS-1);cur.c=K.clamp(cur.c+d[1],0,COLS-1)}return true}
+ },
+ down(K,x,y){const g=geo(K),c=Math.floor((x-g.x0)/(g.cs+g.gap)),r=Math.floor((y-g.y0)/(g.cs+g.gap));if(c<0||r<0||c>=COLS||r>=ROWS)return false;press(K,r,c);return true},
+ step(K,dt){
+  for(const q of cells){q.flash*=Math.exp(-dt*5);if(q.bad>0){q.bad-=dt;if(q.bad<=0){q.bad=0;miss++;streak=0}}}
+  for(let i=fx.length-1;i>=0;i--){const q=fx[i];q.t+=dt;q.x+=q.vx*dt;q.y+=q.vy*dt;if(q.t>.6)fx.splice(i,1)}
+  if(!active)return;timeLeft-=dt;if(timeLeft<=0){active=false;rounds++;bestScore=Math.max(bestScore,score);K.note('TIME / '+score+' / '+hits+' HIT / SPACE FOR ANOTHER ROUND')}
+  spawn-=dt;if(spawn<=0){const freeI=cells.map((c,i)=>c.bad>0?-1:i).filter(i=>i>=0),i=freeI[Math.floor(K.rand()*freeI.length)];const life=Math.max(.5,1.5-(ROUND-timeLeft)*.014);cells[i].bad=cells[i].life=life;spawn=Math.max(.25,.85-(ROUND-timeLeft)*.01)*(.7+K.rand()*.6)}
+ },
+ draw(K,c){
+  const {w,h,pointer:p}=K,g=geo(K);c.fillStyle='#05070e';c.fillRect(0,0,w,h);
+  const hv=p.inside?(()=>{const cc=Math.floor((p.x-g.x0)/(g.cs+g.gap)),rr=Math.floor((p.y-g.y0)/(g.cs+g.gap));return cc>=0&&rr>=0&&cc<COLS&&rr<ROWS?[rr,cc]:null})():null;
+  for(let r=0;r<ROWS;r++)for(let q=0;q<COLS;q++){const cl=cells[r*COLS+q],x=g.x0+q*(g.cs+g.gap),y=g.y0+r*(g.cs+g.gap),urgency=cl.bad>0?1-cl.bad/cl.life:0;
+   c.fillStyle=cl.bad>0?(Math.floor(K.time*14)%2?'#ed4e8c':'#fe6741'):'#0c1b2e';c.fillRect(x,y,g.cs,g.cs);
+   if(cl.bad>0){c.fillStyle='#faffdb';c.fillRect(x,y+g.cs-4,g.cs*(1-urgency),4);for(let k=0;k<6;k++)c.fillRect(x+K.hash(r*9+q+k+Math.floor(K.time*20))*g.cs,y+K.hash(k*7+r+Math.floor(K.time*18))*g.cs,4,2)}
+   if(cl.flash>.05){c.fillStyle='#10f4cf';c.globalAlpha=cl.flash;c.fillRect(x,y,g.cs,g.cs);c.globalAlpha=1}if(cl.flash<-.05){c.fillStyle='#ed4e8c';c.globalAlpha=-cl.flash*.5;c.fillRect(x,y,g.cs,g.cs);c.globalAlpha=1}
+   c.strokeStyle=(hv&&hv[0]===r&&hv[1]===q)?'#ed4e8c':'#2a3d5e';c.strokeRect(x+.5,y+.5,g.cs-1,g.cs-1)}
+  for(const q of fx){c.globalAlpha=1-q.t/.6;c.fillStyle=q.c;c.fillRect(q.x-2,q.y-2,4,4)}c.globalAlpha=1;
+  const cx=g.x0+cur.c*(g.cs+g.gap),cy=g.y0+cur.r*(g.cs+g.gap),b=3+Math.sin(K.time*6);c.strokeStyle='#faffdb';c.lineWidth=2.5;c.strokeRect(cx+b,cy+b,g.cs-b*2,g.cs-b*2);c.lineWidth=1;
+  c.fillStyle='#ffffff22';c.fillRect(g.x0,g.y0-26,COLS*(g.cs+g.gap)-g.gap,5);c.fillStyle=timeLeft<10?'#ed4e8c':'#faffdb';c.fillRect(g.x0,g.y0-26,(COLS*(g.cs+g.gap)-g.gap)*Math.max(0,timeLeft/ROUND),5);
+  if(!active){c.fillStyle='#05070ecc';c.fillRect(w/2-150,h*.44,300,60);c.fillStyle='#10f4cf';c.textAlign='center';c.font='13px monospace';c.fillText('ROUND OVER / '+score,w/2,h*.44+26);c.font='9px monospace';c.fillText('SPACE OR CLICK FOR ANOTHER',w/2,h*.44+46);c.textAlign='left'}
+  if(p.inside){c.font='9px monospace';c.fillStyle='#faffdb';c.fillText(Math.max(0,timeLeft).toFixed(1)+'s',p.x+12,p.y-8)}
+ },
+ readout:K=>['SCORE '+K.pad(score,5)+' / '+Math.max(0,timeLeft).toFixed(0)+'s','HIT '+K.pad(hits,2)+' / FALSE '+K.pad(false_,2)+' / LOST '+K.pad(miss,2)+' / BEST '+K.pad(bestScore,5)]
+});
+})();
+</script></body></html>

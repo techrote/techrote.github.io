@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#02050a"><title>S074 — LIGHT CYCLES</title><script src="kit.js"></script></head><body>
+<script>
+(()=>{'use strict';
+// Three lines of light on a grid that remembers every one. The last to hit something wins.
+const CELL=12,DIR=[[0,-1],[1,0],[0,1],[-1,0]];
+let cols=0,rows=0,g=null,cyc=[],acc=0,tickEvery=.085,boost=0,boostCd=0,wins=0,rounds=0,roundT=0,over=0,blocks=3,blT=0,flash=0,ox=0,oy=0;
+const id=(x,y)=>y*cols+x,free=(x,y)=>x>=0&&y>=0&&x<cols&&y<rows&&g[id(x,y)]===0;
+function init(K){cols=Math.floor(K.w*.94/CELL);rows=Math.floor(K.h*.8/CELL);ox=(K.w-cols*CELL)/2;oy=(K.h-rows*CELL)/2+8;g=new Uint8Array(cols*rows);cyc=[{x:3,y:Math.floor(rows/2),d:1,alive:true,col:'#28e3f4',ai:false},{x:cols-4,y:Math.floor(rows/3),d:3,alive:true,col:'#ed4e8c',ai:true},{x:cols-4,y:Math.floor(rows*2/3),d:3,alive:true,col:'#f4d84e',ai:true}];for(const c of cyc)g[id(c.x,c.y)]=1+cyc.indexOf(c);over=0;roundT=0;acc=0;boost=0}
+function space(x,y,d,n){let k=0;while(k<n&&free(x+DIR[d][0]*(k+1),y+DIR[d][1]*(k+1)))k++;return k}
+function ai(K,c){const L=(c.d+3)%4,R=(c.d+1)%4,fw=space(c.x,c.y,c.d,10),opts=[[c.d,fw],[L,space(c.x,c.y,L,10)],[R,space(c.x,c.y,R,10)]];
+ if(fw>=5&&K.rand()>.07)return;opts.sort((a,b)=>b[1]-a[1]+(K.rand()-.5)*2);if(opts[0][1]>0)c.d=opts[0][0]}
+Salvage({id:'S074',title:'LIGHT CYCLES',parent:'029 ORPHANED BUS',bg:'#02050a',
+ help:'<kbd>←</kbd><kbd>→</kbd> TURN LEFT OR RIGHT (<kbd>↑</kbd><kbd>↓</kbd> TOO) &nbsp;<kbd>SPACE</kbd> BOOST<br>LAST ONE RUNNING WINS THE ROUND / CLICK TO DROP A WALL BLOCK (THREE, RECHARGING)',
+ aria:'A light-cycle game on a grid. You steer the cyan cycle with the arrow keys; two computer cycles in rose and amber do the same. Every cycle leaves a wall behind it and anything that hits a wall or the edge is out. Space gives a short speed boost. Clicking with the pointer drops a wall block on the grid, limited to three that recharge. The last cycle running wins the round.',
+ reset(K){wins=rounds=0;blocks=3;init(K)},
+ resize(K){init(K)},
+ key(K,e,fresh){
+  if(e.code==='Space'){if(fresh&&boostCd<=0&&!over){boost=.7;boostCd=4}return true}
+  const d={ArrowUp:0,KeyW:0,ArrowRight:1,KeyD:1,ArrowDown:2,KeyS:2,ArrowLeft:3,KeyA:3}[e.code];
+  if(d!==undefined){if(fresh&&!over&&d!==(cyc[0].d+2)%4)cyc[0].next=d;return true}
+ },
+ down(K,x,y){const gx=Math.floor((x-ox)/CELL),gy=Math.floor((y-oy)/CELL);if(blocks>0&&free(gx,gy)){g[id(gx,gy)]=9;blocks--;return true}return false},
+ step(K,dt){
+  boost=Math.max(0,boost-dt);boostCd=Math.max(0,boostCd-dt);blT+=dt;if(blT>7&&blocks<3){blocks++;blT=0}flash=Math.max(0,flash-dt*2);
+  if(over){roundT+=dt;if(roundT>1.8)init(K);return}
+  acc+=dt;const te=boost>0?tickEvery*.55:tickEvery;
+  while(acc>=te){acc-=te;
+   for(const c of cyc){if(!c.alive)continue;if(c.ai)ai(K,c);else if(c.next!==undefined){c.d=c.next;c.next=undefined}}
+   for(const c of cyc){if(!c.alive)continue;const nx=c.x+DIR[c.d][0],ny=c.y+DIR[c.d][1];c.nx=nx;c.ny=ny}
+   for(const c of cyc){if(!c.alive)continue;if(!free(c.nx,c.ny)||cyc.some(o=>o!==c&&o.alive&&o.nx===c.nx&&o.ny===c.ny&&false))c.alive=false}
+   for(let i=0;i<cyc.length;i++){const c=cyc[i];if(!c.alive)continue;c.x=c.nx;c.y=c.ny;g[id(c.x,c.y)]=1+i}
+   const alive=cyc.filter(c=>c.alive);if(!cyc[0].alive||alive.length<=1){over=1;roundT=0;rounds++;flash=1;if(cyc[0].alive){wins++;K.note('YOU ARE THE LAST LINE / '+K.pad(wins))}else K.note('DEREZZED / SPACE TO WAIT')}
+  }
+ },
+ draw(K,c){
+  const {w,h,TAU,pointer:p}=K;c.fillStyle='#02050a';c.fillRect(0,0,w,h);
+  c.strokeStyle='#0e1b2b';c.strokeRect(ox-.5,oy-.5,cols*CELL+1,rows*CELL+1);
+  const COL=['#28e3f4','#ed4e8c','#f4d84e'];
+  for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){const v=g[id(x,y)];if(!v)continue;c.fillStyle=v===9?'#9fc4d6':COL[v-1];c.globalAlpha=v===9?.6:.75;c.fillRect(ox+x*CELL+1,oy+y*CELL+1,CELL-2,CELL-2)}c.globalAlpha=1;
+  for(const cy of cyc){const x=ox+cy.x*CELL,y=oy+cy.y*CELL;c.fillStyle=cy.alive?'#fff':'#ffffff44';c.fillRect(x,y,CELL,CELL);if(cy.alive){c.globalAlpha=.4;c.fillStyle=cy.col;c.fillRect(x-4,y-4,CELL+8,CELL+8);c.globalAlpha=1}}
+  if(flash){c.fillStyle='#fff';c.globalAlpha=flash*.08;c.fillRect(0,0,w,h);c.globalAlpha=1}
+  c.font='9px monospace';c.fillStyle='#9fc4d6';c.fillText('BOOST '+(boostCd>0?Math.ceil(boostCd)+'s':'READY')+' / BLOCKS '+'■'.repeat(blocks)+'□'.repeat(3-blocks),ox,oy-12);
+  if(p.inside){const gx=Math.floor((p.x-ox)/CELL),gy=Math.floor((p.y-oy)/CELL);c.strokeStyle=blocks>0&&free(gx,gy)?'#faffdb':'#ed4e8c';c.strokeRect(ox+gx*CELL+.5,oy+gy*CELL+.5,CELL-1,CELL-1);c.fillStyle='#faffdb';c.fillText(blocks?'CLICK: WALL':'RECHARGING',p.x+14,p.y-8)}
+ },
+ readout:K=>['WON '+K.pad(wins)+' / '+K.pad(rounds),'ALIVE '+cyc.filter(c=>c.alive).length+'/3 / BOOST '+(boostCd>0?Math.ceil(boostCd)+'s':'ready')]
+});
+})();
+</script></body></html>

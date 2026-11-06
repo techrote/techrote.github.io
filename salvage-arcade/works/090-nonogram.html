@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#05070e"><title>S090 — NONOGRAM</title><script src="kit.js"></script></head><body>
+<script>
+(()=>{'use strict';
+// The numbers are the run lengths of what is filled in. The picture is whatever fits them.
+let N=5,truth=null,state=null,rowC=null,colC=null,cur={r:0,c:0},cell=40,ox=0,oy=0,clueW=0,solved=0,wins=0,level=0,drag=null,moves=0;
+const idx=(r,c)=>r*N+c;
+function clues(grid,get){const out=[];for(let a=0;a<N;a++){const run=[];let n=0;for(let b=0;b<N;b++){if(get(grid,a,b)){n++}else if(n){run.push(n);n=0}}if(n)run.push(n);out.push(run.length?run:[0])}return out}
+const rowOf=(g,r,c)=>g[idx(r,c)]===1,colOf=(g,c,r)=>g[idx(r,c)]===1;
+function gen(K){N=Math.min(12,5+level);truth=new Uint8Array(N*N);for(let i=0;i<truth.length;i++)truth[i]=K.rand()<.55?1:0;for(let k=0;k<N;k++){truth[idx(Math.floor(K.rand()*N),k)]=1;truth[idx(k,Math.floor(K.rand()*N))]=1}state=new Uint8Array(N*N);rowC=clues(truth,rowOf);colC=clues(truth,colOf);const mr=Math.max(...rowC.map(r=>r.length)),mc=Math.max(...colC.map(c=>c.length));cell=Math.min(K.w*.7/(N+mr*.8),K.h*.62/(N+mc*.8),46);clueW=mr*cell*.55;ox=(K.w-(N*cell+clueW))/2+clueW;oy=K.h*.25+mc*cell*.55-cell*.5;cur={r:0,c:0};solved=0;moves=0}
+const same=(a,b)=>a.length===b.length&&a.every((v,i)=>v===b[i]);
+const rowOK=r=>same(clues(state,rowOf)[r],rowC[r]),colOK=c=>same(clues(state,colOf)[c],colC[c]);
+function check(K){if(solved)return;for(let i=0;i<N;i++)if(!rowOK(i)||!colOK(i))return;wins++;solved=.001;K.note('PICTURE FOUND / '+N+'×'+N)}
+function setc(K,r,c,v){if(solved)return;if(r<0||c<0||r>=N||c>=N)return;state[idx(r,c)]=v;check(K)}
+const at=(K,x,y)=>{const c=Math.floor((x-ox)/cell),r=Math.floor((y-oy)/cell);return r>=0&&c>=0&&r<N&&c<N?[r,c]:null};
+Salvage({id:'S090',title:'NONOGRAM',parent:'028 PLATE GLASS AFTERLIFE',
+ help:'<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> MOVE &nbsp;<kbd>SPACE</kbd> FILL &nbsp;<kbd>X</kbd> MARK EMPTY<br>MAKE EVERY ROW AND COLUMN MATCH ITS NUMBERS / DRAG ACROSS CELLS TO PAINT THEM',
+ aria:'A nonogram puzzle. Numbers beside each row and above each column give the lengths of runs of filled squares. Arrow keys move a cursor, Space fills or clears a cell and X marks it as empty. When every row and column matches its clues the puzzle is solved and a larger one follows. Satisfied clues dim. Clicking a cell toggles it and dragging paints a run of cells with the same value.',
+ reset(K){level=0;wins=0;gen(K)},
+ resize(K){gen(K)},
+ key(K,e,fresh){
+  if(e.code==='Space'||e.code==='Enter'){if(fresh){const v=state[idx(cur.r,cur.c)];setc(K,cur.r,cur.c,v===1?0:1);moves++}return true}
+  if(e.code==='KeyX'){if(fresh){const v=state[idx(cur.r,cur.c)];setc(K,cur.r,cur.c,v===2?0:2)}return true}
+  const d={ArrowLeft:[0,-1],KeyA:[0,-1],ArrowRight:[0,1],KeyD:[0,1],ArrowUp:[-1,0],KeyW:[-1,0],ArrowDown:[1,0],KeyS:[1,0]}[e.code];if(d){if(fresh){cur.r=K.clamp(cur.r+d[0],0,N-1);cur.c=K.clamp(cur.c+d[1],0,N-1)}return true}
+ },
+ down(K,x,y){const a=at(K,x,y);if(!a)return false;cur={r:a[0],c:a[1]};const v=state[idx(a[0],a[1])]===1?0:1;drag=v;setc(K,a[0],a[1],v);moves++;return false},
+ up(){drag=null},
+ step(K,dt){const p=K.pointer;if(p.held&&drag!==null&&p.inside){const a=at(K,p.x,p.y);if(a&&state[idx(a[0],a[1])]!==drag&&state[idx(a[0],a[1])]!==2)setc(K,a[0],a[1],drag)}if(solved){solved+=dt;if(solved>2.4){level++;gen(K)}}},
+ draw(K,c){
+  const {w,h,pointer:p}=K;c.fillStyle='#05070e';c.fillRect(0,0,w,h);
+  const hv=p.inside?at(K,p.x,p.y):null;
+  for(let r=0;r<N;r++)for(let q=0;q<N;q++){const x=ox+q*cell,y=oy+r*cell,v=state[idx(r,q)],hot=hv&&(hv[0]===r||hv[1]===q);c.fillStyle=hot?'#0f1b2a':'#08111c';c.fillRect(x,y,cell-1,cell-1);if((r%5===4)||(q%5===4)){}
+   if(v===1){c.fillStyle=solved?K.DAMAGE[(r+q)%6]:'#e9fbff';c.fillRect(x+3,y+3,cell-7,cell-7)}else if(v===2){c.strokeStyle='#4f6b80';c.beginPath();c.moveTo(x+cell*.3,y+cell*.3);c.lineTo(x+cell*.7,y+cell*.7);c.moveTo(x+cell*.7,y+cell*.3);c.lineTo(x+cell*.3,y+cell*.7);c.stroke()}}
+  c.strokeStyle='#2a3d5e';for(let k=0;k<=N;k+=5){c.beginPath();c.moveTo(ox+k*cell-.5,oy);c.lineTo(ox+k*cell-.5,oy+N*cell);c.moveTo(ox,oy+k*cell-.5);c.lineTo(ox+N*cell,oy+k*cell-.5);c.stroke()}
+  c.font='bold '+Math.round(cell*.4)+'px monospace';c.textAlign='center';
+  for(let r=0;r<N;r++){const ok=rowOK(r);c.fillStyle=ok?'#4f6b80':'#c8d6e0';rowC[r].forEach((n,i)=>c.fillText(n,ox-6-(rowC[r].length-1-i)*cell*.55-cell*.15,oy+r*cell+cell*.66))}
+  for(let q=0;q<N;q++){const ok=colOK(q);c.fillStyle=ok?'#4f6b80':'#c8d6e0';colC[q].forEach((n,i)=>c.fillText(n,ox+q*cell+cell/2,oy-6-(colC[q].length-1-i)*cell*.55))}
+  c.textAlign='left';const cx=ox+cur.c*cell,cy=oy+cur.r*cell,b=1+Math.sin(K.time*5)*.8;c.strokeStyle='#faffdb';c.lineWidth=2;c.strokeRect(cx+b,cy+b,cell-b*2-1,cell-b*2-1);c.lineWidth=1;
+  if(solved){c.globalAlpha=.3+.2*Math.sin(K.time*8);c.strokeStyle='#faffdb';c.strokeRect(ox-5,oy-5,N*cell+10,N*cell+10);c.globalAlpha=1}
+  c.font='9px monospace';c.fillStyle='#9fc4d6';c.fillText(N+'×'+N,ox,oy+N*cell+20);
+ },
+ readout:K=>{let okc=0;for(let i=0;i<N;i++)okc+=(rowOK(i)?1:0)+(colOK(i)?1:0);return['LINES '+K.pad(okc,2)+'/'+K.pad(N*2,2),'SOLVED '+K.pad(wins)+' / MOVES '+K.pad(moves)]}
+});
+})();
+</script></body></html>

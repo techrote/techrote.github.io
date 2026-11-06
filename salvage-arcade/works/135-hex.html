@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#05070e"><title>S135 — HEX</title><script src="kit.js"></script></head><body>
+<script>
+(()=>{'use strict';
+// A board of hexagons. You join the top edge to the bottom; the opponent joins left to right. One of you will; nobody can draw.
+const N=9,DR=[[0,1],[0,-1],[1,0],[-1,0],[-1,1],[1,-1]];
+let b=null,turn=1,cur={r:4,c:4},over=0,winP=0,winPath=[],wins=0,losses=0,thinking=0,play=60,sz=30,ox=0,oy=0,last=null,moveN=0,level=0;
+const id=(r,c)=>r*N+c,inb=(r,c)=>r>=0&&c>=0&&r<N&&c<N;
+function connected(bd,p){const seen=new Uint8Array(N*N),prev=new Int16Array(N*N).fill(-1),q=[];for(let i=0;i<N;i++){const k=p===1?id(0,i):id(i,0);if(bd[k]===p){seen[k]=1;q.push(k)}}
+ while(q.length){const k=q.shift(),r=Math.floor(k/N),c=k%N;if((p===1&&r===N-1)||(p===2&&c===N-1)){const path=[];let x=k;while(x>=0){path.push(x);x=prev[x]}return path}for(const [dr,dc] of DR){const a=r+dr,b2=c+dc;if(inb(a,b2)&&!seen[id(a,b2)]&&bd[id(a,b2)]===p){seen[id(a,b2)]=1;prev[id(a,b2)]=k;q.push(id(a,b2))}}}return null}
+function playout(bd,toMove){const e=[];for(let i=0;i<bd.length;i++)if(!bd[i])e.push(i);for(let i=e.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[e[i],e[j]]=[e[j],e[i]]}const t=bd.slice();let p=toMove;for(const k of e){t[k]=p;p=3-p}return connected(t,1)?1:2}
+function aiPick(){const e=[];for(let i=0;i<b.length;i++)if(!b[i])e.push(i);let best=e[0],bv=-1;const cands=e.length>40?e.filter(k=>{const r=Math.floor(k/N),c=k%N;return Math.abs(r-4)+Math.abs(c-4)<7}):e;
+ for(const k of cands){let w=0;const t=b.slice();t[k]=2;for(let s=0;s<play;s++)if(playout(t,1)===2)w++;const v=w+(8-Math.abs(Math.floor(k/N)-4)-Math.abs(k%N-4))*.05;if(v>bv){bv=v;best=k}}return best}
+function put(K,k,p){if(over||b[k])return false;b[k]=p;last=k;moveN++;const path=connected(b,p);if(path){over=1;winP=p;winPath=path;if(p===1){wins++;level++;play=Math.min(220,play+30);K.note('YOU CONNECTED TOP TO BOTTOM / THE BOARD THINKS HARDER')}else{losses++;K.note('THE BOARD CONNECTED LEFT TO RIGHT')}}else{turn=3-p;if(turn===2)thinking=.3}return true}
+function init(K){b=new Uint8Array(N*N);turn=1;over=0;winP=0;winPath=[];last=null;moveN=0;sz=Math.min(K.w*.66/(N*1.55+N*.5),K.h*.72/(N*1.5));ox=K.w/2-(N*1.73*sz*.5+N*.866*sz*.5)+sz*1.2;oy=(K.h-N*1.5*sz)/2+sz}
+const pos=(r,c)=>[ox+(c+r*.5)*sz*1.732+0,oy+r*sz*1.5];
+const hit=(K,x,y)=>{let bk=-1,bd=sz*.86;for(let r=0;r<N;r++)for(let c=0;c<N;c++){const [px,py]=pos(r,c),d=Math.hypot(px-x,py-y);if(d<bd){bd=d;bk=id(r,c)}}return bk};
+Salvage({id:'S135',title:'HEX',parent:'037 FAILURE WEAVE',
+ help:'<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> MOVE &nbsp;<kbd>SPACE</kbd> PLACE A STONE<br>YOU (CYAN) JOIN TOP TO BOTTOM, THE BOARD (ROSE) JOINS LEFT TO RIGHT / HOVER TO PREVIEW, CLICK TO PLAY',
+ aria:'The game of Hex on a nine by nine board of hexagons. You play cyan and try to build an unbroken chain of stones from the top edge to the bottom edge; the computer plays rose and tries to connect the left edge to the right edge. Arrow keys move a cursor and Space places a stone; hovering shows where a stone would go and clicking places it. One player always wins, never both. The computer chooses its moves by trying thousands of random continuations and thinks harder each time you win.',
+ reset(K){wins=losses=0;play=60;level=0;init(K)},
+ resize(K){sz=Math.min(K.w*.66/(N*1.55+N*.5),K.h*.72/(N*1.5));ox=K.w/2-(N*1.73*sz*.5+N*.866*sz*.5)+sz*1.2;oy=(K.h-N*1.5*sz)/2+sz},
+ key(K,e,fresh){
+  if(e.code==='Space'||e.code==='Enter'){if(fresh){if(over)init(K);else if(turn===1)put(K,id(cur.r,cur.c),1)}return true}
+  const d={ArrowLeft:[0,-1],KeyA:[0,-1],ArrowRight:[0,1],KeyD:[0,1],ArrowUp:[-1,0],KeyW:[-1,0],ArrowDown:[1,0],KeyS:[1,0]}[e.code];if(d){if(fresh){cur.r=K.clamp(cur.r+d[0],0,N-1);cur.c=K.clamp(cur.c+d[1],0,N-1)}return true}
+ },
+ down(K,x,y){if(over){init(K);return true}const k=hit(K,x,y);if(k<0)return false;cur={r:Math.floor(k/N),c:k%N};if(turn===1)put(K,k,1);return true},
+ step(K,dt){if(!over&&turn===2){thinking-=dt;if(thinking<=0){const k=aiPick();put(K,k,2)}}},
+ draw(K,c){
+  const {w,h,TAU,pointer:p}=K;c.fillStyle='#05070e';c.fillRect(0,0,w,h);
+  const hex=(x,y,r)=>{c.beginPath();for(let i=0;i<6;i++){const a=Math.PI/6+i*Math.PI/3;c.lineTo(x+Math.cos(a)*r,y+Math.sin(a)*r)}c.closePath()};
+  const tl=pos(0,0),tr=pos(0,N-1),bl=pos(N-1,0),br=pos(N-1,N-1);
+  c.strokeStyle='#28e3f4';c.lineWidth=5;c.beginPath();c.moveTo(tl[0]-sz,tl[1]-sz*.8);c.lineTo(tr[0]+sz,tr[1]-sz*.8);c.moveTo(bl[0]-sz,bl[1]+sz*.8);c.lineTo(br[0]+sz,br[1]+sz*.8);c.stroke();c.strokeStyle='#ed4e8c';c.beginPath();c.moveTo(tl[0]-sz*1.1,tl[1]-sz*.5);c.lineTo(bl[0]-sz*1.1,bl[1]+sz*.5);c.moveTo(tr[0]+sz*1.1,tr[1]-sz*.5);c.lineTo(br[0]+sz*1.1,br[1]+sz*.5);c.stroke();c.lineWidth=1;
+  const hv=p.inside?hit(K,p.x,p.y):-1,onPath=new Set(winPath);
+  for(let r=0;r<N;r++)for(let q=0;q<N;q++){const [x,y]=pos(r,q),k=id(r,q),v=b[k];hex(x,y,sz*.98);c.fillStyle=v===1?'#28e3f4':v===2?'#ed4e8c':(k===hv&&turn===1&&!over?'#1b3a4a':'#0c1420');c.fill();c.strokeStyle=onPath.has(k)?'#faffdb':'#2a3d5e';c.lineWidth=onPath.has(k)?3:1;c.stroke();c.lineWidth=1;if(k===last){c.strokeStyle='#faffdb';c.beginPath();c.arc(x,y,sz*.25,0,TAU);c.stroke()}}
+  const [cx2,cy2]=pos(cur.r,cur.c),bb=sz*.6+Math.sin(K.time*5);c.strokeStyle='#faffdb';c.lineWidth=2;hex(cx2,cy2,bb);c.stroke();c.lineWidth=1;
+  c.font='9px monospace';c.fillStyle='#9fc4d6';c.fillText('OPPONENT STRENGTH '+play+' PLAYOUTS / '+(over?'GAME OVER':turn===1?'YOUR MOVE':'THINKING…'),22,h*.1);
+  if(over){c.fillStyle='#05070ecc';c.fillRect(w/2-170,h*.02,340,38);c.fillStyle=winP===1?'#10f4cf':'#ed4e8c';c.textAlign='center';c.font='12px monospace';c.fillText((winP===1?'YOU WIN':'THE BOARD WINS')+' / SPACE FOR ANOTHER',w/2,h*.02+24);c.textAlign='left'}
+ },
+ readout:K=>['WON '+K.pad(wins)+' / LOST '+K.pad(losses),'MOVE '+K.pad(moveN,2)+' / STRENGTH '+play]
+});
+})();
+</script></body></html>
