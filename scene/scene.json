@@ -1,0 +1,557 @@
+{
+  "version": "2.0.0",
+  "reference": "Generated Techrote industrial workshop composition \u2014 2026-11-06; source images supplied in the conversation",
+  "canvas": {
+    "width": 1672,
+    "height": 941,
+    "grid": 16
+  },
+  "background": {
+    "file": "scene/backdrop/cleanplate.webp",
+    "reference": "scene/backdrop/exact-reference.webp"
+  },
+  "groups": [
+    {
+      "id": "retro",
+      "name": "RETRO GRAPHICS",
+      "x": 0,
+      "y": 188,
+      "width": 576,
+      "height": 554,
+      "z": 10,
+      "scale": 1,
+      "art": {
+        "file": "scene/parts/retro.webp",
+        "sourcePng": "scene/parts/retro.png"
+      },
+      "screen": {
+        "file": "scene/screens/retro-screen.webp",
+        "sourcePng": "scene/screens/retro-screen.png",
+        "rect": [
+          182,
+          55,
+          219,
+          208
+        ]
+      },
+      "hotspots": [
+        {
+          "id": "retro-01",
+          "label": "ASCIIomium",
+          "url": "https://github.com/techrote/ASCIIomium",
+          "rect": [
+            196,
+            88,
+            69,
+            65
+          ]
+        },
+        {
+          "id": "retro-02",
+          "label": "PNGGPU",
+          "url": "https://github.com/techrote/PNGGPU",
+          "rect": [
+            273,
+            88,
+            61,
+            65
+          ]
+        },
+        {
+          "id": "retro-03",
+          "label": "GlyphPaint",
+          "url": "glyphpaint/",
+          "rect": [
+            338,
+            88,
+            53,
+            65
+          ]
+        },
+        {
+          "id": "retro-04",
+          "label": "GlyphPoint",
+          "url": "glyphpoint/",
+          "rect": [
+            196,
+            155,
+            75,
+            52
+          ]
+        },
+        {
+          "id": "retro-05",
+          "label": "PlasmaTerm",
+          "url": "plasmaterm/",
+          "rect": [
+            274,
+            155,
+            62,
+            52
+          ]
+        },
+        {
+          "id": "retro-06",
+          "label": "PNG2ANSI",
+          "url": "PNG2ANSI-web.html",
+          "rect": [
+            339,
+            155,
+            55,
+            52
+          ]
+        },
+        {
+          "id": "retro-07",
+          "label": "pyANSI",
+          "url": "projects/pyansi.html",
+          "rect": [
+            285,
+            209,
+            113,
+            43
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gaming",
+      "name": "GAMES & SIMULATIONS",
+      "x": 1063,
+      "y": 97,
+      "width": 609,
+      "height": 482,
+      "z": 20,
+      "scale": 1,
+      "art": {
+        "file": "scene/parts/gaming.webp",
+        "sourcePng": "scene/parts/gaming.png"
+      },
+      "screen": {
+        "file": "scene/screens/gaming-screen.webp",
+        "sourcePng": "scene/screens/gaming-screen.png",
+        "rect": [
+          205,
+          68,
+          206,
+          249
+        ]
+      },
+      "hotspots": [
+        {
+          "id": "gaming-01",
+          "label": "Relay Moth Beta",
+          "url": "relay_moth_beta/",
+          "rect": [
+            220,
+            112,
+            182,
+            40
+          ]
+        },
+        {
+          "id": "gaming-02",
+          "label": "XenoField",
+          "url": "xenofield/",
+          "rect": [
+            220,
+            152,
+            182,
+            41
+          ]
+        },
+        {
+          "id": "gaming-03",
+          "label": "CyberSand",
+          "url": "https://github.com/techrote/cybersand",
+          "rect": [
+            220,
+            193,
+            182,
+            39
+          ]
+        },
+        {
+          "id": "gaming-04",
+          "label": "Sandfall",
+          "url": "https://github.com/techrote/sandfall",
+          "rect": [
+            220,
+            234,
+            182,
+            36
+          ]
+        },
+        {
+          "id": "gaming-05",
+          "label": "SteelMoth",
+          "url": "https://github.com/techrote/steelmoth",
+          "rect": [
+            220,
+            270,
+            182,
+            42
+          ]
+        },
+        {
+          "id": "gaming-06",
+          "label": "Shattered Art Stash",
+          "url": "shattered-art-stash/",
+          "rect": [
+            297,
+            343,
+            143,
+            20
+          ]
+        },
+        {
+          "id": "gaming-07",
+          "label": "Signal Relics",
+          "url": "signal-relics/",
+          "rect": [
+            297,
+            366,
+            143,
+            19
+          ]
+        },
+        {
+          "id": "gaming-08",
+          "label": "Salvage Apparatus",
+          "url": "salvage-apparatus/",
+          "rect": [
+            297,
+            385,
+            143,
+            19
+          ]
+        },
+        {
+          "id": "gaming-09",
+          "label": "Salvage Arcade",
+          "url": "salvage-arcade/",
+          "rect": [
+            297,
+            405,
+            143,
+            19
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cad",
+      "name": "CAD & DESIGN",
+      "x": 433,
+      "y": 89,
+      "width": 838,
+      "height": 510,
+      "z": 30,
+      "scale": 1,
+      "art": {
+        "file": "scene/parts/cad.webp",
+        "sourcePng": "scene/parts/cad.png"
+      },
+      "screen": {
+        "file": "scene/screens/cad-screen.webp",
+        "sourcePng": "scene/screens/cad-screen.png",
+        "rect": [
+          64,
+          60,
+          563,
+          267
+        ]
+      },
+      "hotspots": [
+        {
+          "id": "cad-01",
+          "label": "INTUIT3D",
+          "url": "https://github.com/techrote/INTUIT3D",
+          "rect": [
+            105,
+            67,
+            238,
+            48
+          ]
+        },
+        {
+          "id": "cad-02",
+          "label": "EdgeCraft",
+          "url": "edgecraft-stl.html",
+          "rect": [
+            161,
+            118,
+            187,
+            89
+          ]
+        },
+        {
+          "id": "cad-03",
+          "label": "radiCADSAC",
+          "url": "https://github.com/techrote/radiCADSAC",
+          "rect": [
+            349,
+            119,
+            168,
+            89
+          ]
+        },
+        {
+          "id": "cad-04",
+          "label": "INTUIT3D \u2014 CAD toolkit",
+          "url": "https://github.com/techrote/INTUIT3D",
+          "rect": [
+            161,
+            208,
+            185,
+            73
+          ]
+        },
+        {
+          "id": "cad-05",
+          "label": "Systems Lab",
+          "url": "https://github.com/techrote/radiCADSAC",
+          "rect": [
+            348,
+            208,
+            170,
+            73
+          ]
+        },
+        {
+          "id": "cad-06",
+          "label": "Project index",
+          "url": "directory.html",
+          "rect": [
+            162,
+            284,
+            85,
+            37
+          ]
+        },
+        {
+          "id": "cad-07",
+          "label": "CAD assets",
+          "url": "https://github.com/techrote/INTUIT3D",
+          "rect": [
+            254,
+            284,
+            89,
+            37
+          ]
+        },
+        {
+          "id": "cad-08",
+          "label": "Workflows",
+          "url": "https://github.com/techrote/INTUIT3D/actions",
+          "rect": [
+            349,
+            284,
+            86,
+            37
+          ]
+        },
+        {
+          "id": "cad-09",
+          "label": "Notes and Wiki",
+          "url": "https://github.com/techrote/INTUIT3D/wiki",
+          "rect": [
+            439,
+            284,
+            79,
+            37
+          ]
+        },
+        {
+          "id": "cad-10",
+          "label": "Projects",
+          "url": "directory.html",
+          "rect": [
+            75,
+            146,
+            75,
+            27
+          ]
+        },
+        {
+          "id": "cad-11",
+          "label": "CAD library",
+          "url": "https://github.com/techrote/INTUIT3D",
+          "rect": [
+            75,
+            175,
+            75,
+            26
+          ]
+        },
+        {
+          "id": "cad-12",
+          "label": "Docs",
+          "url": "https://github.com/techrote/INTUIT3D#readme",
+          "rect": [
+            75,
+            228,
+            72,
+            29
+          ]
+        },
+        {
+          "id": "cad-13",
+          "label": "Source",
+          "url": "https://github.com/techrote",
+          "rect": [
+            75,
+            260,
+            71,
+            26
+          ]
+        }
+      ]
+    },
+    {
+      "id": "curiosity",
+      "name": "INTERACTIVE ART",
+      "x": 324,
+      "y": 694,
+      "width": 402,
+      "height": 245,
+      "z": 40,
+      "scale": 1,
+      "art": {
+        "file": "scene/parts/curiosity.webp",
+        "sourcePng": "scene/parts/curiosity.png"
+      },
+      "screen": null,
+      "hotspots": [
+        {
+          "id": "curiosity-01",
+          "label": "Discover interactive art",
+          "url": "shattered-art-stash/",
+          "rect": [
+            29,
+            56,
+            165,
+            128
+          ]
+        }
+      ]
+    },
+    {
+      "id": "calculator",
+      "name": "CALCULATORS & PHYSICS",
+      "x": 693,
+      "y": 553,
+      "width": 415,
+      "height": 388,
+      "z": 50,
+      "scale": 1,
+      "art": {
+        "file": "scene/parts/calculator.webp",
+        "sourcePng": "scene/parts/calculator.png"
+      },
+      "screen": {
+        "file": "scene/screens/calculator-screen.webp",
+        "sourcePng": "scene/screens/calculator-screen.png",
+        "rect": [
+          101,
+          33,
+          272,
+          129
+        ]
+      },
+      "hotspots": [
+        {
+          "id": "calculator-01",
+          "label": "ThermoPipe",
+          "url": "thermopipe_parameter_suite.html",
+          "rect": [
+            134,
+            58,
+            220,
+            31
+          ]
+        },
+        {
+          "id": "calculator-02",
+          "label": "Brachistochrone",
+          "url": "brachistochrone-lab-v2.html",
+          "rect": [
+            136,
+            90,
+            213,
+            31
+          ]
+        },
+        {
+          "id": "calculator-03",
+          "label": "Connection Lab",
+          "url": "connection-lab/",
+          "rect": [
+            140,
+            121,
+            204,
+            33
+          ]
+        }
+      ]
+    },
+    {
+      "id": "paper",
+      "name": "NOTES & REFERENCE",
+      "x": 1064,
+      "y": 583,
+      "width": 491,
+      "height": 348,
+      "z": 60,
+      "scale": 1,
+      "art": {
+        "file": "scene/parts/paper.webp",
+        "sourcePng": "scene/parts/paper.png"
+      },
+      "screen": null,
+      "hotspots": [
+        {
+          "id": "paper-01",
+          "label": "Scratchpad",
+          "url": "projects/scratchpad.html",
+          "rect": [
+            113,
+            45,
+            263,
+            46
+          ]
+        },
+        {
+          "id": "paper-02",
+          "label": "devref",
+          "url": "https://github.com/techrote/devref",
+          "rect": [
+            110,
+            97,
+            260,
+            48
+          ]
+        },
+        {
+          "id": "paper-03",
+          "label": "Project sources",
+          "url": "https://github.com/techrote",
+          "rect": [
+            108,
+            145,
+            269,
+            51
+          ]
+        }
+      ]
+    }
+  ],
+  "shortcuts": {
+    "g": "grid",
+    "h": "hints",
+    "e": "edit",
+    "r": "reference",
+    "f": "fullscreen",
+    "0": "fit"
+  }
+}
