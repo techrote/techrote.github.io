@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="760" viewBox="0 0 1100 760" role="img" aria-label="Illustrated computer equipment; selectable project links are overlaid by the site"><defs>
+<linearGradient id="beige" x2=".8" y2="1"><stop stop-color="#e4d6ae"/><stop offset=".52" stop-color="#ad9d7e"/><stop offset="1" stop-color="#786d5d"/></linearGradient>
+<linearGradient id="black" x2="1" y2="1"><stop stop-color="#3c4b55"/><stop offset=".52" stop-color="#11191f"/><stop offset="1" stop-color="#080e13"/></linearGradient>
+<linearGradient id="glass" x2=".8" y2="1"><stop stop-color="#193c4b"/><stop offset=".55" stop-color="#07151b"/><stop offset="1" stop-color="#141b24"/></linearGradient>
+<linearGradient id="silver" x2="0" y2="1"><stop stop-color="#bdc8c7"/><stop offset=".5" stop-color="#627277"/><stop offset="1" stop-color="#2a3940"/></linearGradient>
+<linearGradient id="green" x2=".7" y2="1"><stop stop-color="#accd84"/><stop offset="1" stop-color="#5b7a60"/></linearGradient>
+<linearGradient id="paper" x2=".7" y2="1"><stop stop-color="#e6debd"/><stop offset=".6" stop-color="#d1c4a3"/><stop offset="1" stop-color="#b8a984"/></linearGradient>
+<pattern id="vents" width="11" height="8" patternUnits="userSpaceOnUse"><rect x="1" y="1" width="8" height="3" rx="1.5" fill="#172125" opacity=".7"/></pattern>
+<pattern id="graph" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M24 0H0V24" fill="none" stroke="#507282" stroke-width="1" opacity=".32"/></pattern>
+<filter id="shadow" x="-25%" y="-25%" width="150%" height="170%"><feGaussianBlur stdDeviation="13"/></filter>
+<filter id="glow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="7"/></filter>
+</defs>
+<ellipse cx="557" cy="700" rx="475" ry="29" fill="#000" opacity=".18" filter="url(#shadow)"/>
+<path d="M166 67L1005 60L1047 660L234 713Z" fill="#8b866a" opacity=".25" transform="translate(7 6)"/>
+<path d="M154 53L990 76L1018 666L204 709Z" fill="#bfc3b5" stroke="#828877" stroke-width="5"/>
+<path d="M150 32L927 22L998 668L183 718L126 190Z" fill="url(#paper)" stroke="#928467" stroke-width="5"/>
+<path d="M136 64L937 43L983 642L193 688" fill="none" stroke="#fff4d3" stroke-width="6" opacity=".52"/>
+<path d="M178 135L940 120" stroke="#b96c6a" stroke-width="2" opacity=".6"/>
+<path d="M165 164L954 147" stroke="#84a0a6" stroke-opacity=".34" stroke-width="1.6"/><path d="M165 191L954 174" stroke="#84a0a6" stroke-opacity=".34" stroke-width="1.6"/><path d="M165 218L954 201" stroke="#84a0a6" stroke-opacity=".34" stroke-width="1.6"/><path d="M165 245L954 228" stroke="#84a0a6" stroke-opacity=".34" stroke-width="1.6"/><path d="M165 272L954 255" stroke="#84a0a6" stroke-opacity=".34" stroke-width="1.6"/><path d="M165 299L954 282" stroke="#84a0a6" stroke-opacity=".34" stroke-width="1.6"/><path d="M165 326L954 309" stroke="#84a0a6" stroke-opacity=".34" stroke-width="1.6"/><path d="M165 353L954 336" stroke="#84a0a6" stroke-opacity=".34" stroke-width="1.6"/><path d="M165 380L954 363" stroke="#84a0a6" stroke-opacity=".34" stroke-width="1.6"/><path d="M165 407L954 390" stroke="#84a0a6" stroke-opacity=".34" stroke-width="1.6"/><path d="M165 434L954 417" stroke="#84a0a6" stroke-opacity=".34" stroke-width="1.6"/><path d="M165 461L954 444" stroke="#84a0a6" stroke-opacity=".34" stroke-width="1.6"/><path d="M165 488L954 471" stroke="#84a0a6" stroke-opacity=".34" stroke-width="1.6"/><path d="M165 515L954 498" stroke="#84a0a6" stroke-opacity=".34" stroke-width="1.6"/><path d="M165 542L954 525" stroke="#84a0a6" stroke-opacity=".34" stroke-width="1.6"/><path d="M165 569L954 552" stroke="#84a0a6" stroke-opacity=".34" stroke-width="1.6"/><path d="M165 596L954 579" stroke="#84a0a6" stroke-opacity=".34" stroke-width="1.6"/><path d="M165 623L954 606" stroke="#84a0a6" stroke-opacity=".34" stroke-width="1.6"/>
+<path d="M279 95L307 685" stroke="#b36c72" stroke-opacity=".42" stroke-width="2.5"/>
+<g fill="#45565b" opacity=".65"><circle cx="145" cy="137" r="9" fill="#f8f1d9" stroke="#999078" stroke-width="3"/><circle cx="146.9" cy="194" r="9" fill="#f8f1d9" stroke="#999078" stroke-width="3"/><circle cx="148.8" cy="251" r="9" fill="#f8f1d9" stroke="#999078" stroke-width="3"/><circle cx="150.7" cy="308" r="9" fill="#f8f1d9" stroke="#999078" stroke-width="3"/><circle cx="152.6" cy="365" r="9" fill="#f8f1d9" stroke="#999078" stroke-width="3"/><circle cx="154.5" cy="422" r="9" fill="#f8f1d9" stroke="#999078" stroke-width="3"/><circle cx="156.4" cy="479" r="9" fill="#f8f1d9" stroke="#999078" stroke-width="3"/><circle cx="158.3" cy="536" r="9" fill="#f8f1d9" stroke="#999078" stroke-width="3"/><circle cx="160.2" cy="593" r="9" fill="#f8f1d9" stroke="#999078" stroke-width="3"/></g>
+<path d="M441 96Q570 79 657 101" stroke="#51564f" stroke-width="4" fill="none" opacity=".55"/>
+<text x="362" y="112" font-family="Georgia,serif" font-style="italic" font-size="29" fill="#494843" transform="rotate(-2 362 112)">scratch / references / ideas</text>
+<path d="M349 126Q581 131 751 121" stroke="#6d6e60" stroke-width="2" opacity=".5"/>
+<path d="M744 199q46 28 95 8m-93 2q33 13 82 9" stroke="#7b5a50" stroke-width="2" fill="none" opacity=".6"/>
+<path d="M812 470q12 -38 54 -57m-33 1 33 -1 -16 29" fill="none" stroke="#8f6d5c" stroke-width="4" opacity=".7"/>
+<text x="780" y="484" font-family="Georgia,serif" font-size="20" font-style="italic" fill="#716355" transform="rotate(7 780 484)">ideas?</text>
+<g transform="translate(127 648) rotate(-17)"><rect x="0" y="0" width="382" height="26" rx="8" fill="#bbaa83" stroke="#6d6555" stroke-width="3"/><rect x="11" y="5" width="320" height="17" fill="#494944"/><path d="M330 0L378 13L330 26Z" fill="#b8b0a0"/><path d="M369 10L384 13L369 16Z" fill="#333"/></g>
+<path d="M916 36l24 17 -27 12 -16 -18" fill="#b6b1a0" stroke="#8d8977" stroke-width="2"/>
+<path d="M897 48q-37 31 -12 67t37 -15" stroke="#778180" stroke-width="9" fill="none"/>
+<rect x="75" y="164" width="97" height="118" rx="2" fill="#c5b66c" stroke="#99884e" stroke-width="3" transform="rotate(-12 75 164)"/>
+<text x="90" y="185" font-family="monospace" font-size="13" fill="#655d40" transform="rotate(-12 75 164)">TODO</text>
+</svg>
