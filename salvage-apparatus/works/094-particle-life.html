@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#03050b"><title>S094 — PARTICLE LIFE</title><script src="kit.js"></script></head><body>
+<script>
+(()=>{'use strict';
+// Four kinds of particle with a rule for how each feels about every other. Some rule sets produce things that look alive.
+const N=380,NT=4,BETA=.3;
+let x=null,y=null,vx=null,vy=null,tp=null,A=null,rmax=80,fric=.88,creatures=0,heldT=0,found=0,chk=0,notice=0,gen=0,sizes=[];
+function matrix(K){A=Array.from({length:NT},()=>Array.from({length:NT},()=>K.rand()*2-1));gen++;heldT=0}
+function force(r,a){if(r<BETA)return r/BETA-1;if(r<1)return a*(1-Math.abs(1+BETA-2*r)/(1-BETA));return 0}
+function clusters(){const par=Array.from({length:N},(_,i)=>i),f=i=>{while(par[i]!==i){par[i]=par[par[i]];i=par[i]}return i};for(let i=0;i<N;i++)for(let j=i+1;j<N;j++){let dx=Math.abs(x[i]-x[j]),dy=Math.abs(y[i]-y[j]);if(dx>W2/2)dx=W2-dx;if(dy>H2/2)dy=H2-dy;if(dx*dx+dy*dy<24*24){par[f(i)]=f(j)}}const c={};for(let i=0;i<N;i++){const r=f(i);c[r]=(c[r]||0)+1}return Object.values(c).filter(n=>n>=10)}
+let W2=800,H2=600;
+Salvage({id:'S094',title:'PARTICLE LIFE',parent:'025 CODEC LARVAE',bg:'#03050b',scanlines:false,
+ help:'<kbd>SPACE</kbd> NEW RULES &nbsp;<kbd>←</kbd><kbd>→</kbd> REACH &nbsp;<kbd>↑</kbd><kbd>↓</kbd> DRAG<br>FIND RULES THAT HOLD THREE CREATURES TOGETHER FOR TEN SECONDS / THE POINTER ATTRACTS PARTICLES, HOLD TO SCATTER',
+ aria:'A particle simulation where four colours of particle attract or repel each other according to a random rule table, producing clumps, chains and orbiting groups. Space generates a new rule table, left and right change how far the forces reach and up and down change the drag. The goal is to find a rule table that keeps at least three distinct clusters, called creatures, together for ten seconds. The pointer attracts nearby particles and holding it scatters them.',
+ reset(K){W2=K.w;H2=K.h;x=new Float32Array(N).map(()=>Math.random()*K.w);y=new Float32Array(N).map(()=>Math.random()*K.h);vx=new Float32Array(N);vy=new Float32Array(N);tp=new Uint8Array(N).map((_,i)=>i%NT);matrix(K);rmax=80;fric=.88;found=0;creatures=0},
+ resize(K){W2=K.w;H2=K.h},
+ key(K,e,fresh){if(e.code==='Space'){if(fresh){matrix(K);for(let i=0;i<N;i++){x[i]=Math.random()*K.w;y[i]=Math.random()*K.h;vx[i]=vy[i]=0}}return true}if(/^Arrow|^Key[WASD]$/.test(e.code))return true},
+ step(K,dt){
+  const dr=(K.keys.has('ArrowRight')||K.keys.has('KeyD')?1:0)-(K.keys.has('ArrowLeft')||K.keys.has('KeyA')?1:0),df=(K.keys.has('ArrowUp')||K.keys.has('KeyW')?1:0)-(K.keys.has('ArrowDown')||K.keys.has('KeyS')?1:0);
+  rmax=K.clamp(rmax+dr*dt*40,40,140);fric=K.clamp(fric+df*dt*.05,.7,.97);const p=K.pointer,w=K.w,h=K.h,step=Math.min(.033,dt)*60;
+  for(let i=0;i<N;i++){let fx=0,fy=0;const ti=tp[i];for(let j=0;j<N;j++){if(i===j)continue;let dx=x[j]-x[i],dy=y[j]-y[i];if(dx>w/2)dx-=w;else if(dx<-w/2)dx+=w;if(dy>h/2)dy-=h;else if(dy<-h/2)dy+=h;const d2=dx*dx+dy*dy;if(d2>0&&d2<rmax*rmax){const d=Math.sqrt(d2),f=force(d/rmax,A[ti][tp[j]]);fx+=dx/d*f;fy+=dy/d*f}}
+   fx*=rmax*.9;fy*=rmax*.9;if(p.inside){const dx=p.x-x[i],dy=p.y-y[i],d=Math.hypot(dx,dy)+1;if(d<220){const q=(1-d/220)*(p.held?-1:1)*120;fx+=dx/d*q;fy+=dy/d*q}}
+   vx[i]=vx[i]*Math.pow(fric,step)+fx*.045*step;vy[i]=vy[i]*Math.pow(fric,step)+fy*.045*step}
+  for(let i=0;i<N;i++){x[i]=(x[i]+vx[i]*step*3+w)%w;y[i]=(y[i]+vy[i]*step*3+h)%h}
+  chk-=dt;if(chk<=0){chk=.6;sizes=clusters();creatures=sizes.length}
+  if(creatures>=3){heldT+=dt;if(heldT>10&&notice!==gen){notice=gen;found++;K.note('CREATURES HELD / '+creatures+' / RULES '+K.pad(gen,3)+' KEPT')}}else heldT=Math.max(0,heldT-dt*.5);
+ },
+ draw(K,c){
+  const {w,h,TAU,pointer:p}=K;c.fillStyle='#03050bcc';c.fillRect(0,0,w,h);
+  for(let i=0;i<N;i++){c.fillStyle=K.DAMAGE[[0,3,2,4][tp[i]]];c.beginPath();c.arc(x[i],y[i],3,0,TAU);c.fill()}
+  const mx=22,my=h*.12;c.font='9px monospace';c.fillStyle='#faffdb';c.fillText('CREATURES '+creatures+' / HOLD ≥3 FOR 10s: '+heldT.toFixed(0)+'s / RULES #'+K.pad(gen,3),mx,my);
+  c.fillStyle='#ffffff22';c.fillRect(mx,my+6,140,3);c.fillStyle=creatures>=3?'#f4d84e':'#7f97a5';c.fillRect(mx,my+6,140*Math.min(1,heldT/10),3);
+  const gs=14;for(let a=0;a<NT;a++)for(let b=0;b<NT;b++){const v=A[a][b];c.fillStyle=v>0?'rgba(16,244,207,'+Math.abs(v)+')':'rgba(237,78,140,'+Math.abs(v)+')';c.fillRect(mx+b*gs,my+20+a*gs,gs-2,gs-2)}c.fillStyle='#9fc4d6';c.fillText('REACH '+rmax.toFixed(0)+' / DRAG '+(1-fric).toFixed(2),mx,my+20+NT*gs+10);
+  if(p.inside){c.globalAlpha=.4;c.strokeStyle='#faffdb';c.beginPath();c.arc(p.x,p.y,220,0,TAU);c.stroke();c.globalAlpha=1;c.fillStyle='#faffdb';c.fillText(p.held?'SCATTER':'ATTRACT',p.x+10,p.y-8)}
+ },
+ readout:K=>['CREATURES '+K.pad(creatures),'KEPT '+K.pad(found)+' / RULES #'+K.pad(gen,3)+' / HOLD '+heldT.toFixed(0)+'s']
+});
+})();
+</script></body></html>

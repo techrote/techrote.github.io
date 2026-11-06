@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#05070e"><title>S055 — TURING GARDEN</title><script src="kit.js"></script></head><body>
+<script>
+(()=>{'use strict';
+// Two chemicals, one that feeds and one that kills. Move through feed and kill rates and the pattern changes character.
+const CELL=5,STEPS=6,DU=1.0,DV=.5;
+let gw=0,gh=0,U=null,V=null,U2=null,V2=null,ic=null,id=null,f=.037,k=.06,seedT=0,alive=0,regionName='',visited=new Set(),pal=[];
+for(let i=0;i<64;i++){const t=i/63;pal.push([Math.round(5+t*t*250),Math.round(10+t*180+t*t*60),Math.round(30+Math.sin(t*3.1)*120+t*100)])}
+const REG=[[.012,.045,.03,.055,'DEATH'],[.02,.054,.03,.063,'SOLITONS'],[.03,.056,.04,.062,'SPOTS'],[.035,.058,.05,.066,'STRIPES'],[.025,.05,.04,.058,'MAZE'],[.05,.064,.065,.07,'MITOSIS']];
+function name(){let best='UNCLASSIFIED',bd=1e9;for(const [f0,k0,f1,k1,n] of REG){const cx=(f0+f1)/2,cy=(k0+k1)/2,d=Math.hypot((f-cx)*3,(k-cy)*1.5);if(d<bd){bd=d;best=n}}return bd<.035?best:'UNCLASSIFIED'}
+function blob(x,y,r){for(let j=-r;j<=r;j++)for(let i=-r;i<=r;i++){const xx=x+i,yy=y+j;if(xx>=0&&yy>=0&&xx<gw&&yy<gh&&i*i+j*j<=r*r){V[yy*gw+xx]=1;U[yy*gw+xx]=.5}}}
+function init(K){gw=Math.ceil(K.w/CELL);gh=Math.ceil(K.h/CELL);const n=gw*gh;U=new Float32Array(n).fill(1);V=new Float32Array(n);U2=new Float32Array(n);V2=new Float32Array(n);ic=document.createElement('canvas');ic.width=gw;ic.height=gh;id=ic.getContext('2d').createImageData(gw,gh);for(let q=0;q<9;q++)blob(Math.floor(K.rand()*gw),Math.floor(K.rand()*gh),3)}
+function iterate(){
+ for(let y=0;y<gh;y++){const ym=((y+gh-1)%gh)*gw,y0=y*gw,yp=((y+1)%gh)*gw;for(let x=0;x<gw;x++){const xm=(x+gw-1)%gw,xp=(x+1)%gw,i=y0+x,u=U[i],v=V[i];
+  const lu=.2*(U[y0+xm]+U[y0+xp]+U[ym+x]+U[yp+x])+.05*(U[ym+xm]+U[ym+xp]+U[yp+xm]+U[yp+xp])-u,lv=.2*(V[y0+xm]+V[y0+xp]+V[ym+x]+V[yp+x])+.05*(V[ym+xm]+V[ym+xp]+V[yp+xm]+V[yp+xp])-v,uvv=u*v*v;
+  U2[i]=u+DU*lu-uvv+f*(1-u);V2[i]=v+DV*lv+uvv-(f+k)*v}}
+ let t=U;U=U2;U2=t;t=V;V=V2;V2=t;
+}
+Salvage({id:'S055',title:'TURING GARDEN',parent:'008 LIQUID MEMORY',scanlines:false,
+ help:'<kbd>←</kbd><kbd>→</kbd> KILL RATE &nbsp;<kbd>↑</kbd><kbd>↓</kbd> FEED RATE &nbsp;<kbd>SPACE</kbd> PLANT NEW SEEDS<br>FIND EACH PATTERN FAMILY / THE POINTER PLANTS CHEMICAL, HOLD FOR A LARGE BLOOM',
+ aria:'A reaction-diffusion simulation in the style of Gray and Scott, drawn as a living pattern. Left and right arrows change the kill rate and up and down change the feed rate, moving through families of pattern such as spots, stripes and mazes. Space plants new random seeds. The pointer plants chemical where it moves and holding it plants a larger bloom. A small map shows where the current rates sit.',
+ reset(K){init(K);f=.03+K.rand()*.03;k=.057+K.rand()*.008;visited=new Set();regionName=''},
+ resize(K){init(K)},
+ key(K,e,fresh){if(e.code==='Space'){if(fresh)for(let q=0;q<7;q++)blob(Math.floor(K.rand()*gw),Math.floor(K.rand()*gh),3);return true}if(/^Arrow|^Key[WASD]$/.test(e.code))return true},
+ step(K,dt){
+  const dk=(K.keys.has('ArrowRight')||K.keys.has('KeyD')?1:0)-(K.keys.has('ArrowLeft')||K.keys.has('KeyA')?1:0),df=(K.keys.has('ArrowUp')||K.keys.has('KeyW')?1:0)-(K.keys.has('ArrowDown')||K.keys.has('KeyS')?1:0);
+  k=K.clamp(k+dk*dt*.004,.04,.075);f=K.clamp(f+df*dt*.006,.01,.07);
+  const p=K.pointer;if(p.inside){const x=Math.floor(p.x/CELL),y=Math.floor(p.y/CELL);blob(x,y,p.held?9:2)}
+  for(let s=0;s<STEPS;s++)iterate();
+  let sv=0;for(let i=0;i<V.length;i+=7)sv+=V[i];alive=sv/(V.length/7);
+  const n=name();if(n!==regionName){regionName=n;if(n!=='UNCLASSIFIED'&&!visited.has(n)){visited.add(n);K.note('FOUND / '+n+' / '+visited.size+' OF '+REG.length)}}
+ },
+ draw(K,c){
+  const {w,h,TAU,pointer:p}=K,d=id.data;
+  for(let i=0;i<V.length;i++){const q=pal[K.clamp(Math.floor(V[i]*2.6*63),0,63)],o=i*4;d[o]=q[0];d[o+1]=q[1];d[o+2]=q[2];d[o+3]=255}
+  ic.getContext('2d').putImageData(id,0,0);c.imageSmoothingEnabled=true;c.drawImage(ic,0,0,gw*CELL,gh*CELL);
+  const mx=w-150,my=h-190,mw=120,mh=120;c.fillStyle='#05070ecc';c.fillRect(mx-8,my-20,mw+16,mh+40);c.strokeStyle='#2a3d5e';c.strokeRect(mx-8.5,my-20.5,mw+16,mh+40);
+  c.font='8px monospace';c.fillStyle='#9fc4d6';c.fillText('FEED ↑ / KILL →',mx,my-8);
+  for(const [f0,k0,f1,k1,n] of REG){const x0=mx+(k0-.04)/.035*mw,x1=mx+(k1-.04)/.035*mw,y0=my+mh-(f1-.01)/.06*mh,y1=my+mh-(f0-.01)/.06*mh;c.strokeStyle=visited.has(n)?'#f4d84e':'#2a3d5e';c.strokeRect(x0,y0,x1-x0,y1-y0);if(visited.has(n)){c.fillStyle='#f4d84e';c.fillText(n[0]+n[1],x0+2,y0+9)}}
+  c.fillStyle='#faffdb';c.beginPath();c.arc(mx+(k-.04)/.035*mw,my+mh-(f-.01)/.06*mh,3.5,0,TAU);c.fill();
+  c.fillStyle='#faffdb';c.font='9px monospace';c.fillText('f '+f.toFixed(4)+' / k '+k.toFixed(4),mx,my+mh+14);
+  c.fillText(regionName,22,h*.12);
+  if(p.inside){c.globalAlpha=.5;c.strokeStyle='#faffdb';c.beginPath();c.arc(p.x,p.y,p.held?9*CELL:2*CELL+4,0,TAU);c.stroke();c.globalAlpha=1;c.fillText(p.held?'BLOOM':'PLANT',p.x+14,p.y-8)}
+ },
+ readout:K=>[(regionName||'—')+' / v '+(alive*100).toFixed(0)+'%','FOUND '+K.pad(visited.size)+' / '+REG.length]
+});
+})();
+</script></body></html>

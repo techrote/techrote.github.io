@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0a0510"><title>S104 — LAVA LAMP</title><script src="kit.js"></script></head><body>
+<script>
+(()=>{'use strict';
+// A lamp that was never switched off. The wax wants to rise when it is warm and sink when it is not. Keep the column balanced.
+const CELL=5,NB=11;
+let bl=[],T=.5,gw=0,gh=0,ic=null,id=null,heldT=0,balanced=0,top=0,bot=0,drag=-1,stirT=0,pal=[];
+for(let i=0;i<64;i++){const t=i/63;pal.push([Math.round(120+t*135),Math.round(20+t*90+t*t*80),Math.round(80+Math.sin(t*3)*70+t*40)])}
+const lamp=K=>{const w=Math.min(K.w*.34,330),x0=(K.w-w)/2,y0=K.h*.1,y1=K.h*.9;return{x0,x1:x0+w,y0,y1,w}};
+function init(K){const L=lamp(K);gw=Math.ceil(L.w/CELL);gh=Math.ceil((L.y1-L.y0)/CELL);ic=document.createElement('canvas');ic.width=gw;ic.height=gh;id=ic.getContext('2d').createImageData(gw,gh);bl=Array.from({length:NB},(_,i)=>({x:L.x0+L.w*(.25+K.rand()*.5),y:L.y0+(L.y1-L.y0)*(i%2?.25:.75)+(K.rand()-.5)*60,r:L.w*(.09+K.rand()*.07),vx:0,vy:0,heat:i%2?.2:.8}));T=.5;heldT=0}
+Salvage({id:'S104',title:'LAVA LAMP',parent:'013 THERMAL RUNAWAY',bg:'#0a0510',scanlines:false,
+ help:'<kbd>↑</kbd><kbd>↓</kbd> HEAT THE LAMP UP OR DOWN &nbsp;<kbd>←</kbd><kbd>→</kbd> STIR &nbsp;<kbd>SPACE</kbd> SHAKE<br>KEEP AT LEAST THREE BLOBS HIGH AND THREE LOW FOR EIGHT SECONDS / DRAG A BLOB WITH THE POINTER',
+ aria:'A lava lamp made of merging blobs of wax. Up and down arrows turn the heater up or down, left and right stir the liquid sideways and Space shakes it. Warm blobs rise and cool ones sink; the goal is to keep at least three blobs in the upper third and three in the lower third for eight seconds. Holding the pointer over a blob and dragging it moves it around, and hovering warms the wax near it.',
+ reset(K){init(K);balanced=0},
+ resize(K){init(K)},
+ key(K,e,fresh){if(e.code==='Space'){if(fresh)for(const b of bl){b.vx+=(K.rand()-.5)*160;b.vy+=(K.rand()-.5)*160}return true}if(/^Arrow|^Key[WASD]$/.test(e.code))return true},
+ down(K,x,y){let best=-1,bd=1e9;bl.forEach((b,i)=>{const d=Math.hypot(b.x-x,b.y-y);if(d<b.r*1.4&&d<bd){bd=d;best=i}});drag=best;return false},up(){drag=-1},
+ step(K,dt){
+  const L=lamp(K),dT=(K.keys.has('ArrowUp')||K.keys.has('KeyW')?1:0)-(K.keys.has('ArrowDown')||K.keys.has('KeyS')?1:0),st=(K.keys.has('ArrowRight')||K.keys.has('KeyD')?1:0)-(K.keys.has('ArrowLeft')||K.keys.has('KeyA')?1:0);
+  T=K.clamp(T+dT*dt*.35,0,1);stirT+=dt;const p=K.pointer;
+  for(let i=0;i<bl.length;i++){const b=bl[i];const fb=(b.y-L.y0)/(L.y1-L.y0);
+   b.heat+=((fb>.75?1:fb<.25?-1:0)*dt*.25*(.4+T*1.4));b.heat=K.clamp(b.heat,0,1);
+   b.vy+=-(b.heat-.5)*220*dt*(.6+T*.8);b.vy+=Math.sin(K.time*.7+i)*8*dt;b.vx+=st*Math.sin(stirT*4+i)*140*dt+Math.sin(K.time*.4+i*2)*6*dt;
+   if(p.inside&&Math.hypot(b.x-p.x,b.y-p.y)<b.r*2)b.heat=Math.min(1,b.heat+dt*.3);
+   if(i===drag&&p.held){b.vx+=(p.x-b.x)*8*dt;b.vy+=(p.y-b.y)*8*dt;b.vx*=.92;b.vy*=.92}
+   for(let j=i+1;j<bl.length;j++){const c=bl[j],dx=c.x-b.x,dy=c.y-b.y,d=Math.hypot(dx,dy)||1,m=(b.r+c.r)*.8;if(d<m){const f=(m-d)*.8;b.vx-=dx/d*f*dt*8;b.vy-=dy/d*f*dt*8;c.vx+=dx/d*f*dt*8;c.vy+=dy/d*f*dt*8}}
+   b.vx*=Math.exp(-dt*1.4);b.vy*=Math.exp(-dt*1.4);b.x+=b.vx*dt;b.y+=b.vy*dt;
+   if(b.x<L.x0+b.r*.5){b.x=L.x0+b.r*.5;b.vx=Math.abs(b.vx)}if(b.x>L.x1-b.r*.5){b.x=L.x1-b.r*.5;b.vx=-Math.abs(b.vx)}if(b.y<L.y0+b.r*.5){b.y=L.y0+b.r*.5;b.vy=Math.abs(b.vy)*.5}if(b.y>L.y1-b.r*.5){b.y=L.y1-b.r*.5;b.vy=-Math.abs(b.vy)*.5}}
+  top=bl.filter(b=>(b.y-L.y0)/(L.y1-L.y0)<.34).length;bot=bl.filter(b=>(b.y-L.y0)/(L.y1-L.y0)>.66).length;
+  if(top>=3&&bot>=3){heldT+=dt;if(heldT>8){balanced++;K.note('BALANCED / '+K.pad(balanced)+' / SOMETHING HAS TO GIVE');heldT=0;for(const b of bl){b.heat=K.rand()}}}else heldT=Math.max(0,heldT-dt*.7);
+ },
+ draw(K,c){
+  const L=lamp(K),{w,h,TAU,pointer:p}=K,d=id.data;c.fillStyle='#0a0510';c.fillRect(0,0,w,h);
+  for(let j=0;j<gh;j++)for(let i=0;i<gw;i++){const x=L.x0+i*CELL+CELL/2,y=L.y0+j*CELL+CELL/2;let f=0;for(const b of bl){const dx=x-b.x,dy=y-b.y;f+=b.r*b.r/(dx*dx+dy*dy+1)}const o=(j*gw+i)*4;
+   if(f>=1){const q=pal[Math.min(63,Math.floor(K.clamp((f-1)*.6+(1-(y-L.y0)/(L.y1-L.y0))*.7)*63))];d[o]=q[0];d[o+1]=q[1];d[o+2]=q[2];d[o+3]=255}else{const glow=Math.min(1,f*.5),g=20+(1-(j/gh))*16;d[o]=g+glow*80;d[o+1]=8+glow*10;d[o+2]=34+glow*40;d[o+3]=255}}
+  ic.getContext('2d').putImageData(id,0,0);c.imageSmoothingEnabled=true;c.drawImage(ic,L.x0,L.y0,gw*CELL,gh*CELL);
+  c.strokeStyle='#4a3a60';c.lineWidth=3;c.strokeRect(L.x0-1.5,L.y0-1.5,L.w+3,L.y1-L.y0+3);c.lineWidth=1;c.fillStyle='#2a2030';c.fillRect(L.x0-14,L.y1+4,L.w+28,16);
+  c.font='9px monospace';c.fillStyle='#e9fbff';c.fillText('HEAT '+(T*100).toFixed(0)+'% / HIGH '+top+' / LOW '+bot+' / BALANCE '+heldT.toFixed(0)+'s',L.x0,L.y0-12);
+  c.fillStyle='#ffffff22';c.fillRect(L.x1+24,L.y0,6,L.y1-L.y0);c.fillStyle='#fe6741';c.fillRect(L.x1+24,L.y1-(L.y1-L.y0)*T,6,(L.y1-L.y0)*T);
+  if(p.inside){c.globalAlpha=.5;c.strokeStyle='#faffdb';c.beginPath();c.arc(p.x,p.y,12,0,TAU);c.stroke();c.globalAlpha=1;c.fillStyle='#faffdb';c.fillText(drag>=0&&p.held?'DRAGGING':'WARMING',p.x+16,p.y-8)}
+ },
+ readout:K=>['HIGH '+top+' / LOW '+bot,'BALANCED '+K.pad(balanced)+' / HOLD '+heldT.toFixed(0)+'s / HEAT '+(T*100).toFixed(0)+'%']
+});
+})();
+</script></body></html>

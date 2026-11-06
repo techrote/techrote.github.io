@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#05070e"><title>S056 — CHLADNI</title><script src="kit.js"></script></head><body>
+<script>
+(()=>{'use strict';
+// Sand on a vibrating plate collects where the plate does not move. Tune the plate until the sand draws the figure in the corner.
+const NP=6000,PI=Math.PI;
+let px=null,py=null,n=3,m=5,tn=2,tm=5,prev=null,settled=0,lock=0,found=0,sq={x:0,y:0,s:0},rep=0;
+const f=(x,y,a,b)=>Math.cos(a*PI*x)*Math.cos(b*PI*y)-Math.cos(b*PI*x)*Math.cos(a*PI*y);
+function preview(K,a,b){const c=document.createElement('canvas'),S=110;c.width=c.height=S;const g=c.getContext('2d'),v=(x,y)=>f(x/S,y/S,a,b);g.fillStyle='#05070e';g.fillRect(0,0,S,S);g.fillStyle='#faffdb';for(let y=0;y<S-1;y++)for(let x=0;x<S-1;x++){const s=Math.sign(v(x,y));if(s!==Math.sign(v(x+1,y))||s!==Math.sign(v(x,y+1)))g.fillRect(x,y,1.3,1.3)}return c}
+function target(K){do{tn=1+Math.floor(K.rand()*7);tm=1+Math.floor(K.rand()*7)}while(tn===tm||(tn===n&&tm===m)||(tn===m&&tm===n));prev=preview(K,tn,tm);lock=0}
+function shake(K,x0,y0,r,amt){for(let i=0;i<NP;i++){const dx=px[i]*sq.s+sq.x-x0,dy=py[i]*sq.s+sq.y-y0;if(dx*dx+dy*dy<r*r){px[i]=K.clamp(px[i]+(K.rand()-.5)*amt,0,1);py[i]=K.clamp(py[i]+(K.rand()-.5)*amt,0,1)}}}
+Salvage({id:'S056',title:'CHLADNI',parent:'031 SHEAR CRYSTALLIZATION',
+ help:'<kbd>←</kbd><kbd>→</kbd> CHANGE THE FIRST MODE &nbsp;<kbd>↑</kbd><kbd>↓</kbd> CHANGE THE SECOND<br>MAKE THE SAND DRAW THE FIGURE IN THE CORNER / THE POINTER SHAKES SAND LOOSE, HOLD FOR A HARD STRIKE',
+ aria:'A square metal plate covered in sand that gathers along the lines where the plate is still, forming Chladni figures. Left and right arrows change one vibration mode number and up and down change the other. A small picture in the corner shows the target figure; when the plate matches it and the sand settles, the figure is captured. The pointer shakes loose any sand near it, and holding it strikes harder.',
+ reset(K){px=new Float32Array(NP).map(()=>K.rand());py=new Float32Array(NP).map(()=>K.rand());n=3;m=5;found=0;target(K)},
+ resize(K){},
+ key(K,e,fresh){
+  if(!fresh)return /^Arrow|^Key[WASD]$|^Space$/.test(e.code)||undefined;
+  const d={ArrowLeft:[-1,0],KeyA:[-1,0],ArrowRight:[1,0],KeyD:[1,0],ArrowUp:[0,1],KeyW:[0,1],ArrowDown:[0,-1],KeyS:[0,-1]}[e.code];
+  if(d){n=K.clamp(n+d[0],1,8);m=K.clamp(m+d[1],1,8);shake(K,sq.x+sq.s/2,sq.y+sq.s/2,sq.s,.12);return true}
+  if(e.code==='Space'){shake(K,sq.x+sq.s/2,sq.y+sq.s/2,sq.s,.5);return true}
+ },
+ step(K,dt){
+  sq.s=Math.min(K.w,K.h)*.68;sq.x=(K.w-sq.s)/2;sq.y=(K.h-sq.s)/2+8;
+  const a=n,b=m;let sum=0;
+  for(let r=0;r<2;r++)for(let i=0;i<NP;i++){const v=Math.abs(f(px[i],py[i],a,b)),s=.12*v+.0008;px[i]=K.clamp(px[i]+(K.rand()-.5)*s,0,1);py[i]=K.clamp(py[i]+(K.rand()-.5)*s,0,1)}
+  for(let i=0;i<NP;i+=20)sum+=Math.abs(f(px[i],py[i],a,b));settled=sum/(NP/20);
+  const p=K.pointer;if(p.inside&&(p.speed>.1||p.held))shake(K,p.x,p.y,p.held?70:36,p.held?.16:.05);
+  const match=(n===tn&&m===tm)||(n===tm&&m===tn);
+  if(match&&settled<.07){lock+=dt;if(lock>1.5){found++;K.note('FIGURE CAPTURED / ('+tn+','+tm+')');shake(K,sq.x+sq.s/2,sq.y+sq.s/2,sq.s,.6);target(K)}}else lock=Math.max(0,lock-dt);
+ },
+ draw(K,c){
+  const {w,h,TAU,pointer:p}=K;c.fillStyle='#05070e';c.fillRect(0,0,w,h);
+  c.fillStyle='#0d1522';c.fillRect(sq.x-6,sq.y-6,sq.s+12,sq.s+12);c.fillStyle='#10202e';c.fillRect(sq.x,sq.y,sq.s,sq.s);
+  for(let i=0;i<NP;i++){c.fillStyle=K.DAMAGE[i%3===0?5:i%3===1?0:2];c.globalAlpha=.7;c.fillRect(sq.x+px[i]*sq.s,sq.y+py[i]*sq.s,1.6,1.6)}c.globalAlpha=1;
+  c.strokeStyle='#faffdb';c.lineWidth=1;c.strokeRect(sq.x-.5,sq.y-.5,sq.s+1,sq.s+1);
+  const tx=w-140,ty=96;c.drawImage(prev,tx,ty);c.strokeStyle=lock>0?'#f4d84e':'#2a3d5e';c.strokeRect(tx-.5,ty-.5,111,111);c.font='9px monospace';c.fillStyle='#9fc4d6';c.fillText('TARGET FIGURE',tx,ty-8);
+  c.fillStyle='#faffdb';c.fillText('MODE ('+n+','+m+') / TARGET ('+tn+','+tm+')',sq.x,sq.y-14);
+  c.fillStyle='#ffffff22';c.fillRect(tx,ty+120,110,4);c.fillStyle='#f4d84e';c.fillRect(tx,ty+120,110*Math.min(1,lock/1.5),4);
+  if(p.inside){c.globalAlpha=.5;c.strokeStyle='#faffdb';c.beginPath();c.arc(p.x,p.y,p.held?70:36,0,TAU);c.stroke();c.globalAlpha=1;c.fillText(p.held?'STRIKE':'SHAKE',p.x+(p.held?74:40),p.y)}
+ },
+ readout:K=>['SETTLE '+(Math.max(0,1-settled*8)*100).toFixed(0)+'%','CAPTURED '+K.pad(found)+' / ('+n+','+m+')']
+});
+})();
+</script></body></html>
