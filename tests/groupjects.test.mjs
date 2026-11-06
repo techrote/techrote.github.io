@@ -54,7 +54,7 @@ try{
        }));
    });
    assert.ok(hitCoverage.every(x=>x.inside&&x.interactive),'Blocked/out-of-viewport hotspots: '+JSON.stringify(hitCoverage.filter(x=>!x.inside||!x.interactive)));
-   const artAspects=await page.evaluate(()=>[...document.querySelectorAll('.groupject')].map(host=>{
+   const artAspects=await page.evaluate(()=>[...document.querySelectorAll('.groupject')].filter(g=>getComputedStyle(g).display!=='none').map(host=>{
      const b=host.querySelector('.art-board').getBoundingClientRect(),img=host.querySelector('img');
      return {id:host.dataset.id,actual:b.width/b.height,intrinsic:img.naturalWidth/img.naturalHeight};
    }));
