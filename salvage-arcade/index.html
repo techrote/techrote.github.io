@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#10171a"><meta name="description" content="Eight compact playable experiments from the TokenSplurge salvage collection.">
+<title>Salvage Arcade // techrote</title><link rel="stylesheet" href="../gallery/shared.css">
+</head><body>
+<main class="gallery-shell" aria-label="Salvage Arcade">
+<header class="rail">
+<a class="home" href="../" title="Return to workbench" aria-label="Return to workbench"><span class="glyph" aria-hidden="true">⌂</span><span class="word">TECHROTE</span></a>
+<strong class="collection" id="collection"></strong>
+<label class="sr-only" for="work-select">Select artwork</label><select class="picker" id="work-select" aria-label="Select artwork"></select>
+<span class="count" id="count" aria-live="off"></span>
+<button type="button" id="previous" aria-label="Previous artwork" title="Previous artwork">‹</button>
+<button type="button" id="next" aria-label="Next artwork" title="Next artwork">›</button>
+<button type="button" id="information" aria-label="Artwork information" aria-expanded="false" aria-controls="info-panel" title="Artwork information">INFO</button>
+<button type="button" id="fullscreen" aria-label="Fullscreen artwork" aria-pressed="false" title="Fullscreen artwork">MAX</button>
+</header>
+<section class="stage" id="stage" aria-label="Selected interactive artwork">
+<iframe id="frame" title="Interactive artwork" loading="eager" scrolling="no" sandbox="allow-scripts allow-downloads allow-pointer-lock" referrerpolicy="no-referrer"></iframe>
+<aside class="info-card" id="info-panel" hidden aria-label="Artwork details"><h1 id="info-name"></h1><p id="info-description"></p>
+<div class="caption">Curated standalone HTML from <a id="source-link" href="https://github.com/techrote/tokensplurge" rel="noopener noreferrer" target="_blank">TokenSplurge source</a><span class="sr-only" id="source-path"></span></div></aside>
+</section>
+<div class="sr-only" id="live" role="status" aria-live="polite"></div>
+</main>
+<script type="application/json" id="gallery-data">{"title":"Salvage Arcade","sourceRevision":"f9deae20ded26e959f2096ba9fed9a0e3b61a6ed","works":[{"title":"074 — Light Cycles","file":"074-light-cycles.html","source":"salvage/074-light-cycles.html","description":"A moving line must avoid its own wake"},{"title":"090 — Nonogram","file":"090-nonogram.html","source":"salvage/090-nonogram.html","description":"Logical picture-grid puzzle"},{"title":"096 — Dead Pixel Hunt","file":"096-dead-pixel-hunt.html","source":"salvage/096-dead-pixel-hunt.html","description":"Search the display for anomalies"},{"title":"099 — Bubble Shooter","file":"099-bubble-shooter.html","source":"salvage/099-bubble-shooter.html","description":"A colour-matching arcade specimen"},{"title":"103 — Reversi","file":"103-reversi.html","source":"salvage/103-reversi.html","description":"A two-colour strategy board"},{"title":"111 — Pellet Maze","file":"111-pellet-maze.html","source":"salvage/111-pellet-maze.html","description":"A tiny navigable maze"},{"title":"124 — Flap","file":"124-flap.html","source":"salvage/124-flap.html","description":"Timing and momentum challenge"},{"title":"135 — Hex","file":"135-hex.html","source":"salvage/135-hex.html","description":"A connected-path strategy game"}]}</script>
+<script defer src="../gallery/shared.js"></script>
+</body></html>

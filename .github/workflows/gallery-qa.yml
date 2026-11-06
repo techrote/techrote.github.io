@@ -1,0 +1,43 @@
+name: Gallery responsive and navigation QA
+
+on:
+  pull_request:
+    paths:
+      - 'index.html'
+      - 'projects/relay-moth-forest.html'
+      - 'gallery/**'
+      - 'shattered-art-stash/**'
+      - 'signal-relics/**'
+      - 'salvage-apparatus/**'
+      - 'salvage-arcade/**'
+      - 'tests/gallery.test.mjs'
+      - '.github/workflows/gallery-qa.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'projects/relay-moth-forest.html'
+      - 'gallery/**'
+      - 'shattered-art-stash/**'
+      - 'signal-relics/**'
+      - 'salvage-apparatus/**'
+      - 'salvage-arcade/**'
+      - 'tests/gallery.test.mjs'
+      - '.github/workflows/gallery-qa.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  gallery-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save --no-package-lock playwright@1.56.1
+      - run: npx playwright install --with-deps chromium
+      - run: node tests/gallery.test.mjs
