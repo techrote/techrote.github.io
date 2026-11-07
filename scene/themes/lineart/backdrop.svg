@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1672" height="941" viewBox="0 0 1672 941" role="img" aria-label="Pale technical drafting workshop background">
+<defs>
+<pattern id="micro" width="16" height="16" patternUnits="userSpaceOnUse"><path d="M16 0H0V16" fill="none" stroke="#b4b0a4" stroke-opacity=".17" stroke-width=".6"/></pattern>
+<pattern id="major" width="80" height="80" patternUnits="userSpaceOnUse"><path d="M80 0H0V80" fill="none" stroke="#8c8a83" stroke-opacity=".22" stroke-width=".8"/></pattern>
+</defs>
+<rect width="1672" height="941" fill="#f3f1e9"/>
+<rect width="1672" height="941" fill="url(#micro)"/>
+<rect width="1672" height="941" fill="url(#major)"/>
+<g fill="none" stroke="#b9b4a8" stroke-width="1.1" opacity=".55">
+<path d="M0 150H1672M0 490H1672M0 595H1672M0 930H1672M24 18V920M1600 18V920"/>
+<path d="M0 130L1672 130M0 610L1672 610" stroke-width="3"/>
+<path d="M0 620L470 550H1630M0 710L480 640H1630M0 850L480 780H1630"/>
+<path d="M240 132V460M460 132V490M1250 133V500M1500 132V500"/>
+<path d="M20 118H250V148H20zM272 118H430V148H272zM1260 118H1510V148H1260z"/>
+<path d="M0 25L330 130M1672 25L1320 130M440 490L340 940M1320 490L1490 940" stroke-dasharray="3 7"/>
+</g>
+<g stroke="#8c8a82" stroke-width="1" fill="none" opacity=".25">
+<path d="M1500 170L1625 210L1510 250L1390 210Z"/>
+<path d="M1500 170V310L1625 350V210M1510 250V380L1390 340V210"/>
+<path d="M1510 250L1625 210M1510 380L1625 350"/>
+<path d="M61 30H400V100H61Z M90 50H380M90 65H380M90 80H380"/>
+</g>
+<g font-family="monospace" fill="#8a887d" font-size="12" opacity=".55"><text x="24" y="33">TECHROTE / TECHNICAL INK</text><text x="1390" y="920">1672 × 941 / INK STUDY</text></g>
+</svg>

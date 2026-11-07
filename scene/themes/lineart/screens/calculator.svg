@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="272" height="115" viewBox="0 0 272 115" role="img" aria-label="Calculator scientific project menu">
+<rect x="0" y="0" width="272" height="115" fill="#f6f4e9" stroke="#181818" stroke-width="1.5"/>
+<text x="7" y="12" font-size="9" font-family="monospace" fill="#111">SCIENCE / FUNCTIONS</text>
+<path d="M0 17H272M0 48H272M0 79H272M182 18V114" stroke="#333" stroke-width=".7"/>
+<text x="8" y="37" font-family="monospace" font-size="12" font-weight="600" fill="#181818">ThermoPipe</text>
+<path d="M190,45 L204,43 L218,39 L232,30 L246,25 L260,26" fill="none" stroke="#151515" stroke-width="1.7"/>
+<path d="M185 48h80" fill="none" stroke="#a4a39d" stroke-width=".5"/>
+<text x="8" y="68" font-family="monospace" font-size="12" font-weight="600" fill="#181818">Brachistochrone</text>
+<path d="M190,59 L204,62 L218,66 L232,70 L246,72 L260,74" fill="none" stroke="#151515" stroke-width="1.7"/>
+<path d="M185 79h80" fill="none" stroke="#a4a39d" stroke-width=".5"/>
+<text x="8" y="99" font-family="monospace" font-size="12" font-weight="600" fill="#181818">Connection Lab</text>
+<path d="M190,107 L204,103 L218,99 L232,100 L246,93 L260,90" fill="none" stroke="#151515" stroke-width="1.7"/>
+<path d="M185 110h80" fill="none" stroke="#a4a39d" stroke-width=".5"/>
+</svg>

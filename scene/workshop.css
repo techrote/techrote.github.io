@@ -77,3 +77,17 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
 .app[data-theme="cutout"] .group[data-id="calculator"] .screen-image{
   z-index:3;opacity:.96;border-radius:9px;mix-blend-mode:multiply;
 }
+
+/* Technical Ink: true traced black vector paths on pale drafting paper. */
+.app[data-theme="lineart"] .viewport{background:#eceae1}
+.app[data-theme="lineart"] .toolbar{background:linear-gradient(#ebe9e1,#dad8ce);border-top-color:#aaa9a0;color:#1d211f}
+.app[data-theme="lineart"] .toolbar .brand,.app[data-theme="lineart"] .toolbar .brand span{color:#1b1b1b}
+.app[data-theme="lineart"] .toolbar button,.app[data-theme="lineart"] .toolbar .index-link{background:#f7f6f1;color:#242424;border-color:#8e8e83}
+.app[data-theme="lineart"] .toolbar button:hover,.app[data-theme="lineart"] .toolbar .index-link:hover{background:#deddd5;color:#111}
+.app[data-theme="lineart"] .toolbar button[aria-pressed="true"]{background:#d4d2c7;color:#151515;border-color:#444}
+.app[data-theme="lineart"] .toolbar .theme-control{color:#444}
+.app[data-theme="lineart"] .toolbar #theme-select{background:#f8f7f0;color:#1a1a1a;border-color:#63645a}
+.app[data-theme="lineart"] .toolbar .zoom-level{color:#45453f}
+.app[data-theme="lineart"] .view-corner{color:#20231f;text-shadow:none}
+.app[data-theme="lineart"] .world-grid{background-image:linear-gradient(to right,#696e6440 1px,transparent 1px),linear-gradient(to bottom,#696e6440 1px,transparent 1px)}
+.app[data-theme="lineart"] .group[data-id="calculator"] .screen-image{z-index:1;opacity:1;mix-blend-mode:normal;border-radius:0}

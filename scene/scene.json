@@ -601,6 +601,32 @@
           110
         ]
       }
+    },
+    "lineart": {
+      "label": "Technical Ink · SVG",
+      "background": "scene/themes/lineart/backdrop.svg",
+      "art": {
+        "cad": "scene/themes/lineart/parts/cad.svg",
+        "calculator": "scene/themes/lineart/parts/calculator.svg",
+        "curiosity": "scene/themes/lineart/parts/curiosity.svg",
+        "gaming": "scene/themes/lineart/parts/gaming.svg",
+        "paper": "scene/themes/lineart/parts/paper.svg",
+        "retro": "scene/themes/lineart/parts/retro.svg"
+      },
+      "screens": {
+        "cad": "scene/themes/lineart/screens/cad.svg",
+        "calculator": "scene/themes/lineart/screens/calculator.svg",
+        "gaming": "scene/themes/lineart/screens/gaming.svg",
+        "retro": "scene/themes/lineart/screens/retro.svg"
+      },
+      "screenRects": {
+        "calculator": [
+          83,
+          44,
+          272,
+          115
+        ]
+      }
     }
   }
 }

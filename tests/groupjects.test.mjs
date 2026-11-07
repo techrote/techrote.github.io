@@ -44,7 +44,7 @@ try{
 
    const picker=page.locator('#theme-select');
    assert.equal(await picker.isVisible(),true,'Theme control must be visible at '+vp.width);
-   assert.deepEqual(await picker.locator('option').evaluateAll(opts=>opts.map(o=>o.value)),['industrial','photographic','cutout']);
+   assert.deepEqual(await picker.locator('option').evaluateAll(opts=>opts.map(o=>o.value)),['industrial','photographic','cutout','lineart']);
    assert.equal(await picker.inputValue(),'industrial');
    const box=await picker.boundingBox();
    assert.ok(box&&box.x>=0&&box.x+box.width<=vp.width+1,'Theme selector outside viewport: '+JSON.stringify({vp,box}));
@@ -94,6 +94,32 @@ try{
      await page.waitForFunction(()=>document.querySelector('#loading')?.hidden&&document.querySelector('#app')?.dataset.theme==='cutout');
      assert.equal(await picker.inputValue(),'cutout','Third theme should persist across reload');
    }
+
+   await picker.selectOption('lineart');
+   await page.waitForFunction(()=>document.querySelector('#app')?.dataset.theme==='lineart'&&[...document.querySelectorAll('.group img,#backdrop')].every(img=>img.complete&&img.naturalWidth>0));
+   const ink=await page.evaluate(()=>({
+     backdrop:document.querySelector('#backdrop').getAttribute('src'),
+     parts:[...document.querySelectorAll('.group .body-image')].map(x=>({src:x.getAttribute('src'),width:x.naturalWidth,height:x.naturalHeight})),
+     screens:[...document.querySelectorAll('.group .screen-image')].map(x=>x.getAttribute('src')),
+     calculatorRect:['left','top','width','height'].map(k=>document.querySelector('.group[data-id="calculator"] .screen-image').style[k]),
+     links:[...document.querySelectorAll('.group .target')].map(x=>[x.getAttribute('href'),x.style.left,x.style.top,x.style.width,x.style.height])
+   }));
+   assert.equal(ink.backdrop,'scene/themes/lineart/backdrop.svg');
+   assert.equal(ink.parts.length,6);
+   assert.ok(ink.parts.every(x=>x.src.startsWith('scene/themes/lineart/parts/')&&x.src.endsWith('.svg')&&x.width>0&&x.height>0),'All six component assets must be real SVG images');
+   assert.equal(ink.screens.length,4);
+   assert.ok(ink.screens.every(x=>x.startsWith('scene/themes/lineart/screens/')&&x.endsWith('.svg')));
+   assert.deepEqual(ink.calculatorRect,['83px','44px','272px','115px']);
+   assert.deepEqual(ink.links,beforeLinks,'Line art must preserve all 36 project/gallery destinations and coordinates');
+   assert.equal(await page.locator('#world').evaluate(x=>x.style.transform),beforeTransform);
+   await page.screenshot({path:'screenshots/groupjects/'+vp.width+'x'+vp.height+'-lineart.png',animations:'disabled'});
+   if(vp.width===2560||vp.width===390){
+     await page.reload({waitUntil:'domcontentloaded'});
+     await page.waitForFunction(()=>document.querySelector('#loading')?.hidden&&document.querySelector('#app')?.dataset.theme==='lineart');
+     assert.equal(await picker.inputValue(),'lineart','Technical Ink selection must persist across reload');
+     await page.waitForFunction(()=>[...document.querySelectorAll('.group img,#backdrop')].every(img=>img.complete&&img.naturalWidth>0));
+   }
+   // Switching themes must not leave a previous theme's pixels or hotspot geometry active.
    await picker.selectOption('industrial');
    await page.waitForFunction(()=>document.querySelector('#app')?.dataset.theme==='industrial'&&[...document.querySelectorAll('.group img,#backdrop')].every(img=>img.complete&&img.naturalWidth>0));
    assert.equal(await page.locator('#backdrop').getAttribute('src'),'scene/backdrop/cleanplate.webp');

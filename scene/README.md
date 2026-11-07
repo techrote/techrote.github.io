@@ -79,3 +79,17 @@ The **Clean Cutout** theme is selected from the existing THEME menu, through `?t
 - The screen details are present in the new retro, gaming and CAD photographs. The calculator retains its separately rendered menu: `themes.cutout.screenRects.calculator` adjusts its independent screen placement, which renders above its photographic LCD under this theme.
 - All original `groups[].hotspots` and page placement coordinates remain unchanged. These newly generated photographic silhouettes are close visual replacements, **not pixel-identical reskins** of the old pieces; use EDIT/HINTS to refine hotspot alignment as needed.
 - Replacing any cutout requires only the corresponding WebP file; the existing gallery routes, themes, and source configuration remain intact.
+
+
+## Technical Ink — fourth visual theme
+
+Select **Technical Ink · SVG** from THEME, use the **T** shortcut, or visit `?theme=lineart`. This is a light-background, black-ink drafting treatment based on the six newly generated line-drawing references, not a CSS filter over the industrial photographs.
+
+- The six independently replaceable equipment images under `scene/themes/lineart/parts/*.svg` contain actual vector geometry (`<path>`), produced by tracing the black line pixels of the supplied drawings. They do not embed PNG/JPEG data; screen and project labels already rendered in the drawings remain part of each vector asset.
+- The background `scene/themes/lineart/backdrop.svg` is a lightweight ivory drafting grid. The old dark/pale photographic themes are untouched.
+- `scene/themes/lineart/screens/*.svg` supplies transparent placeholders for the three illustrated screens, avoiding accidental bleed-through from older colour-image themes. The calculator has an independent black/white vector LCD and a theme-specific screen placement `[83,44,272,115]`.
+- The theme does not change the placement of groupjects, 36 link destinations, interactive hotspot geometry, editor state, or stored layout overrides.
+- These vector paths reproduce the shape and graphics visible in the generated line-art raster references. They are two-dimensional *tracings*, not an invented underlying CAD/wireframe geometry. The newly drawn equipment is not pixel-identical to the original industrial photographs; some fine hotspot tuning is expected.
+- Line art should be checked on light backgrounds; black lines on the previous black workshop background are not readable.
+
+Build evidence: `tests/groupjects.test.mjs` checks all SVG asset URLs, loading, viewport behavior, theme persistence, and intact hotspots at six sizes, including mobile.
