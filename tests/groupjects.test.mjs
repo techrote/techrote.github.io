@@ -49,6 +49,11 @@ try{
    assert.equal(await page.locator('#app').getAttribute('data-theme'),'inktextured');
    const box=await picker.boundingBox();
    assert.ok(box&&box.x>=0&&box.x+box.width<=vp.width+1,'Theme selector outside viewport: '+JSON.stringify({vp,box}));
+   // New default is textured; explicitly switch to Industrial before recording
+   // canonical hitboxes used by the legacy-theme parity checks below.
+   await picker.selectOption('industrial');
+   await page.waitForFunction(()=>document.querySelector('#app')?.dataset.theme==='industrial'&&
+     [...document.querySelectorAll('.group img,#backdrop')].every(img=>img.complete&&img.naturalWidth>0));
    const beforeLinks=await page.locator('.group .target').evaluateAll(els=>els.map(x=>[x.getAttribute('href'),x.style.left,x.style.top,x.style.width,x.style.height]));
    const beforeTransform=await page.locator('#world').evaluate(x=>x.style.transform);
    await picker.selectOption('photographic');
