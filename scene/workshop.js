@@ -7,8 +7,9 @@
  const $=id=>document.getElementById(id);
  const app=$('app'),world=$('world'),viewport=$('viewport'),loading=$('loading'),status=$('status');
  const storageKey='techrote-io:workshop-layout-v2';
+ const themeKey='techrote-io:workshop-theme-v1';
  const state={manifest:null,items:[],selected:null,hotspot:null,edit:false,hints:false,grid:false,reference:false,
-   view:{scale:1,x:0,y:0},gesture:null,localFiles:new Map(),resizeQueued:false};
+   view:{scale:1,x:0,y:0},gesture:null,localFiles:new Map(),resizeQueued:false,theme:'industrial'};
  const numeric=(v,min,max,def)=>Number.isFinite(Number(v))?Math.max(min,Math.min(max,Number(v))):def;
  const setStatus=(msg)=>{status.textContent=msg;};
  const worldPoint=(clientX,clientY)=>{const r=viewport.getBoundingClientRect();return [(clientX-r.left-state.view.x)/state.view.scale,(clientY-r.top-state.view.y)/state.view.scale];};
@@ -46,6 +47,49 @@
    el.style.left=g.x+'px';el.style.top=g.y+'px';el.style.width=g.width+'px';el.style.height=g.height+'px';
    el.style.transform=`scale(${g.scale})`;el.style.zIndex=g.z;
  }
+
+ /** Swap pixels without changing coordinates, punched screen openings or hotspots. */
+ function imageFor(kind,id,fallback){
+   const config=state.manifest.themes?.[state.theme];
+   const candidate=kind==='background'?config?.background:config?.[kind]?.[id];
+   return typeof candidate==='string'&&candidate.startsWith('scene/')?candidate:fallback;
+ }
+ function assignImage(image,src,fallback){
+   if(!image)return;
+   image.onerror=()=>{
+     if(image.getAttribute('src')!==src||src===fallback)return;
+     image.onerror=null;
+     image.src=fallback;
+     setStatus('THEME ASSET UNAVAILABLE · showing original asset instead');
+   };
+   if(image.getAttribute('src')!==src)image.src=src;
+ }
+ function setTheme(id,remember=true){
+   const available=state.manifest.themes||{};
+   if(!Object.hasOwn(available,id))id='industrial';
+   state.theme=id;
+   const picker=$('theme-select');
+   if(picker)picker.value=id;
+   app.dataset.theme=id;
+   assignImage($('backdrop'),imageFor('background',null,state.manifest.background.file),state.manifest.background.file);
+   for(const item of state.items){
+     const g=item.data;
+     const artKey=id+':'+g.id+':art';
+     const screenKey=id+':'+g.id+':screen';
+     assignImage(item.art,state.localFiles.get(artKey)||imageFor('art',g.id,g.art.file),g.art.file);
+     if(g.screen)assignImage(item.screen,state.localFiles.get(screenKey)||imageFor('screens',g.id,g.screen.file),g.screen.file);
+   }
+   if(remember){
+     try{localStorage.setItem(themeKey,id);}catch(_){/* Private browsing remains supported. */}
+     try{
+       const url=new URL(location.href);
+       url.searchParams.set('theme',id);
+       history.replaceState(null,'',url);
+     }catch(_){/* file:// and embedded browsers may reject history edits. */}
+   }
+   setStatus('VISUAL THEME · '+(available[id]?.label||id).toUpperCase()+' · POSITIONS AND HOTSPOTS UNCHANGED');
+ }
+
  function buildGroup(g){
    const host=document.createElement('section');host.className='group';host.dataset.id=g.id;
    host.setAttribute('aria-label',g.name+' interactive groupject');
@@ -120,8 +164,9 @@
    if(!state.selected||!input.files?.length)return;
    const file=input.files[0];if(!/^image\//.test(file.type)||file.size>25_000_000){setStatus('REPLACEMENT MUST BE IMAGE UNDER 25 MB');return;}
    const url=URL.createObjectURL(file),item=state.selected;
-   const old=state.localFiles.get(item.data.id+':'+screen);if(old)URL.revokeObjectURL(old);
-   state.localFiles.set(item.data.id+':'+screen,url);
+   const key=state.theme+':'+item.data.id+':'+(screen?'screen':'art');
+   const old=state.localFiles.get(key);if(old)URL.revokeObjectURL(old);
+   state.localFiles.set(key,url);
    if(screen&&item.screen)item.screen.src=url;
    if(!screen)item.art.src=url;
    setStatus('LOCAL PREVIEW: '+file.name+' · TO PUBLISH, ADD ASSET TO REPO AND UPDATE scene.json');
@@ -162,11 +207,16 @@
  async function boot(){
    const res=await fetch('scene/scene.json',{cache:'no-store'});if(!res.ok)throw Error('Scene manifest unavailable: '+res.status);
    state.manifest=await res.json();const c=state.manifest.canvas;
+   let savedTheme=null;try{savedTheme=localStorage.getItem(themeKey);}catch(_){}
+   const requestedTheme=new URLSearchParams(location.search).get('theme');
+   state.theme=[requestedTheme,savedTheme,'industrial'].find(id=>id&&Object.hasOwn(state.manifest.themes||{},id))||'industrial';
    if(c.width!==1672||c.height!==941||!Array.isArray(state.manifest.groups))throw Error('Unexpected canvas/manifest');
    world.style.width=c.width+'px';world.style.height=c.height+'px';
    $('backdrop').src=state.manifest.background.file;
    loadLocal();
    for(const g of state.manifest.groups)state.items.push(buildGroup(g));
+   setTheme(state.theme,false);
+   $('theme-select').addEventListener('change',event=>setTheme(event.target.value));
    const reference=document.createElement('img');reference.className='reference-layer';reference.alt='';reference.src=state.manifest.background.reference;reference.draggable=false;
    world.appendChild(reference);
    const grid=document.createElement('div');grid.className='world-grid';world.appendChild(grid);
@@ -199,6 +249,7 @@
      else if(key==='g')setMode('grid',!state.grid);
      else if(key==='e')setMode('edit',!state.edit);
      else if(key==='r')setMode('reference',!state.reference);
+     else if(key==='t')setTheme(state.theme==='industrial'?'photographic':'industrial');
      else if(key==='0')fitScene();
      else if(key==='f'){if(document.fullscreenElement)document.exitFullscreen?.();else app.requestFullscreen?.();}
      else if(state.edit&&state.selected){
@@ -221,7 +272,7 @@
    });
    window.addEventListener('resize',()=>{if(state.resizeQueued)return;state.resizeQueued=true;requestAnimationFrame(()=>{state.resizeQueued=false;fitScene();});});
    fitScene();loading.hidden=true;
-   setStatus('MODULAR WORKBENCH · 6 INDEPENDENT PARTS · 4 SEPARATE SCREENS · H FOR HINTS');
+   setStatus('MODULAR WORKBENCH · 6 INDEPENDENT PARTS · 4 SEPARATE SCREENS · '+state.manifest.themes[state.theme].label.toUpperCase()+' · H FOR HINTS');
  }
  boot().catch(e=>{loading.textContent='WORKBENCH UNAVAILABLE · '+e.message;loading.hidden=false;console.error(e);});
 })();
