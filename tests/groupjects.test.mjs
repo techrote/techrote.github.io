@@ -157,7 +157,39 @@ try{
    assert.ok(blanks.parts.every(x=>x.startsWith('scene/themes/inkblank/parts/')&&x.endsWith('.svg')));
    assert.equal(blanks.screens.length,4);
    assert.ok(blanks.screens.every(x=>x.startsWith('scene/themes/inkblank/screens/')&&x.endsWith('.svg')));
-   assert.deepEqual(blanks.links,beforeLinks,'Blank ink changes must preserve all project/gallery links and coordinates');
+   // The blank artwork has different panel geometry: URLs must be identical,
+   // but all 36 hitboxes must resolve to their specific Blank Panels overrides.
+   assert.deepEqual(blanks.links.map(x=>x[0]),beforeLinks.map(x=>x[0]),
+     'Blank Panels must preserve the project and gallery destinations');
+   const expectedBlank=JSON.parse((await (await page.request.get(origin+'/scene/scene.json')).text())).themes.inkblank.hotspotRects;
+   const actualBlank=await page.locator('.group').evaluateAll(groups=>Object.fromEntries(groups.map(group=>[
+     group.dataset.id,Object.fromEntries([...group.querySelectorAll('.target')].map(link=>[
+       link.dataset.id,['left','top','width','height'].map(prop=>link.style[prop])
+     ]))
+   ])));
+   for(const [group,links] of Object.entries(expectedBlank))
+     for(const [id,rect] of Object.entries(links))
+       assert.deepEqual(actualBlank[group]?.[id],rect.map(x=>x+'px'),
+         'Wrong blank panel link geometry: '+group+'/'+id);
+   assert.equal(Object.values(expectedBlank).reduce((n,m)=>n+Object.keys(m).length,0),36);
+   assert.notDeepEqual(blanks.links,beforeLinks,
+     'Blank Panels geometry must differ from the source photographs');
+   if(vp.width===1672){
+     // Confirm actual browser hit-testing: a pointer placed at every link centre
+     // must resolve to that link, not an overlapping piece of invisible art.
+     const hitResults=await page.evaluate(()=>[...document.querySelectorAll('.group .target')].map(link=>{
+       const b=link.getBoundingClientRect(),x=b.left+b.width/2,y=b.top+b.height/2;
+       const hit=document.elementFromPoint(x,y)?.closest('a.target');
+       return {id:link.dataset.id,expected:link.dataset.id,got:hit?.dataset.id,
+         bounds:[x,y,b.width,b.height],inside:x>=0&&y>=0&&x<=innerWidth&&y<=innerHeight};
+     }));
+     const unreachable=hitResults.filter(x=>!x.inside||x.got!==x.expected);
+     assert.deepEqual(unreachable,[],'Blank Panels pointers blocked by artwork or misplaced');
+     await page.locator('[data-command="hints"]').click();
+     await page.screenshot({path:'screenshots/groupjects/1672x941-inkblank-hitboxes.png',animations:'disabled'});
+     await page.locator('[data-command="hints"]').click();
+     console.log('PASS Blank Panels: 36 clickable centres hit, no blocked hotspots');
+   }
    assert.equal(await page.locator('#world').evaluate(x=>x.style.transform),beforeTransform);
    if(vp.width===1672){
      const opacity=await page.evaluate(()=>[...document.querySelectorAll('.group')].map(g=>{
