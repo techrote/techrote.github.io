@@ -112,3 +112,11 @@ Select **Technical Ink — Blank Panels** in THEME, use `?theme=inkblank`, or cy
 - The existing `scene/scene.json` X/Y/Z positions and all 36 interaction hotspots are unchanged; no project links were removed. Their alignment is approximate because the new source drawings are not pixel-identical to prior components. Use **EDIT**, **HINTS**, and **GRID** to fine-tune their regions later.
 
 Browser QA also checks rendered SVG opacity, no unwanted screen content, persistence across reload, responsive behavior and the existing theme paths.
+
+## Blank Panels: independent hotspot geometry
+
+The **Technical Ink — Blank Panels** illustration has panel locations different from those in the photographic themes. Its 36 clickable regions are defined under `themes.inkblank.hotspotRects` in `scene/scene.json`, keyed first by group id and then by hotspot id. All coordinates are `[x,y,width,height]` relative to the **unscaled group illustration**, as with the canonical group hotspot rectangles. Empty CAD tiles, retro CRT tiles, five gaming display rows, four recessed gallery plaque rows, three calculator LCD zones and the three notebook lines are mapped separately.
+
+The Industrial, Lo-fi Photo, Clean Cutout and Technical Ink theme rectangles remain unchanged. Switching back to another theme restores those positions without changing URLs. In **EDIT → MOVE LINK TARGETS** on Blank Panels, a drag changes only its Blank Panels-specific rectangle, and the override is saved locally and included in **EXPORT JSON**. The existing RESET control clears local edits to both canonical and theme-specific rectangles.
+
+Press **HINTS** to show the otherwise invisible clickable panel regions. No text or drawings were added to the blank illustrations.
