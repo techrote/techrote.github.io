@@ -41,6 +41,43 @@ try{
    assert.ok(metrics.dw<=metrics.cw+1 && metrics.dh<=metrics.ch+1,'Unexpected page scrollbar: '+JSON.stringify(metrics));
    assert.ok(metrics.loaded && metrics.backdrop && metrics.reference,'Image load failure: '+JSON.stringify(metrics));
    assert.equal(metrics.sprites,6);assert.equal(metrics.screens,4);
+
+   const picker=page.locator('#theme-select');
+   assert.equal(await picker.isVisible(),true,'Theme control must be visible at '+vp.width);
+   assert.deepEqual(await picker.locator('option').evaluateAll(opts=>opts.map(o=>o.value)),['industrial','photographic']);
+   assert.equal(await picker.inputValue(),'industrial');
+   const box=await picker.boundingBox();
+   assert.ok(box&&box.x>=0&&box.x+box.width<=vp.width+1,'Theme selector outside viewport: '+JSON.stringify({vp,box}));
+   const beforeLinks=await page.locator('.group .target').evaluateAll(els=>els.map(x=>[x.getAttribute('href'),x.style.left,x.style.top,x.style.width,x.style.height]));
+   const beforeTransform=await page.locator('#world').evaluate(x=>x.style.transform);
+   await picker.selectOption('photographic');
+   await page.waitForFunction(()=>[...document.querySelectorAll('.group img,#backdrop')].every(img=>img.complete&&img.naturalWidth>0));
+   assert.equal(await page.locator('#app').getAttribute('data-theme'),'photographic');
+   const photography=await page.evaluate(()=>({
+     backdrop:document.querySelector('#backdrop').getAttribute('src'),
+     parts:[...document.querySelectorAll('.group .body-image')].map(x=>x.getAttribute('src')),
+     screens:[...document.querySelectorAll('.group .screen-image')].map(x=>x.getAttribute('src'))
+   }));
+   assert.equal(photography.backdrop,'scene/themes/photographic/backdrop.webp');
+   assert.equal(photography.parts.length,6);
+   assert.equal(photography.screens.length,4);
+   assert.ok(photography.parts.every(x=>x.startsWith('scene/themes/photographic/parts/')));
+   assert.ok(photography.screens.every(x=>x.startsWith('scene/themes/photographic/screens/')));
+   assert.deepEqual(await page.locator('.group .target').evaluateAll(els=>els.map(x=>[x.getAttribute('href'),x.style.left,x.style.top,x.style.width,x.style.height])),beforeLinks);
+   assert.equal(await page.locator('#world').evaluate(x=>x.style.transform),beforeTransform);
+   await page.screenshot({path:'screenshots/groupjects/'+vp.width+'x'+vp.height+'-photographic.png',animations:'disabled'});
+   if(vp.width===2560||vp.width===390){
+     await page.reload({waitUntil:'domcontentloaded'});
+     await page.waitForFunction(()=>document.querySelector('#loading')?.hidden&&document.querySelector('#app')?.dataset.theme==='photographic');
+     assert.equal(await picker.inputValue(),'photographic','Theme should persist across reload');
+     await page.waitForFunction(()=>[...document.querySelectorAll('.group img,#backdrop')].every(img=>img.complete&&img.naturalWidth>0));
+   }
+   await picker.selectOption('industrial');
+   await page.waitForFunction(()=>document.querySelector('#app')?.dataset.theme==='industrial'&&[...document.querySelectorAll('.group img,#backdrop')].every(img=>img.complete&&img.naturalWidth>0));
+   assert.equal(await page.locator('#backdrop').getAttribute('src'),'scene/backdrop/cleanplate.webp');
+   assert.ok((await page.locator('.group .body-image').evaluateAll(imgs=>imgs.map(x=>x.getAttribute('src')))).every(x=>x.startsWith('scene/parts/')));
+   assert.deepEqual(await page.locator('.group .target').evaluateAll(els=>els.map(x=>[x.getAttribute('href'),x.style.left,x.style.top,x.style.width,x.style.height])),beforeLinks);
+
    const paths=await page.locator('.target').evaluateAll(els=>els.map(x=>x.getAttribute('href')));
    for(const target of ['relay_moth_beta/','xenofield/','shattered-art-stash/','signal-relics/','salvage-apparatus/','salvage-arcade/','thermopipe_parameter_suite.html','directory.html'])assert.ok(paths.includes(target),'Missing hotspot '+target);
    assert.ok(!paths.includes('relay-moth-forest/')&&!paths.includes('relay-moth-forest-stable/'));
