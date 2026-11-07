@@ -111,6 +111,28 @@ try{
    assert.ok(ink.screens.every(x=>x.startsWith('scene/themes/lineart/screens/')&&x.endsWith('.svg')));
    assert.deepEqual(ink.calculatorRect,['83px','44px','272px','115px']);
    assert.deepEqual(ink.links,beforeLinks,'Line art must preserve all 36 project/gallery destinations and coordinates');
+   // Regression: line-art SVGs must contain transparent interior spaces, not opaque
+   // black cutout silhouettes. A broken all-black SVG can load and still pass image checks.
+   if(vp.width===1672){
+     const alphaCoverage=await page.evaluate(()=>{
+       return [...document.querySelectorAll('.group')].map(group=>{
+         const img=group.querySelector('.body-image');
+         const canvas=document.createElement('canvas');
+         canvas.width=192;canvas.height=192;
+         const context=canvas.getContext('2d',{willReadFrequently:true});
+         context.drawImage(img,0,0,192,192);
+         const rgba=context.getImageData(0,0,192,192).data;
+         let opaque=0;
+         for(let i=3;i<rgba.length;i+=4)if(rgba[i]>=128)opaque++;
+         return {id:group.dataset.id,coverage:opaque/(192*192)};
+       });
+     });
+     assert.equal(alphaCoverage.length,6);
+     for(const {id,coverage} of alphaCoverage)
+       assert.ok(coverage>0.025&&coverage<0.40,
+         'Technical Ink asset '+id+' has opaque silhouette or missing linework (coverage '+coverage+')');
+     console.log('PASS Technical Ink alpha transparency: '+alphaCoverage.map(x=>x.id+' '+Math.round(100*x.coverage)+'%').join(', '));
+   }
    assert.equal(await page.locator('#world').evaluate(x=>x.style.transform),beforeTransform);
    await page.screenshot({path:'screenshots/groupjects/'+vp.width+'x'+vp.height+'-lineart.png',animations:'disabled'});
    if(vp.width===2560||vp.width===390){
