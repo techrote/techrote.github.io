@@ -93,3 +93,11 @@ Select **Technical Ink · SVG** from THEME, use the **T** shortcut, or visit `?t
 - Line art should be checked on light backgrounds; black lines on the previous black workshop background are not readable.
 
 Build evidence: `tests/groupjects.test.mjs` checks all SVG asset URLs, loading, viewport behavior, theme persistence, and intact hotspots at six sizes, including mobile.
+
+## Technical Ink alpha repair — 7 November 2026
+
+The six `scene/themes/lineart/parts/*.svg` objects must represent **only black ink lines on transparency**. The earlier export erroneously traced the entire equipment alpha silhouette as a closed black fill, which appeared as solid black shapes in Chromium despite the source drawings being correct.
+
+The current SVGs were regenerated from the original line-art PNG images by thresholding **dark pixels only** (RGB luminance, gated by source alpha) and tracing the resulting ink boundaries into a compound vector path with `fill-rule="evenodd"`. Transparent spaces and enclosed counters are retained. Each image preserves its original `width`, `height`, `viewBox`, and page positioning, so link hotspots, editor coordinates and separate LCD screens are unchanged. These are actual vector paths, not embedded raster images.
+
+The Playwright workbench test now draws each SVG into an offscreen canvas and checks that its opaque pixel coverage remains in the expected line-art range (roughly 10–25%, with a conservative 2.5–40% acceptance band). This specifically detects the previous 68–83% opaque-silhouette regression that normal image-loading tests missed.
