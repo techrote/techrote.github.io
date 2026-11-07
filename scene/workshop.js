@@ -219,6 +219,14 @@
    $('backdrop').src=state.manifest.background.file;
    loadLocal();
    for(const g of state.manifest.groups)state.items.push(buildGroup(g));
+   // Keep THEME options consistent with the editable scene manifest.
+   const select=$('theme-select');
+   select.replaceChildren();
+   for(const [id,config] of Object.entries(state.manifest.themes||{})){
+     const option=document.createElement('option');
+     option.value=id;option.textContent=config.label||id.toUpperCase();
+     select.appendChild(option);
+   }
    setTheme(state.theme,false);
    $('theme-select').addEventListener('change',event=>setTheme(event.target.value));
    const reference=document.createElement('img');reference.className='reference-layer';reference.alt='';reference.src=state.manifest.background.reference;reference.draggable=false;
