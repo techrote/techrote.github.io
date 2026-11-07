@@ -57,3 +57,14 @@ Each `hotspots[].rect` is relative to its parent object's top-left in **unscaled
 ## Testing
 
 `tests/groupjects.test.mjs` runs in GitHub Actions with Playwright Chromium and verifies six device layers, four screens, real image loading, page no-scroll across desktop/mobile viewports, link targets, editor and comparison functionality. Gallery QA continues to test all four existing galleries.
+
+## Selectable visual themes
+
+The IO workbench now has a **THEME** selector (shortcut **T**) with two complete local art sets:
+
+- **Industrial Original:** the existing `scene/backdrop/`, `scene/parts/` and `scene/screens/` files, unmodified.
+- **Pristine Lo-fi Photo:** eleven locally hosted files under `scene/themes/photographic/` (one subdued film-style backdrop, six pieces of equipment, and four screens). Foreground images are source-pixel registered with their published counterparts: canvas dimensions and alpha masks match exactly, including screen holes. The visual content is newly generated and graded; internal detail is not identical.
+
+Theme definitions live in `scene/scene.json` under `themes`. Original image paths remain in `groups` as fallback values. To replace an individual image, edit its corresponding theme path without changing group coordinates, screen placement or hotspots. If a photographic file fails to load, the original asset is used. **COMPARE** still overlays the original flattened artwork.
+
+The preference is stored independently as `techrote-io:workshop-theme-v1`; direct links can use `?theme=photographic`. Theme changes never overwrite layout edits or hotspot locations. Temporary editor asset previews are isolated by theme.

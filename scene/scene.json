@@ -1,6 +1,6 @@
 {
   "version": "2.0.0",
-  "reference": "Generated Techrote industrial workshop composition \u2014 2026-11-06; source images supplied in the conversation",
+  "reference": "Generated Techrote industrial workshop composition — 2026-11-06; source images supplied in the conversation",
   "canvas": {
     "width": 1672,
     "height": 941,
@@ -298,7 +298,7 @@
         },
         {
           "id": "cad-04",
-          "label": "INTUIT3D \u2014 CAD toolkit",
+          "label": "INTUIT3D — CAD toolkit",
           "url": "https://github.com/techrote/INTUIT3D",
           "rect": [
             161,
@@ -547,11 +547,34 @@
     }
   ],
   "shortcuts": {
+    "0": "fit",
     "g": "grid",
     "h": "hints",
     "e": "edit",
     "r": "reference",
-    "f": "fullscreen",
-    "0": "fit"
+    "f": "fullscreen"
+  },
+  "themes": {
+    "industrial": {
+      "label": "Industrial Original"
+    },
+    "photographic": {
+      "label": "Pristine Lo-fi Photo",
+      "background": "scene/themes/photographic/backdrop.webp",
+      "art": {
+        "cad": "scene/themes/photographic/parts/cad.webp",
+        "calculator": "scene/themes/photographic/parts/calculator.webp",
+        "curiosity": "scene/themes/photographic/parts/curiosity.webp",
+        "gaming": "scene/themes/photographic/parts/gaming.webp",
+        "paper": "scene/themes/photographic/parts/paper.webp",
+        "retro": "scene/themes/photographic/parts/retro.webp"
+      },
+      "screens": {
+        "cad": "scene/themes/photographic/screens/cad.webp",
+        "calculator": "scene/themes/photographic/screens/calculator.webp",
+        "gaming": "scene/themes/photographic/screens/gaming.webp",
+        "retro": "scene/themes/photographic/screens/retro.webp"
+      }
+    }
   }
 }
