@@ -120,3 +120,11 @@ The **Technical Ink — Blank Panels** illustration has panel locations differen
 The Industrial, Lo-fi Photo, Clean Cutout and Technical Ink theme rectangles remain unchanged. Switching back to another theme restores those positions without changing URLs. In **EDIT → MOVE LINK TARGETS** on Blank Panels, a drag changes only its Blank Panels-specific rectangle, and the override is saved locally and included in **EXPORT JSON**. The existing RESET control clears local edits to both canonical and theme-specific rectangles.
 
 Press **HINTS** to show the otherwise invisible clickable panel regions. No text or drawings were added to the blank illustrations.
+
+## Technical Ink — Textured Materials (default theme)
+
+The default for visitors with no saved theme preference is now `inktextured`. It introduces six individually editable SVG illustrations of aged beige plastic, graphite, brushed aluminium, paper and concrete plus a restrained textured drafting surface. Artwork stays vector-based, with empty monitor/LCD overlays and the same **36 link targets** as `inkblank`.
+
+The new theme is configured under `themes.inktextured` in `scene/scene.json`; `defaultTheme` controls the default independently of the theme list. URLs such as `?theme=industrial` override the default, and previously saved deliberate preferences continue to be respected. Blank Panels and all previous theme artwork remain intact.
+
+Material SVGs are kept in `scene/themes/inktextured/parts/`, with separate gradient, grain and body-fill layers beneath the unchanged black technical ink paths. You can replace an individual SVG in that folder without changing layouts or other themes. Theme-specific hotspot overrides remain editable and exportable, following the same layout as the blank theme.

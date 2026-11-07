@@ -44,10 +44,16 @@ try{
 
    const picker=page.locator('#theme-select');
    assert.equal(await picker.isVisible(),true,'Theme control must be visible at '+vp.width);
-   assert.deepEqual(await picker.locator('option').evaluateAll(opts=>opts.map(o=>o.value)),['industrial','photographic','cutout','lineart','inkblank']);
-   assert.equal(await picker.inputValue(),'industrial');
+   assert.deepEqual(await picker.locator('option').evaluateAll(opts=>opts.map(o=>o.value)),['industrial','photographic','cutout','lineart','inkblank','inktextured']);
+   assert.equal(await picker.inputValue(),'inktextured','New visitors should receive the textured technical theme by default');
+   assert.equal(await page.locator('#app').getAttribute('data-theme'),'inktextured');
    const box=await picker.boundingBox();
    assert.ok(box&&box.x>=0&&box.x+box.width<=vp.width+1,'Theme selector outside viewport: '+JSON.stringify({vp,box}));
+   // New default is textured; explicitly switch to Industrial before recording
+   // canonical hitboxes used by the legacy-theme parity checks below.
+   await picker.selectOption('industrial');
+   await page.waitForFunction(()=>document.querySelector('#app')?.dataset.theme==='industrial'&&
+     [...document.querySelectorAll('.group img,#backdrop')].every(img=>img.complete&&img.naturalWidth>0));
    const beforeLinks=await page.locator('.group .target').evaluateAll(els=>els.map(x=>[x.getAttribute('href'),x.style.left,x.style.top,x.style.width,x.style.height]));
    const beforeTransform=await page.locator('#world').evaluate(x=>x.style.transform);
    await picker.selectOption('photographic');
@@ -221,6 +227,50 @@ try{
      await page.waitForFunction(()=>document.querySelector('#loading')?.hidden&&document.querySelector('#app')?.dataset.theme==='inkblank');
      assert.equal(await picker.inputValue(),'inkblank','Blank theme should persist across reload');
      await page.waitForFunction(()=>[...document.querySelectorAll('.group img,#backdrop')].every(img=>img.complete&&img.naturalWidth>0));
+   }
+   // Sixth appearance: new textured vector equipment is the default for visitors
+   // without a saved preference. All Blank Panels hitboxes carry forward unmodified.
+   await picker.selectOption('inktextured');
+   await page.waitForFunction(()=>document.querySelector('#app')?.dataset.theme==='inktextured' &&
+     [...document.querySelectorAll('.group img,#backdrop')].every(img=>img.complete&&img.naturalWidth>0));
+   const textured=await page.evaluate(()=>({
+     backdrop:document.querySelector('#backdrop').getAttribute('src'),
+     parts:[...document.querySelectorAll('.group .body-image')].map(x=>({src:x.getAttribute('src'),w:x.naturalWidth,h:x.naturalHeight})),
+     screens:[...document.querySelectorAll('.group .screen-image')].map(x=>x.getAttribute('src')),
+     links:[...document.querySelectorAll('.group .target')].map(x=>[x.getAttribute('href'),x.style.left,x.style.top,x.style.width,x.style.height]),
+     world:document.querySelector('#world').style.transform
+   }));
+   assert.equal(textured.backdrop,'scene/themes/inktextured/backdrop.svg');
+   assert.equal(textured.parts.length,6);
+   assert.ok(textured.parts.every(x=>x.src.startsWith('scene/themes/inktextured/parts/')&&x.src.endsWith('.svg')&&x.w>0&&x.h>0));
+   assert.deepEqual(textured.screens,blanks.screens,'Keep the exact empty interface overlays');
+   assert.deepEqual(textured.links,blanks.links,'Textured theme must inherit all Blank Panels hitboxes');
+   assert.equal(textured.world,beforeTransform);
+   if(vp.width===1672){
+     const samples=await page.evaluate(()=>[...document.querySelectorAll('.group .body-image')].map(img=>{
+       const canvas=document.createElement('canvas');canvas.width=192;canvas.height=192;
+       const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.drawImage(img,0,0,192,192);
+       const pixel=ctx.getImageData(0,0,192,192).data;
+       let opaque=0,filled=0,uncolored=0;
+       for(let i=0;i<pixel.length;i+=4){if(pixel[i+3]>200){opaque++;if(pixel[i]>35&&pixel[i+1]>35&&pixel[i+2]>35)filled++;if(pixel[i]>230&&pixel[i+1]>230&&pixel[i+2]>230)uncolored++;}}
+       return {opaque,filled,uncolored};
+     }));
+     assert.ok(samples.every(x=>x.opaque>2000&&x.filled>500),
+       'Textured bodies must be opaque material-filled vectors, not empty lines or solid black silhouettes');
+     const blocked=await page.evaluate(()=>[...document.querySelectorAll('.group .target')].filter(link=>{
+       const b=link.getBoundingClientRect(),x=b.left+b.width/2,y=b.top+b.height/2;
+       const target=document.elementFromPoint(x,y)?.closest('a.target');
+       return target!==link;
+     }).map(link=>link.dataset.id));
+     assert.deepEqual(blocked,[],'All textured-theme links must remain pointer reachable');
+     console.log('PASS new textured vector theme with material fill and 36 reachable links');
+   }
+   await page.screenshot({path:'screenshots/groupjects/'+vp.width+'x'+vp.height+'-inktextured.png',animations:'disabled'});
+   if(vp.width===2560||vp.width===390){
+     await page.reload({waitUntil:'domcontentloaded'});
+     await page.waitForFunction(()=>document.querySelector('#loading')?.hidden &&
+       document.querySelector('#app')?.dataset.theme==='inktextured');
+     assert.equal(await picker.inputValue(),'inktextured','Textured theme should persist across reload');
    }
    // Switching themes must not leave a previous theme's pixels or hotspot geometry active.
    await picker.selectOption('industrial');

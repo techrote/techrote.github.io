@@ -248,7 +248,8 @@
    state.manifest=await res.json();const c=state.manifest.canvas;
    let savedTheme=null;try{savedTheme=localStorage.getItem(themeKey);}catch(_){}
    const requestedTheme=new URLSearchParams(location.search).get('theme');
-   state.theme=[requestedTheme,savedTheme,'industrial'].find(id=>id&&Object.hasOwn(state.manifest.themes||{},id))||'industrial';
+   const defaultTheme=state.manifest.defaultTheme||'industrial';
+   state.theme=[requestedTheme,savedTheme,defaultTheme,'industrial'].find(id=>id&&Object.hasOwn(state.manifest.themes||{},id))||'industrial';
    if(c.width!==1672||c.height!==941||!Array.isArray(state.manifest.groups))throw Error('Unexpected canvas/manifest');
    world.style.width=c.width+'px';world.style.height=c.height+'px';
    $('backdrop').src=state.manifest.background.file;
