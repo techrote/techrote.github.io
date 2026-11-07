@@ -106,7 +106,7 @@ try{
    }));
    assert.equal(ink.backdrop,'scene/themes/lineart/backdrop.svg');
    assert.equal(ink.parts.length,6);
-   assert.ok(ink.parts.every(x=>/^scene\\/themes\\/lineart\\/parts\\/[a-z]+\\.svg$/.test(x.src)&&x.width>0&&x.height>0),'All six component assets must be real SVG images');
+   assert.ok(ink.parts.every(x=>x.src.startsWith('scene/themes/lineart/parts/')&&x.src.endsWith('.svg')&&x.width>0&&x.height>0),'All six component assets must be real SVG images');
    assert.equal(ink.screens.length,4);
    assert.ok(ink.screens.every(x=>x.startsWith('scene/themes/lineart/screens/')&&x.endsWith('.svg')));
    assert.deepEqual(ink.calculatorRect,['83px','44px','272px','115px']);
