@@ -44,7 +44,7 @@ try{
 
    const picker=page.locator('#theme-select');
    assert.equal(await picker.isVisible(),true,'Theme control must be visible at '+vp.width);
-   assert.deepEqual(await picker.locator('option').evaluateAll(opts=>opts.map(o=>o.value)),['industrial','photographic','cutout','lineart']);
+   assert.deepEqual(await picker.locator('option').evaluateAll(opts=>opts.map(o=>o.value)),['industrial','photographic','cutout','lineart','inkblank']);
    assert.equal(await picker.inputValue(),'industrial');
    const box=await picker.boundingBox();
    assert.ok(box&&box.x>=0&&box.x+box.width<=vp.width+1,'Theme selector outside viewport: '+JSON.stringify({vp,box}));
@@ -139,6 +139,55 @@ try{
      await page.reload({waitUntil:'domcontentloaded'});
      await page.waitForFunction(()=>document.querySelector('#loading')?.hidden&&document.querySelector('#app')?.dataset.theme==='lineart');
      assert.equal(await picker.inputValue(),'lineart','Technical Ink selection must persist across reload');
+     await page.waitForFunction(()=>[...document.querySelectorAll('.group img,#backdrop')].every(img=>img.complete&&img.naturalWidth>0));
+   }
+   // Blank-panel ink: six independently replaceable SVG hardware drawings with
+   // black outlines, no textual or diagrammatic content in any artwork or screen.
+   await picker.selectOption('inkblank');
+   await page.waitForFunction(()=>document.querySelector('#app')?.dataset.theme==='inkblank'&&
+     [...document.querySelectorAll('.group img,#backdrop')].every(img=>img.complete&&img.naturalWidth>0));
+   const blanks=await page.evaluate(()=>({
+     backdrop:document.querySelector('#backdrop').getAttribute('src'),
+     parts:[...document.querySelectorAll('.group .body-image')].map(img=>img.getAttribute('src')),
+     screens:[...document.querySelectorAll('.group .screen-image')].map(img=>img.getAttribute('src')),
+     links:[...document.querySelectorAll('.group .target')].map(x=>[x.getAttribute('href'),x.style.left,x.style.top,x.style.width,x.style.height])
+   }));
+   assert.equal(blanks.backdrop,'scene/themes/inkblank/backdrop.svg');
+   assert.equal(blanks.parts.length,6);
+   assert.ok(blanks.parts.every(x=>x.startsWith('scene/themes/inkblank/parts/')&&x.endsWith('.svg')));
+   assert.equal(blanks.screens.length,4);
+   assert.ok(blanks.screens.every(x=>x.startsWith('scene/themes/inkblank/screens/')&&x.endsWith('.svg')));
+   assert.deepEqual(blanks.links,beforeLinks,'Blank ink changes must preserve all project/gallery links and coordinates');
+   assert.equal(await page.locator('#world').evaluate(x=>x.style.transform),beforeTransform);
+   if(vp.width===1672){
+     const opacity=await page.evaluate(()=>[...document.querySelectorAll('.group')].map(g=>{
+       const img=g.querySelector('.body-image'),c=document.createElement('canvas');
+       c.width=192;c.height=192;const ctx=c.getContext('2d',{willReadFrequently:true});
+       ctx.drawImage(img,0,0,192,192);
+       const bytes=ctx.getImageData(0,0,192,192).data;let count=0;
+       for(let i=3;i<bytes.length;i+=4)if(bytes[i]>=128)count++;
+       return {id:g.dataset.id,coverage:count/(192*192)};
+     }));
+     for(const {id,coverage} of opacity)
+       assert.ok(coverage>0.015 && coverage<0.35,
+         'Blank Technical Ink drawing '+id+' is empty or opaque silhouette: '+coverage);
+     for(const asset of [...blanks.parts,...blanks.screens]){
+       const response=await page.request.get(origin+'/'+asset);
+       assert.equal(response.status(),200,'Missing vector layer: '+asset);
+       const source=await response.text();
+       assert.match(source,/<svg\b/,'Not SVG: '+asset);
+       assert.doesNotMatch(source,/<(?:text|image|foreignObject)\b/i,'Artwork embeds content rather than vector linework: '+asset);
+       if(asset.includes('/screens/'))assert.doesNotMatch(source,/<(?:path|rect|polygon|circle|line|polyline)\b/i,
+         'Screen overlay must be empty and not cover blank panel: '+asset);
+     }
+     console.log('PASS blank ink vector alpha & empty panel tests: '+
+       opacity.map(x=>x.id+' '+Math.round(x.coverage*100)+'%').join(', '));
+   }
+   await page.screenshot({path:'screenshots/groupjects/'+vp.width+'x'+vp.height+'-inkblank.png',animations:'disabled'});
+   if(vp.width===2560||vp.width===390){
+     await page.reload({waitUntil:'domcontentloaded'});
+     await page.waitForFunction(()=>document.querySelector('#loading')?.hidden&&document.querySelector('#app')?.dataset.theme==='inkblank');
+     assert.equal(await picker.inputValue(),'inkblank','Blank theme should persist across reload');
      await page.waitForFunction(()=>[...document.querySelectorAll('.group img,#backdrop')].every(img=>img.complete&&img.naturalWidth>0));
    }
    // Switching themes must not leave a previous theme's pixels or hotspot geometry active.
