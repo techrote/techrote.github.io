@@ -16,6 +16,7 @@ on:
       - 'salvage-arcade/**'
       - 'tests/gallery.test.mjs'
       - '.github/workflows/gallery-qa.yml'
+      - '.github/workflows/pages-preview.yml'
   push:
     branches: [main]
     paths:
@@ -32,6 +33,7 @@ on:
       - 'salvage-arcade/**'
       - 'tests/gallery.test.mjs'
       - '.github/workflows/gallery-qa.yml'
+      - '.github/workflows/pages-preview.yml'
   workflow_dispatch:
 
 permissions:
