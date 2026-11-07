@@ -1,5 +1,5 @@
 {
-  "version": "2.0.0",
+  "version": "2.2.0",
   "reference": "Generated Techrote industrial workshop composition — 2026-11-06; source images supplied in the conversation",
   "canvas": {
     "width": 1672,
@@ -574,6 +574,32 @@
         "calculator": "scene/themes/photographic/screens/calculator.webp",
         "gaming": "scene/themes/photographic/screens/gaming.webp",
         "retro": "scene/themes/photographic/screens/retro.webp"
+      }
+    },
+    "cutout": {
+      "label": "Clean Cutout",
+      "background": "scene/themes/cutout/backdrop.webp",
+      "art": {
+        "cad": "scene/themes/cutout/parts/cad.webp",
+        "calculator": "scene/themes/cutout/parts/calculator.webp",
+        "curiosity": "scene/themes/cutout/parts/curiosity.webp",
+        "gaming": "scene/themes/cutout/parts/gaming.webp",
+        "paper": "scene/themes/cutout/parts/paper.webp",
+        "retro": "scene/themes/cutout/parts/retro.webp"
+      },
+      "screens": {
+        "cad": "scene/themes/photographic/screens/cad.webp",
+        "calculator": "scene/themes/photographic/screens/calculator.webp",
+        "gaming": "scene/themes/photographic/screens/gaming.webp",
+        "retro": "scene/themes/photographic/screens/retro.webp"
+      },
+      "screenRects": {
+        "calculator": [
+          86,
+          42,
+          264,
+          110
+        ]
       }
     }
   }

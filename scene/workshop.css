@@ -53,7 +53,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
 @media(max-width:420px){.toolbar .brand{font-size:9px}.toolbar button{min-width:28px;padding:2px 4px}.toolbar button[data-command="zoom-out"],.toolbar button[data-command="zoom-in"]{font-size:13px}.toolbar button[data-command="reference"]{display:none}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
 
-/* The image themes share identical artwork coordinates and interaction geometry. */
+/* Individual themes retain group placement and hotspots; a theme may override a screen crop. */
 .toolbar .theme-control{display:inline-flex;align-items:center;gap:5px;white-space:nowrap;margin-left:8px;color:#9db1b2;font-size:9px;letter-spacing:.08em}
 .toolbar #theme-select{font-family:inherit;color:#e9e2d5;background:#132127;border:1px solid #7b8178;min-width:110px;height:27px;padding:2px 20px 2px 6px;font-size:10px;letter-spacing:.025em;cursor:pointer}
 .toolbar #theme-select:focus-visible{outline:2px solid #edc989;outline-offset:1px}
@@ -70,4 +70,10 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
   .toolbar button[data-command="zoom-out"],.toolbar button[data-command="zoom-in"]{display:none}
   .toolbar #theme-select{min-width:92px;max-width:92px}
   .toolbar .theme-control{margin-left:auto}
+}
+
+/* Clean Cutout uses the new physical silhouettes; the calculator retains a readable independent LCD. */
+.app[data-theme="cutout"] .toolbar #theme-select{background:#282c28;color:#ecf0e7;border-color:#a0a99e}
+.app[data-theme="cutout"] .group[data-id="calculator"] .screen-image{
+  z-index:3;opacity:.96;border-radius:9px;mix-blend-mode:multiply;
 }

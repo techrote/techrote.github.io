@@ -68,3 +68,14 @@ The IO workbench now has a **THEME** selector (shortcut **T**) with two complete
 Theme definitions live in `scene/scene.json` under `themes`. Original image paths remain in `groups` as fallback values. To replace an individual image, edit its corresponding theme path without changing group coordinates, screen placement or hotspots. If a photographic file fails to load, the original asset is used. **COMPARE** still overlays the original flattened artwork.
 
 The preference is stored independently as `techrote-io:workshop-theme-v1`; direct links can use `?theme=photographic`. Theme changes never overwrite layout edits or hotspot locations. Temporary editor asset previews are isolated by theme.
+
+
+## Clean Cutout — third visual theme
+
+The **Clean Cutout** theme is selected from the existing THEME menu, through `?theme=cutout`, or by cycling themes with **T**. The two original themes are unchanged.
+
+- `scene/themes/cutout/backdrop.webp` is a newly authored, quieter photographic workshop without equipment baked into the background.
+- `scene/themes/cutout/parts/*.webp` contains six independently movable transparent photographic cutouts. Each is rendered at twice the reference object's pixel dimensions for sharpness at desktop resolutions.
+- The screen details are present in the new retro, gaming and CAD photographs. The calculator retains its separately rendered menu: `themes.cutout.screenRects.calculator` adjusts its independent screen placement, which renders above its photographic LCD under this theme.
+- All original `groups[].hotspots` and page placement coordinates remain unchanged. These newly generated photographic silhouettes are close visual replacements, **not pixel-identical reskins** of the old pieces; use EDIT/HINTS to refine hotspot alignment as needed.
+- Replacing any cutout requires only the corresponding WebP file; the existing gallery routes, themes, and source configuration remain intact.
