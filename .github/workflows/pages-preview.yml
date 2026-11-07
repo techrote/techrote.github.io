@@ -22,12 +22,14 @@ concurrency:
 
 jobs:
   deploy:
-    # PR previews are intentionally limited to branches in this repository.
-    # Fork PRs are never published under the techrote.github.io origin.
+    # Production is published by GitHub Pages' built-in branch workflow.
+    # Do not create a second production deployment for every main push.
+    # Only trusted same-repo PR previews and abandoned-preview cleanup deploy.
+    # On merged PRs the native main deployment removes the preview.
     if: >-
-      github.event_name != 'pull_request_target' ||
-      github.event.action == 'closed' ||
-      github.event.pull_request.head.repo.full_name == github.repository
+      github.event_name == 'pull_request_target' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      (github.event.action != 'closed' || github.event.pull_request.merged == false)
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -82,10 +84,14 @@ jobs:
         uses: actions/upload-pages-artifact@v4
         with:
           path: _site
+          # A rerun retains earlier artifacts: do not reuse the same name.
+          name: pr-pages-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: Deploy Pages artifact
         id: deployment
         uses: actions/deploy-pages@v4
+        with:
+          artifact_name: pr-pages-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: Post preview link
         # A denied comment must not invalidate a successful Pages deployment.
@@ -155,3 +161,26 @@ jobs:
                 body: `${marker}\nPages preview removed because this pull request is closed.`
               });
             }
+
+  production-source-check:
+    # Keep this workflow meaningful on main without competing with native Pages.
+    if: >-
+      github.event_name == 'push' ||
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request_target' && github.event.action == 'closed' && github.event.pull_request.merged == true)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+      - name: Verify published source is present
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s index.html
+          test -s scene/scene.json
+          test -s scene/themes/inkblank/parts/cad.svg
+          test -s gallery/shared.js
+          echo "Native GitHub Pages branch publishing owns production; custom production redeployment intentionally skipped."
