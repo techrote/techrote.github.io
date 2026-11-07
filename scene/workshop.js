@@ -42,6 +42,18 @@
    state.view.scale=next;clampView();
  }
  function relRect(rect){return {left:rect[0]+'px',top:rect[1]+'px',width:rect[2]+'px',height:rect[3]+'px'};}
+ /** A theme may relocate link hitboxes without moving the group or modifying
+  * its canonical locations in other visual themes. */
+ function hotspotRect(group,hotspot){
+   const override=state.manifest?.themes?.[state.theme]?.hotspotRects?.[group.id]?.[hotspot.id];
+   return Array.isArray(override)&&override.length===4&&override.every(Number.isFinite)?override:hotspot.rect;
+ }
+ function editableHotspotRect(group,hotspot){
+   const groupOverrides=state.manifest?.themes?.[state.theme]?.hotspotRects?.[group.id];
+   if(!groupOverrides)return hotspot.rect;
+   if(!Array.isArray(groupOverrides[hotspot.id]))groupOverrides[hotspot.id]=[...hotspot.rect];
+   return groupOverrides[hotspot.id];
+ }
  function renderGroup(item){
    const g=item.data,el=item.el;
    el.style.left=g.x+'px';el.style.top=g.y+'px';el.style.width=g.width+'px';el.style.height=g.height+'px';
@@ -82,6 +94,9 @@
       Object.assign(item.screen.style,relRect(rect));
       assignImage(item.screen,state.localFiles.get(screenKey)||imageFor('screens',g.id,g.screen.file),g.screen.file);
     }
+    // Theme switches move only the invisible link regions, never their URLs,
+    // object placements or the original theme's rectangles.
+    for(const link of item.links)Object.assign(link.el.style,relRect(hotspotRect(g,link.data)));
    }
    if(remember){
      try{localStorage.setItem(themeKey,id);}catch(_){/* Private browsing remains supported. */}
@@ -91,7 +106,7 @@
        history.replaceState(null,'',url);
      }catch(_){/* file:// and embedded browsers may reject history edits. */}
    }
-   setStatus('VISUAL THEME · '+(available[id]?.label||id).toUpperCase()+' · POSITIONS AND HOTSPOTS UNCHANGED');
+   setStatus('VISUAL THEME · '+(available[id]?.label||id).toUpperCase()+' · THEME LINK REGIONS ACTIVE · OBJECT POSITIONS PRESERVED');
  }
 
  function buildGroup(g){
@@ -133,7 +148,13 @@
    $('replace-screen').disabled=!g.screen;
  }
  function persist(){
-   try{localStorage.setItem(storageKey,JSON.stringify(state.items.map(it=>({id:it.data.id,x:it.data.x,y:it.data.y,scale:it.data.scale,z:it.data.z,hotspots:it.data.hotspots.map(h=>({id:h.id,rect:h.rect}))}))));}
+   try{localStorage.setItem(storageKey,JSON.stringify(state.items.map(it=>({
+     id:it.data.id,x:it.data.x,y:it.data.y,scale:it.data.scale,z:it.data.z,
+     hotspots:it.data.hotspots.map(h=>({id:h.id,rect:h.rect})),
+     themeHotspots:Object.fromEntries(Object.entries(state.manifest.themes||{})
+       .filter(([,theme])=>theme.hotspotRects?.[it.data.id])
+       .map(([id,theme])=>[id,theme.hotspotRects[it.data.id]]))
+   }))));}
    catch(e){setStatus('LOCAL SAVE DISABLED · EXPORT JSON TO KEEP CHANGES');}
  }
  function loadLocal(){
@@ -142,6 +163,18 @@
      for(const edit of saved){const g=state.manifest.groups.find(x=>x.id===edit.id);if(!g)continue;
        for(const k of ['x','y','scale','z'])if(Number.isFinite(edit[k]))g[k]=edit[k];
        if(Array.isArray(edit.hotspots))for(const hs of edit.hotspots){const original=g.hotspots.find(h=>h.id===hs.id);if(original&&Array.isArray(hs.rect)&&hs.rect.length===4&&hs.rect.every(Number.isFinite))original.rect=hs.rect;}
+       // Restore user edits to theme-specific hitboxes without touching the
+       // shared coordinates used by other themes (older saved layouts still work).
+       if(edit.themeHotspots&&typeof edit.themeHotspots==='object')
+         for(const [themeId,rects] of Object.entries(edit.themeHotspots)){
+           const theme=state.manifest.themes?.[themeId];
+           if(!theme?.hotspotRects?.[g.id]||!rects||typeof rects!=='object')continue;
+           for(const [id,rect] of Object.entries(rects))
+             if(g.hotspots.some(h=>h.id===id)&&Array.isArray(rect)&&rect.length===4&&
+                 rect.every(Number.isFinite)&&rect[0]>=0&&rect[1]>=0&&
+                 rect[2]>0&&rect[3]>0&&rect[0]+rect[2]<=g.width&&rect[1]+rect[3]<=g.height)
+               theme.hotspotRects[g.id][id]=rect;
+         }
      }
    }catch(e){setStatus('INVALID SAVED LAYOUT IGNORED');}
  }
@@ -183,7 +216,7 @@
      const moveHotspot=Boolean(target&&$('move-hotspots').checked);
      state.gesture={type:moveHotspot?'hotspot':'object',startX:e.clientX,startY:e.clientY,
        x:state.selected.data.x,y:state.selected.data.y,hotspot:target?.dataset.id,
-       rect:moveHotspot?[...state.selected.data.hotspots.find(h=>h.id===target.dataset.id).rect]:null};
+       rect:moveHotspot?[...hotspotRect(state.selected.data,state.selected.data.hotspots.find(h=>h.id===target.dataset.id))]:null};
    }else if(!target){state.gesture={type:'pan',startX:e.clientX,startY:e.clientY,x:state.view.x,y:state.view.y};viewport.classList.add('dragging');}
    else return;
    viewport.setPointerCapture(e.pointerId);
@@ -200,8 +233,10 @@
        state.selected.data.x=gs.x+deltaX;state.selected.data.y=gs.y+deltaY;renderGroup(state.selected);updateInspector();
      }else{
        const h=state.selected.data.hotspots.find(x=>x.id===gs.hotspot);
-       if(h){h.rect[0]=gs.rect[0]+deltaX/state.selected.data.scale;h.rect[1]=gs.rect[1]+deltaY/state.selected.data.scale;
-         const el=state.selected.links.find(x=>x.data.id===h.id)?.el;if(el)Object.assign(el.style,relRect(h.rect));}
+       if(h){const rect=editableHotspotRect(state.selected.data,h);
+         rect[0]=gs.rect[0]+deltaX/state.selected.data.scale;
+         rect[1]=gs.rect[1]+deltaY/state.selected.data.scale;
+         const el=state.selected.links.find(x=>x.data.id===h.id)?.el;if(el)Object.assign(el.style,relRect(rect));}
      }
    }
  }
