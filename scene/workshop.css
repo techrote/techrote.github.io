@@ -91,3 +91,17 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
 .app[data-theme="lineart"] .view-corner{color:#20231f;text-shadow:none}
 .app[data-theme="lineart"] .world-grid{background-image:linear-gradient(to right,#696e6440 1px,transparent 1px),linear-gradient(to bottom,#696e6440 1px,transparent 1px)}
 .app[data-theme="lineart"] .group[data-id="calculator"] .screen-image{z-index:1;opacity:1;mix-blend-mode:normal;border-radius:0}
+
+/* Technical Ink blank workspace retains the light drawing-board styling. */
+.app[data-theme="inkblank"] .viewport{background:#eceae1}
+.app[data-theme="inkblank"] .toolbar{background:linear-gradient(#ebe9e1,#dad8ce);border-top-color:#aaa9a0;color:#1d211f}
+.app[data-theme="inkblank"] .toolbar .brand,.app[data-theme="inkblank"] .toolbar .brand span{color:#1b1b1b}
+.app[data-theme="inkblank"] .toolbar button,.app[data-theme="inkblank"] .toolbar .index-link{background:#f7f6f1;color:#242424;border-color:#8e8e83}
+.app[data-theme="inkblank"] .toolbar button:hover,.app[data-theme="inkblank"] .toolbar .index-link:hover{background:#deddd5;color:#111}
+.app[data-theme="inkblank"] .toolbar button[aria-pressed="true"]{background:#d4d2c7;color:#151515;border-color:#444}
+.app[data-theme="inkblank"] .toolbar .theme-control{color:#444}
+.app[data-theme="inkblank"] .toolbar #theme-select{background:#f8f7f0;color:#1a1a1a;border-color:#63645a}
+.app[data-theme="inkblank"] .toolbar .zoom-level{color:#45453f}
+.app[data-theme="inkblank"] .view-corner{color:#20231f;text-shadow:none}
+.app[data-theme="inkblank"] .world-grid{background-image:linear-gradient(to right,#696e6440 1px,transparent 1px),linear-gradient(to bottom,#696e6440 1px,transparent 1px)}
+.app[data-theme="inkblank"] .group[data-id="calculator"] .screen-image{z-index:1;opacity:1;mix-blend-mode:normal;border-radius:0}

@@ -1,0 +1,3 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1672" height="941" viewBox="0 0 1672 941">
+<defs><pattern id="fine" width="16" height="16" patternUnits="userSpaceOnUse"><path d="M16 0H0V16" fill="none" stroke="#a8a49b" stroke-opacity="0.14" stroke-width="0.65"/></pattern><pattern id="major" width="80" height="80" patternUnits="userSpaceOnUse"><path d="M80 0H0V80" fill="none" stroke="#9c998e" stroke-opacity="0.16" stroke-width="0.9"/></pattern></defs>
+<rect width="1672" height="941" fill="#f6f3eb"/><rect width="1672" height="941" fill="url(#fine)"/><rect width="1672" height="941" fill="url(#major)"/><g stroke="#b5b2a7" stroke-opacity=".42" stroke-width="1" fill="none"><path d="M0 125H1672M0 600H1672M0 924H1672"/></g></svg>

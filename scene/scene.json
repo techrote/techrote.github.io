@@ -627,6 +627,24 @@
           115
         ]
       }
+    },
+    "inkblank": {
+      "label": "Technical Ink — Blank Panels",
+      "background": "scene/themes/inkblank/backdrop.svg",
+      "art": {
+        "retro": "scene/themes/inkblank/parts/retro.svg",
+        "gaming": "scene/themes/inkblank/parts/gaming.svg",
+        "cad": "scene/themes/inkblank/parts/cad.svg",
+        "calculator": "scene/themes/inkblank/parts/calculator.svg",
+        "curiosity": "scene/themes/inkblank/parts/curiosity.svg",
+        "paper": "scene/themes/inkblank/parts/paper.svg"
+      },
+      "screens": {
+        "retro": "scene/themes/inkblank/screens/retro.svg",
+        "gaming": "scene/themes/inkblank/screens/gaming.svg",
+        "cad": "scene/themes/inkblank/screens/cad.svg",
+        "calculator": "scene/themes/inkblank/screens/calculator.svg"
+      }
     }
   }
 }

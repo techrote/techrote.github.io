@@ -101,3 +101,14 @@ The six `scene/themes/lineart/parts/*.svg` objects must represent **only black i
 The current SVGs were regenerated from the original line-art PNG images by thresholding **dark pixels only** (RGB luminance, gated by source alpha) and tracing the resulting ink boundaries into a compound vector path with `fill-rule="evenodd"`. Transparent spaces and enclosed counters are retained. Each image preserves its original `width`, `height`, `viewBox`, and page positioning, so link hotspots, editor coordinates and separate LCD screens are unchanged. These are actual vector paths, not embedded raster images.
 
 The Playwright workbench test now draws each SVG into an offscreen canvas and checks that its opaque pixel coverage remains in the expected line-art range (roughly 10–25%, with a conservative 2.5–40% acceptance band). This specifically detects the previous 68–83% opaque-silhouette regression that normal image-loading tests missed.
+
+## Technical Ink — Blank Panels (fifth theme)
+
+Select **Technical Ink — Blank Panels** in THEME, use `?theme=inkblank`, or cycle with **T**. The previous Technical Ink theme remains intact. These six editable SVGs were separately vector-traced from transparent black-line artwork intentionally cleared of text, diagrams and panel contents. Original PNGs supplied in the conversation were the artistic source; SVG paths are true geometry, not raster images embedded inside SVG containers. These are *illustrative traces*, not CAD-derived wireframes.
+
+- `scene/themes/inkblank/parts/*.svg` — six distinct ink-outline equipment images; device outlines and blank UI panel borders remain.
+- `scene/themes/inkblank/screens/*.svg` — four intentionally empty transparent overlays, preventing the previous screen menu images from appearing underneath.
+- `scene/themes/inkblank/backdrop.svg` — neutral cream drafting grid with no labels or figures.
+- The existing `scene/scene.json` X/Y/Z positions and all 36 interaction hotspots are unchanged; no project links were removed. Their alignment is approximate because the new source drawings are not pixel-identical to prior components. Use **EDIT**, **HINTS**, and **GRID** to fine-tune their regions later.
+
+Browser QA also checks rendered SVG opacity, no unwanted screen content, persistence across reload, responsive behavior and the existing theme paths.
