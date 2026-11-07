@@ -77,7 +77,11 @@
      const artKey=id+':'+g.id+':art';
      const screenKey=id+':'+g.id+':screen';
      assignImage(item.art,state.localFiles.get(artKey)||imageFor('art',g.id,g.art.file),g.art.file);
-     if(g.screen)assignImage(item.screen,state.localFiles.get(screenKey)||imageFor('screens',g.id,g.screen.file),g.screen.file);
+     if(g.screen){
+      const rect=available[id]?.screenRects?.[g.id]||g.screen.rect;
+      Object.assign(item.screen.style,relRect(rect));
+      assignImage(item.screen,state.localFiles.get(screenKey)||imageFor('screens',g.id,g.screen.file),g.screen.file);
+    }
    }
    if(remember){
      try{localStorage.setItem(themeKey,id);}catch(_){/* Private browsing remains supported. */}
@@ -215,6 +219,14 @@
    $('backdrop').src=state.manifest.background.file;
    loadLocal();
    for(const g of state.manifest.groups)state.items.push(buildGroup(g));
+   // Keep THEME options consistent with the editable scene manifest.
+   const select=$('theme-select');
+   select.replaceChildren();
+   for(const [id,config] of Object.entries(state.manifest.themes||{})){
+     const option=document.createElement('option');
+     option.value=id;option.textContent=config.label||id.toUpperCase();
+     select.appendChild(option);
+   }
    setTheme(state.theme,false);
    $('theme-select').addEventListener('change',event=>setTheme(event.target.value));
    const reference=document.createElement('img');reference.className='reference-layer';reference.alt='';reference.src=state.manifest.background.reference;reference.draggable=false;
@@ -249,7 +261,7 @@
      else if(key==='g')setMode('grid',!state.grid);
      else if(key==='e')setMode('edit',!state.edit);
      else if(key==='r')setMode('reference',!state.reference);
-     else if(key==='t')setTheme(state.theme==='industrial'?'photographic':'industrial');
+     else if(key==='t'){const choices=Object.keys(state.manifest.themes);setTheme(choices[(choices.indexOf(state.theme)+1)%choices.length]);}
      else if(key==='0')fitScene();
      else if(key==='f'){if(document.fullscreenElement)document.exitFullscreen?.();else app.requestFullscreen?.();}
      else if(state.edit&&state.selected){

@@ -44,7 +44,7 @@ try{
 
    const picker=page.locator('#theme-select');
    assert.equal(await picker.isVisible(),true,'Theme control must be visible at '+vp.width);
-   assert.deepEqual(await picker.locator('option').evaluateAll(opts=>opts.map(o=>o.value)),['industrial','photographic']);
+   assert.deepEqual(await picker.locator('option').evaluateAll(opts=>opts.map(o=>o.value)),['industrial','photographic','cutout']);
    assert.equal(await picker.inputValue(),'industrial');
    const box=await picker.boundingBox();
    assert.ok(box&&box.x>=0&&box.x+box.width<=vp.width+1,'Theme selector outside viewport: '+JSON.stringify({vp,box}));
@@ -71,6 +71,28 @@ try{
      await page.waitForFunction(()=>document.querySelector('#loading')?.hidden&&document.querySelector('#app')?.dataset.theme==='photographic');
      assert.equal(await picker.inputValue(),'photographic','Theme should persist across reload');
      await page.waitForFunction(()=>[...document.querySelectorAll('.group img,#backdrop')].every(img=>img.complete&&img.naturalWidth>0));
+   }
+   await picker.selectOption('cutout');
+   await page.waitForFunction(()=>document.querySelector('#app')?.dataset.theme==='cutout'&&[...document.querySelectorAll('.group img,#backdrop')].every(img=>img.complete&&img.naturalWidth>0));
+   const clean=await page.evaluate(()=>({
+      backdrop:document.querySelector('#backdrop').getAttribute('src'),
+      parts:[...document.querySelectorAll('.group .body-image')].map(x=>({src:x.getAttribute('src'),width:x.naturalWidth,height:x.naturalHeight})),
+      calculatorScreen:document.querySelector('.group[data-id="calculator"] .screen-image').getAttribute('src'),
+      calculatorRect:[...['left','top','width','height'].map(k=>document.querySelector('.group[data-id="calculator"] .screen-image').style[k])],
+      links:[...document.querySelectorAll('.group .target')].map(x=>[x.getAttribute('href'),x.style.left,x.style.top,x.style.width,x.style.height])
+   }));
+   assert.equal(clean.backdrop,'scene/themes/cutout/backdrop.webp');
+   assert.equal(clean.parts.length,6);
+   assert.ok(clean.parts.every(x=>x.src.startsWith('scene/themes/cutout/parts/')&&x.width>0&&x.height>0));
+   assert.equal(clean.calculatorScreen,'scene/themes/photographic/screens/calculator.webp');
+   assert.deepEqual(clean.calculatorRect,['86px','42px','264px','110px']);
+   assert.deepEqual(clean.links,beforeLinks,'The new theme must not shift project/gallery hotspots');
+   assert.equal(await page.locator('#world').evaluate(x=>x.style.transform),beforeTransform);
+   await page.screenshot({path:'screenshots/groupjects/'+vp.width+'x'+vp.height+'-cutout.png',animations:'disabled'});
+   if(vp.width===2560||vp.width===390){
+     await page.reload({waitUntil:'domcontentloaded'});
+     await page.waitForFunction(()=>document.querySelector('#loading')?.hidden&&document.querySelector('#app')?.dataset.theme==='cutout');
+     assert.equal(await picker.inputValue(),'cutout','Third theme should persist across reload');
    }
    await picker.selectOption('industrial');
    await page.waitForFunction(()=>document.querySelector('#app')?.dataset.theme==='industrial'&&[...document.querySelectorAll('.group img,#backdrop')].every(img=>img.complete&&img.naturalWidth>0));
