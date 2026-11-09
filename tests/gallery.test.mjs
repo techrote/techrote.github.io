@@ -68,8 +68,13 @@ try {
   try {
     await page.goto(origin + '/', {waitUntil:'domcontentloaded'});
     const cards = await page.locator('article.card h3').allTextContents();
-    assert.equal(cards.length, 13);
+    assert.equal(cards.length, 14);
     assert.deepEqual(cards.filter(t => /Relay Moth/i.test(t)), ['Relay Moth Beta']);
+    const flatcad = page.locator('article.card').filter({has: page.locator('h3', {hasText: 'flatCAD'})});
+    assert.equal(await flatcad.count(), 1, 'flatCAD appears once in the original card layout');
+    assert.deepEqual(await flatcad.locator('.actions a').evaluateAll(links => links.map(link => [link.textContent.trim(), link.getAttribute('href')])), [
+      ['WEBAPP', 'flatcad/'], ['INFO', 'projects/flatcad.html'], ['GITHUB', 'https://github.com/techrote/flatCAD']
+    ]);
     const bolts = await page.locator('.stash-bolt').evaluateAll(nodes => nodes.map(n => ({href:n.getAttribute('href'),label:n.getAttribute('aria-label')})));
     assert.deepEqual(bolts.map(x => x.href), paths.map(p => p + '/'));
     assert.ok(bolts.every(x => x.label?.includes('gallery')));

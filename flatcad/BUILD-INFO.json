@@ -1,0 +1,11 @@
+{
+  "source": "https://github.com/techrote/flatCAD",
+  "commit": "50c2835f9b8eb6006fd7497c8b75d72085f9ecc0",
+  "sourceBuild": "npm install --no-audit --no-fund && npm run build",
+  "deployment": "/flatcad/",
+  "dependencies": {
+    "replicad": "1.1.0",
+    "replicad-opencascadejs": "1.1.0",
+    "three": "0.180.0"
+  }
+}
