@@ -26,7 +26,7 @@ try{
   const page=await browser.newPage({viewport:vp,deviceScaleFactor:1});
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
   try{
-   await page.goto(origin+'/'+archive,{waitUntil:'domcontentloaded'});
+   await page.goto(origin+'/workshop-2026-11-09.html',{waitUntil:'domcontentloaded'});
    await page.waitForFunction(()=>document.querySelectorAll('.group').length===6 && document.querySelector('#loading')?.hidden,{timeout:20000});
    assert.deepEqual(errors,[],'Unexpected page error at '+JSON.stringify(vp));
    assert.deepEqual(await page.locator('.group').evaluateAll(els=>els.map(x=>x.dataset.id)),ids);
