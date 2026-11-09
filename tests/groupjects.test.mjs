@@ -18,6 +18,7 @@ await new Promise(ok=>server.listen(0,'127.0.0.1',ok));
 const origin='http://127.0.0.1:'+server.address().port;
 const browser=await chromium.launch({headless:true,args:['--no-sandbox']});
 const viewports=[{width:2560,height:1440},{width:1672,height:941},{width:1280,height:720},{width:768,height:1024},{width:390,height:844},{width:320,height:568}];
+// Archived workshop regression suite: homepage itself is restored to the original card index.
 const ids=['retro','gaming','cad','curiosity','calculator','paper'];
 await mkdir('screenshots/groupjects',{recursive:true});
 try{
@@ -25,7 +26,7 @@ try{
   const page=await browser.newPage({viewport:vp,deviceScaleFactor:1});
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
   try{
-   await page.goto(origin+'/',{waitUntil:'domcontentloaded'});
+   await page.goto(origin+'/'+archive,{waitUntil:'domcontentloaded'});
    await page.waitForFunction(()=>document.querySelectorAll('.group').length===6 && document.querySelector('#loading')?.hidden,{timeout:20000});
    assert.deepEqual(errors,[],'Unexpected page error at '+JSON.stringify(vp));
    assert.deepEqual(await page.locator('.group').evaluateAll(els=>els.map(x=>x.dataset.id)),ids);
