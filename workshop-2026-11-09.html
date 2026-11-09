@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#07080a">
+<meta name="description" content="Techrote's interactive industrial workbench — original software, simulations, CAD, ANSI art, calculators, and hidden collections.">
+<title>Techrote IO — Workshop</title>
+<link rel="icon" type="image/svg+xml" href="groupjects/assets/cad.svg">
+<link rel="preload" as="image" href="scene/backdrop/cleanplate.webp">
+<link rel="stylesheet" href="scene/workshop.css">
+</head><body>
+<a class="skip-link" href="directory.html">Text project directory</a>
+<div id="app" class="app">
+  <main class="viewport" id="viewport" aria-label="Techrote interactive workshop, explore equipment for project links">
+    <div class="world" id="world"><img class="backdrop" id="backdrop" src="scene/backdrop/cleanplate.webp" alt="" draggable="false"></div>
+    <div class="loading" id="loading">ASSEMBLING WORKBENCH ···</div>
+    <div class="view-corner top-left" aria-hidden="true">TECHROTE / IO</div>
+    <div class="view-corner bottom-left" id="status" aria-live="polite">EXPLORE EQUIPMENT · H FOR HINTS · E FOR EDIT</div>
+  </main>
+  <nav class="toolbar" aria-label="Workbench controls">
+    <a class="brand" href="directory.html" aria-label="Text project directory">TECHROTE <span>IO</span></a>
+    <span class="divider" aria-hidden="true"></span>
+    <button type="button" data-command="fit" title="Fit scene to viewport (0)">FIT</button>
+    <button type="button" data-command="zoom-out" title="Zoom out">−</button>
+    <span class="zoom-level" id="zoom-level">100%</span>
+    <button type="button" data-command="zoom-in" title="Zoom in">+</button>
+    <button type="button" data-command="hints" id="hints" aria-pressed="false" title="Reveal interactive targets (H)">HINTS</button>
+    <button type="button" data-command="grid" id="grid" aria-pressed="false" title="Show adjustment grid (G)">GRID</button>
+    <button type="button" data-command="edit" id="edit" aria-pressed="false" title="Edit positions and artwork (E)">EDIT</button>
+    <button type="button" data-command="reference" id="reference" aria-pressed="false" title="Compare with the original single image (R)">COMPARE</button>
+    <label class="theme-control" for="theme-select"><span>THEME</span><select id="theme-select" aria-label="Workbench visual theme" title="Change photographic style (T)"><option value="industrial">INDUSTRIAL</option><option value="photographic">LO-FI PHOTO</option><option value="cutout">CLEAN CUTOUT</option><option value="lineart">TECHNICAL INK</option><option value="inkblank">INK · BLANK</option><option value="inktextured" selected>INK · TEXTURED</option></select></label>
+    <a class="index-link" href="directory.html">INDEX</a>
+  </nav>
+  <aside id="inspector" class="inspector" hidden aria-label="Selected groupject editor">
+    <div class="inspector-title"><strong>GROUPJECT EDITOR</strong><button type="button" id="inspector-close" title="Close editor">×</button></div>
+    <label for="object-picker">SELECT PART</label><select id="object-picker"></select>
+    <div class="field-grid">
+      <label>X<input id="obj-x" type="number" step="1"></label>
+      <label>Y<input id="obj-y" type="number" step="1"></label>
+      <label>SCALE<input id="obj-scale" type="number" min="0.25" max="4" step="0.05"></label>
+      <label>Z-ORDER<input id="obj-z" type="number" step="1"></label>
+    </div>
+    <label class="file-picker">REPLACE ART (LOCAL PREVIEW)<input id="replace-art" type="file" accept="image/png,image/webp,image/jpeg,image/svg+xml"></label>
+    <label class="file-picker">REPLACE SCREEN (LOCAL PREVIEW)<input id="replace-screen" type="file" accept="image/png,image/webp,image/jpeg,image/svg+xml"></label>
+    <label class="switch"><input type="checkbox" id="move-hotspots">MOVE LINK TARGETS</label>
+    <p class="help">Drag to move · Shift+drag for pixel precision · Arrows nudge · [ / ] change stacking. Changes save locally. Asset files must be copied into the site to publish replacements.</p>
+    <div class="inspector-actions"><button type="button" id="save-json">EXPORT JSON</button><button type="button" id="reset-layout">RESET</button></div>
+    <p class="inspector-source"><a href="scene/README.md" target="_blank" rel="noopener">SCENE GUIDE</a> · <a href="directory.html">LINK INDEX</a></p>
+  </aside>
+  <noscript><div class="noscript">This interactive gallery needs JavaScript. <a href="directory.html">Open the complete text directory.</a></div></noscript>
+</div>
+<script src="scene/workshop.js" defer></script>
+</body></html>

@@ -1,52 +1,734 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#07080a">
-<meta name="description" content="Techrote's interactive industrial workbench — original software, simulations, CAD, ANSI art, calculators, and hidden collections.">
-<title>Techrote IO — Workshop</title>
-<link rel="icon" type="image/svg+xml" href="groupjects/assets/cad.svg">
-<link rel="preload" as="image" href="scene/backdrop/cleanplate.webp">
-<link rel="stylesheet" href="scene/workshop.css">
-</head><body>
-<a class="skip-link" href="directory.html">Text project directory</a>
-<div id="app" class="app">
-  <main class="viewport" id="viewport" aria-label="Techrote interactive workshop, explore equipment for project links">
-    <div class="world" id="world"><img class="backdrop" id="backdrop" src="scene/backdrop/cleanplate.webp" alt="" draggable="false"></div>
-    <div class="loading" id="loading">ASSEMBLING WORKBENCH ···</div>
-    <div class="view-corner top-left" aria-hidden="true">TECHROTE / IO</div>
-    <div class="view-corner bottom-left" id="status" aria-live="polite">EXPLORE EQUIPMENT · H FOR HINTS · E FOR EDIT</div>
-  </main>
-  <nav class="toolbar" aria-label="Workbench controls">
-    <a class="brand" href="directory.html" aria-label="Text project directory">TECHROTE <span>IO</span></a>
-    <span class="divider" aria-hidden="true"></span>
-    <button type="button" data-command="fit" title="Fit scene to viewport (0)">FIT</button>
-    <button type="button" data-command="zoom-out" title="Zoom out">−</button>
-    <span class="zoom-level" id="zoom-level">100%</span>
-    <button type="button" data-command="zoom-in" title="Zoom in">+</button>
-    <button type="button" data-command="hints" id="hints" aria-pressed="false" title="Reveal interactive targets (H)">HINTS</button>
-    <button type="button" data-command="grid" id="grid" aria-pressed="false" title="Show adjustment grid (G)">GRID</button>
-    <button type="button" data-command="edit" id="edit" aria-pressed="false" title="Edit positions and artwork (E)">EDIT</button>
-    <button type="button" data-command="reference" id="reference" aria-pressed="false" title="Compare with the original single image (R)">COMPARE</button>
-    <label class="theme-control" for="theme-select"><span>THEME</span><select id="theme-select" aria-label="Workbench visual theme" title="Change photographic style (T)"><option value="industrial">INDUSTRIAL</option><option value="photographic">LO-FI PHOTO</option><option value="cutout">CLEAN CUTOUT</option><option value="lineart">TECHNICAL INK</option><option value="inkblank">INK · BLANK</option><option value="inktextured" selected>INK · TEXTURED</option></select></label>
-    <a class="index-link" href="directory.html">INDEX</a>
-  </nav>
-  <aside id="inspector" class="inspector" hidden aria-label="Selected groupject editor">
-    <div class="inspector-title"><strong>GROUPJECT EDITOR</strong><button type="button" id="inspector-close" title="Close editor">×</button></div>
-    <label for="object-picker">SELECT PART</label><select id="object-picker"></select>
-    <div class="field-grid">
-      <label>X<input id="obj-x" type="number" step="1"></label>
-      <label>Y<input id="obj-y" type="number" step="1"></label>
-      <label>SCALE<input id="obj-scale" type="number" min="0.25" max="4" step="0.05"></label>
-      <label>Z-ORDER<input id="obj-z" type="number" step="1"></label>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Public projects and browser tools by techrote.">
+  <meta name="theme-color" content="#020304">
+  <title>techrote // workbench</title>
+  <link rel="stylesheet" href="site.css">
+  <style>
+    /* Home-only industrial raster-console theme. Shared project/info pages stay untouched. */
+    :root {
+      --home-bg: #020304;
+      --home-panel: #05080a;
+      --home-panel-2: #080d10;
+      --home-line: #53616a;
+      --home-line-dim: #202a2f;
+      --home-ink: #dce9ee;
+      --home-muted: #6f818b;
+      --home-cyan: #4ddcf4;
+      --home-blue: #249be8;
+      --home-violet: #7655ff;
+      --home-magenta: #d74bf5;
+      --home-green: #5fe878;
+      --home-amber: #e4bd63;
+    }
+
+    body.home {
+      color: var(--home-ink);
+      background:
+        linear-gradient(rgb(255 255 255 / .016) 1px, transparent 1px),
+        linear-gradient(90deg, rgb(255 255 255 / .016) 1px, transparent 1px),
+        radial-gradient(circle at 76% 12%, rgb(118 85 255 / .085), transparent 30rem),
+        radial-gradient(circle at 26% 42%, rgb(36 155 232 / .07), transparent 34rem),
+        var(--home-bg);
+      background-size: 24px 24px, 24px 24px, auto, auto, auto;
+      font-family: "Cascadia Mono", "Cascadia Code", Consolas, "Lucida Console", monospace;
+    }
+
+    body.home::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      pointer-events: none;
+      background: repeating-linear-gradient(0deg, rgb(255 255 255 / .012) 0 1px, transparent 1px 4px);
+      mix-blend-mode: screen;
+    }
+
+    .home .shell { width: min(calc(100% - 18px), 1540px); }
+    .home .home-shell { padding-top: 7px; }
+
+    .home .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      border: 0;
+      background: rgb(2 3 4 / .94);
+      backdrop-filter: blur(8px);
+    }
+
+    .home .topbar::before,
+    .home .topbar::after {
+      content: "";
+      display: block;
+      height: 1px;
+      background: linear-gradient(90deg, var(--home-cyan) 0 7%, var(--home-line) 7% 31%, transparent 31% 32%, var(--home-line) 32% 69%, var(--home-violet) 69% 81%, var(--home-line) 81% 100%);
+      opacity: .75;
+    }
+
+    .home .topbar .shell {
+      min-height: 41px;
+      gap: 12px;
+    }
+
+    .brand-block,
+    .home .nav {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+
+    .nav-id,
+    .home .nav a span {
+      color: var(--home-cyan);
+      font-size: 9px;
+      letter-spacing: .08em;
+    }
+
+    .home .brand {
+      color: #b7c7ce;
+      font-size: 11px;
+      letter-spacing: .105em;
+    }
+
+    .home .brand span { color: var(--home-violet); }
+
+    .home .nav { gap: 5px; }
+    .home .nav a {
+      border: 1px solid var(--home-line-dim);
+      padding: 5px 8px;
+      color: #8ea0aa;
+      background: #050708;
+      font-size: 9px;
+      letter-spacing: .08em;
+      text-decoration: none;
+    }
+
+    .home .nav a:hover {
+      border-color: var(--home-cyan);
+      color: #e8fbff;
+      background: #071216;
+    }
+
+    .home a:focus-visible {
+      outline: 2px solid var(--home-magenta);
+      outline-offset: 2px;
+    }
+
+    .console-panel {
+      position: relative;
+      border: 1px solid var(--home-line);
+      background:
+        linear-gradient(90deg, rgb(77 220 244 / .025), transparent 28%),
+        linear-gradient(180deg, rgb(255 255 255 / .018), transparent 32%),
+        var(--home-panel);
+      box-shadow: inset 0 0 0 1px #0d1418;
+    }
+
+    .console-panel::before,
+    .console-panel::after {
+      content: "";
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      pointer-events: none;
+    }
+
+    .console-panel::before {
+      top: -1px;
+      left: -1px;
+      border-top: 2px solid var(--home-cyan);
+      border-left: 2px solid var(--home-cyan);
+    }
+
+    .console-panel::after {
+      right: -1px;
+      bottom: -1px;
+      border-right: 2px solid var(--home-violet);
+      border-bottom: 2px solid var(--home-violet);
+    }
+
+    .panel-cap {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      min-height: 27px;
+      border-bottom: 1px solid var(--home-line-dim);
+      padding: 0 7px;
+      color: #7e919b;
+      background: #030506;
+      font-size: 9px;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+    }
+
+    .panel-cap strong {
+      color: #b8c8cf;
+      font-weight: 700;
+    }
+
+    .panel-cap .signal { color: var(--home-green); }
+
+    .home .hero {
+      display: block;
+      padding: 0;
+      border-bottom: 1px solid var(--home-line);
+    }
+
+    .hero-body {
+      display: grid;
+      grid-template-columns: minmax(0, 1.6fr) minmax(260px, .62fr);
+      min-height: 228px;
+    }
+
+    .hero-copy {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-width: 0;
+      padding: 26px 30px 28px;
+      overflow: hidden;
+      border-right: 1px solid var(--home-line-dim);
+      background:
+        linear-gradient(rgb(77 220 244 / .08) 1px, transparent 1px),
+        linear-gradient(90deg, rgb(77 220 244 / .08) 1px, transparent 1px);
+      background-size: 32px 32px;
+    }
+
+    .hero-copy::after {
+      content: "";
+      position: absolute;
+      inset: auto 0 0;
+      height: 5px;
+      background: linear-gradient(90deg, var(--home-cyan) 0 24%, var(--home-blue) 24% 44%, var(--home-violet) 44% 69%, var(--home-magenta) 69% 84%, transparent 84%);
+      opacity: .85;
+    }
+
+    .home .eyebrow {
+      margin-bottom: 10px;
+      color: var(--home-cyan);
+      font-size: 9px;
+      letter-spacing: .15em;
+    }
+
+    .home h1 {
+      max-width: none;
+      margin-bottom: 12px;
+      color: #e4edf0;
+      font-size: clamp(34px, 5.5vw, 72px);
+      line-height: .88;
+      letter-spacing: -.055em;
+      text-shadow: 1px 0 0 rgb(77 220 244 / .2), -1px 0 0 rgb(215 75 245 / .16);
+    }
+
+    .home .hero p {
+      max-width: 780px;
+      color: #95a7af;
+      font-size: clamp(12px, 1.25vw, 15px);
+      line-height: 1.45;
+    }
+
+    .hero-readout {
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      min-width: 0;
+      background:
+        linear-gradient(135deg, rgb(118 85 255 / .06), transparent 44%),
+        #040708;
+    }
+
+    .readout-title {
+      border-bottom: 1px solid var(--home-line-dim);
+      padding: 10px 12px;
+      color: #9aacb4;
+      font-size: 9px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    .readout-grid {
+      display: grid;
+      align-content: center;
+      gap: 7px;
+      padding: 16px 12px;
+    }
+
+    .readout-row {
+      display: grid;
+      grid-template-columns: 82px 1fr;
+      gap: 10px;
+      align-items: center;
+      color: #71838c;
+      font-size: 9px;
+      text-transform: uppercase;
+    }
+
+    .readout-row b {
+      color: #b7c6cc;
+      font-weight: 600;
+    }
+
+    .meter {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 2px;
+      min-height: 8px;
+      margin-top: 5px;
+    }
+
+    .meter i {
+      display: block;
+      min-width: 4px;
+      background: #111a1f;
+      box-shadow: inset 0 0 0 1px #1f2b31;
+    }
+
+    .meter i:nth-child(-n+4) { background: var(--home-blue); }
+    .meter i:nth-child(n+5):nth-child(-n+8) { background: var(--home-violet); }
+    .meter i:nth-child(9) { background: var(--home-magenta); }
+
+    .readout-foot {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      border-top: 1px solid var(--home-line-dim);
+      padding: 7px 12px;
+      color: #61717a;
+      font-size: 8px;
+      letter-spacing: .08em;
+    }
+
+    .home .section-head {
+      margin: 9px 0 6px;
+      border: 1px solid var(--home-line-dim);
+      padding: 5px 7px;
+      background: #030506;
+    }
+
+    .home .section-head h2 {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #b8c7cd;
+      font-size: 10px;
+      letter-spacing: .12em;
+    }
+
+    .home .section-head h2::before {
+      content: "02 /";
+      color: var(--home-cyan);
+      font-size: 8px;
+    }
+
+    .home .section-head span {
+      color: #687982;
+      font-size: 8px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .grid-frame {
+      position: relative;
+      border-top: 1px solid var(--home-line);
+      border-left: 1px solid var(--home-line-dim);
+      border-right: 1px solid var(--home-line-dim);
+      background:
+        linear-gradient(rgb(255 255 255 / .022) 1px, transparent 1px),
+        linear-gradient(90deg, rgb(255 255 255 / .022) 1px, transparent 1px),
+        #020405;
+      background-size: 16px 16px;
+    }
+
+    .home .grid {
+      grid-template-columns: repeat(auto-fit, minmax(235px, 1fr));
+      gap: 7px;
+      padding: 7px;
+    }
+
+    .home .card {
+      --accent: var(--home-cyan);
+      min-height: 165px;
+      padding: 0;
+      border: 1px solid #35434a;
+      background:
+        linear-gradient(135deg, color-mix(in srgb, var(--accent) 7%, transparent), transparent 38%),
+        #050809;
+      box-shadow: inset 0 0 0 1px #0c1215;
+      transition: none;
+    }
+
+    .home .card::before {
+      top: -1px;
+      left: -1px;
+      right: auto;
+      width: 42%;
+      height: 2px;
+      background: var(--accent);
+      opacity: .95;
+    }
+
+    .home .card::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 14px;
+      height: 14px;
+      border-top: 1px solid var(--accent);
+      border-right: 1px solid var(--accent);
+      opacity: .7;
+    }
+
+    .home .card:hover {
+      border-color: color-mix(in srgb, var(--accent) 72%, #52606a);
+      background:
+        linear-gradient(135deg, color-mix(in srgb, var(--accent) 11%, transparent), transparent 42%),
+        #070b0d;
+    }
+
+    .home .card-head {
+      gap: 8px;
+      min-height: 28px;
+      margin: 0;
+      border-bottom: 1px solid #1f292e;
+      padding: 5px 7px;
+      background: rgb(0 0 0 / .32);
+    }
+
+    .home .index,
+    .home .status {
+      font-size: 8px;
+      letter-spacing: .105em;
+    }
+
+    .home .index { color: var(--accent); }
+    .home .status { color: #8ba49b; }
+    .home .status.dev { color: var(--home-amber); }
+
+    .card-copy {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      padding: 11px 11px 10px;
+    }
+
+    .home .card h3 {
+      margin-bottom: 7px;
+      color: #d8e3e7;
+      font-size: 16px;
+      line-height: 1.05;
+      letter-spacing: -.02em;
+    }
+
+    .home .card p {
+      margin-bottom: 12px;
+      color: #7f9199;
+      font-size: 10.5px;
+      line-height: 1.42;
+    }
+
+    .home .actions {
+      gap: 5px;
+      margin-top: auto;
+      font-size: 8px;
+    }
+
+    .home .actions a {
+      border: 1px solid #27343a;
+      padding: 4px 6px;
+      color: #93a7af;
+      background: #030506;
+      letter-spacing: .08em;
+      text-decoration: none;
+    }
+
+    .home .actions a:first-child { border-color: color-mix(in srgb, var(--accent) 50%, #27343a); color: var(--accent); }
+    .home .actions a:hover { border-color: var(--accent); color: #f1fbff; }
+
+    .card-scan {
+      position: absolute;
+      right: 8px;
+      bottom: 7px;
+      display: flex;
+      gap: 2px;
+      opacity: .32;
+      pointer-events: none;
+    }
+
+    .card-scan i {
+      width: 2px;
+      height: 8px;
+      background: var(--accent);
+    }
+
+    .card-scan i:nth-child(2) { height: 5px; }
+    .card-scan i:nth-child(3) { height: 11px; }
+    .card-scan i:nth-child(4) { height: 4px; }
+
+    .home .footer {
+      position: relative;
+      margin-top: 7px;
+      border-top: 1px solid var(--home-line);
+      padding: 13px 0 28px;
+      color: #596970;
+      background: #020304;
+      font-size: 8px;
+      letter-spacing: .08em;
+    }
+
+    .home .footer::after {
+      content: "";
+      position: absolute;
+      inset: auto 0 0;
+      height: 14px;
+      border-top: 1px solid #172126;
+      background: repeating-linear-gradient(135deg, transparent 0 18px, #1a2429 18px 19px, transparent 19px 36px);
+    }
+
+    .home .footer a { color: #718c98; }
+
+
+    /* Unmarked maintenance blank. Four fasteners are the only links. */
+    .stash-hatch{position:relative;width:146px;height:64px;margin:12px 0 6px auto;border:1px solid #27343a;background:linear-gradient(165deg,#131b1e,#080d0f 65%,#10171a);box-shadow:inset 0 0 0 2px #060a0c,inset 0 1px 0 #303b3e}
+    .stash-hatch::after{content:"";position:absolute;inset:12px 22px;pointer-events:none;border:1px solid #1d292e;background:repeating-linear-gradient(90deg,#10181b 0 8px,#131b1f 8px 9px);opacity:.65}
+    .stash-bolt{position:absolute;z-index:1;display:grid;place-items:center;width:24px;height:24px;border:1px solid #0a0e11;border-radius:50%;background:radial-gradient(circle at 32% 25%,#515e62,#252f34 65%,#141c20);color:#879397;font-size:12px;line-height:1;text-decoration:none;transform:rotate(-28deg)}
+    .stash-bolt:hover,.stash-bolt:focus-visible{color:#e2eced;border-color:#a6b9bb;background:#39464a}
+    .stash-bolt.tl{top:4px;left:4px}.stash-bolt.tr{top:4px;right:4px}.stash-bolt.bl{bottom:4px;left:4px}.stash-bolt.br{bottom:4px;right:4px}
+
+    @media (max-width: 820px) {
+      .hero-body { grid-template-columns: 1fr; }
+      .hero-copy { border-right: 0; border-bottom: 1px solid var(--home-line-dim); }
+      .hero-readout { min-height: 150px; }
+      .home .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 560px) {
+      .home .shell { width: min(calc(100% - 10px), 1540px); }
+      .home .topbar { position: static; }
+      .home .topbar .shell,
+      .home .footer .shell { align-items: stretch; flex-direction: column; padding: 7px 0; }
+      .brand-block { justify-content: space-between; }
+      .home .nav { display: grid; grid-template-columns: 1fr 1fr; width: 100%; }
+      .home .nav a { text-align: center; }
+      .hero-copy { padding: 24px 16px 26px; }
+      .home h1 { font-size: clamp(34px, 14vw, 58px); }
+      .home .grid { grid-template-columns: 1fr; }
+      .home .section-head { align-items: flex-start; flex-direction: column; gap: 2px; }
+      .panel-cap { align-items: flex-start; flex-direction: column; gap: 1px; padding-top: 5px; padding-bottom: 5px; }
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .signal::before {
+        content: "■";
+        margin-right: .6em;
+        animation: homeBlink 1.7s steps(2, end) infinite;
+      }
+      @keyframes homeBlink { 50% { opacity: .2; } }
+    }
+  </style>
+</head>
+<body class="home">
+  <header class="topbar">
+    <div class="shell">
+      <div class="brand-block">
+        <span class="nav-id">CP437</span>
+        <a class="brand" href="./">TECHROTE<span>//</span>WORKBENCH</a>
+      </div>
+      <nav class="nav" aria-label="Primary">
+        <a href="#projects"><span>01</span> PROJECTS</a>
+        <a href="https://github.com/techrote"><span>EXT</span> GITHUB</a>
+      </nav>
     </div>
-    <label class="file-picker">REPLACE ART (LOCAL PREVIEW)<input id="replace-art" type="file" accept="image/png,image/webp,image/jpeg,image/svg+xml"></label>
-    <label class="file-picker">REPLACE SCREEN (LOCAL PREVIEW)<input id="replace-screen" type="file" accept="image/png,image/webp,image/jpeg,image/svg+xml"></label>
-    <label class="switch"><input type="checkbox" id="move-hotspots">MOVE LINK TARGETS</label>
-    <p class="help">Drag to move · Shift+drag for pixel precision · Arrows nudge · [ / ] change stacking. Changes save locally. Asset files must be copied into the site to publish replacements.</p>
-    <div class="inspector-actions"><button type="button" id="save-json">EXPORT JSON</button><button type="button" id="reset-layout">RESET</button></div>
-    <p class="inspector-source"><a href="scene/README.md" target="_blank" rel="noopener">SCENE GUIDE</a> · <a href="directory.html">LINK INDEX</a></p>
-  </aside>
-  <noscript><div class="noscript">This interactive gallery needs JavaScript. <a href="directory.html">Open the complete text directory.</a></div></noscript>
-</div>
-<script src="scene/workshop.js" defer></script>
-</body></html>
+  </header>
+
+  <main class="shell home-shell">
+    <section class="hero console-panel" aria-labelledby="home-title">
+      <div class="panel-cap">
+        <strong>01 / INDEX RASTER</strong>
+        <span class="signal">PUBLIC WORKBENCH // ONLINE</span>
+      </div>
+      <div class="hero-body">
+        <div class="hero-copy">
+          <div class="eyebrow">SOURCE // BROWSER TOOLS + GRAPHICS + ENGINEERING R&amp;D</div>
+          <h1 id="home-title">TOOLS / GRAPHICS / R&amp;D</h1>
+          <p>Small software, browser experiments and engineering tools. Some polished, some still carrying grinder marks.</p>
+        </div>
+        <aside class="hero-readout" aria-label="Workbench status">
+          <div class="readout-title">SYSTEM / PRESENTATION PROFILE</div>
+          <div class="readout-grid">
+            <div class="readout-row"><span>OUTPUT</span><b>STATIC HTML</b></div>
+            <div class="readout-row"><span>SCRIPT</span><b>NO SITE JS</b></div>
+            <div class="readout-row"><span>MODE</span><b>PUBLIC / LIVE</b></div>
+            <div class="readout-row"><span>STACK</span><b>HTML · CSS · WEBGL · PYTHON</b></div>
+            <div class="meter" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          </div>
+          <div class="readout-foot"><span>13 ENTRIES</span><span>INDEX PROFILE // 01</span></div>
+        </aside>
+      </div>
+    </section>
+
+
+    <div class="stash-hatch" role="group" aria-label="Unmarked service plate">
+      <a class="stash-bolt tl" href="shattered-art-stash/" title="Shattered Art Stash" aria-label="Open hidden Shattered Art Stash gallery via upper left fastener">−</a>
+      <a class="stash-bolt tr" href="signal-relics/" title="Signal Relics" aria-label="Open hidden Signal Relics gallery via upper right fastener">−</a>
+      <a class="stash-bolt bl" href="salvage-apparatus/" title="Salvage Apparatus" aria-label="Open hidden Salvage Apparatus gallery via lower left fastener">−</a>
+      <a class="stash-bolt br" href="salvage-arcade/" title="Salvage Arcade" aria-label="Open hidden Salvage Arcade gallery via lower right fastener">−</a>
+    </div>
+
+    <section id="projects" aria-labelledby="projects-title">
+      <div class="section-head">
+        <h2 id="projects-title">Project Array</h2>
+        <span>13 project entries · compact raster fit</span>
+      </div>
+      <div class="grid-frame">
+        <div class="grid">
+          <article class="card" style="--accent:#4ddcf4">
+            <div class="card-head"><span class="index">01 // GLYPH</span><span class="status">LIVE</span></div>
+            <div class="card-copy">
+              <h3>GlyphPaint</h3>
+              <p>Standalone browser painting program for HTML/ANSI character art, with Paint-style tools, image import and HTML/image export.</p>
+              <div class="actions"><a href="glyphpaint/">OPEN</a><a href="projects/glyphpaint.html">INFO</a><a href="https://github.com/techrote/GlyphPaint">GITHUB</a></div>
+            </div>
+            <span class="card-scan" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+          </article>
+
+          <article class="card" style="--accent:#7655ff">
+            <div class="card-head"><span class="index">02 // GLYPH</span><span class="status dev">2.0 RC</span></div>
+            <div class="card-copy">
+              <h3>GlyphPoint</h3>
+              <p>Offline Unicode drawing editor with per-cell colours, Canvas rendering, automatic recovery, and PNG/JSON/HTML export.</p>
+              <div class="actions"><a href="glyphpoint/">OPEN</a><a href="projects/glyphpoint.html">INFO</a><a href="https://github.com/techrote/GlyphPoint">GITHUB</a></div>
+            </div>
+            <span class="card-scan" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+          </article>
+
+          <article class="card" style="--accent:#d74bf5">
+            <div class="card-head"><span class="index">03 // GPU</span><span class="status">LIVE</span></div>
+            <div class="card-copy">
+              <h3>XenoField</h3>
+              <p>WebGPU visual synthesis with spectral surfaces, alien planets, procedural clouds and volumetric effects.</p>
+              <div class="actions"><a href="xenofield/">OPEN</a><a href="https://github.com/techrote/XenosField#readme">INFO</a><a href="https://github.com/techrote/XenosField">GITHUB</a></div>
+            </div>
+            <span class="card-scan" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+          </article>
+
+          <article class="card" style="--accent:#249be8">
+            <div class="card-head"><span class="index">04 // TERM</span><span class="status">WEB BUILD</span></div>
+            <div class="card-copy">
+              <h3>PlasmaTerm</h3>
+              <p>Real-time generative plasma for Windows Terminal, with a browser build for portable hands-on use.</p>
+              <div class="actions"><a href="plasmaterm/">OPEN</a><a href="projects/plasmaterm.html">INFO</a><a href="https://github.com/techrote/PlasmaTerm">GITHUB</a></div>
+            </div>
+            <span class="card-scan" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+          </article>
+
+          <article class="card" style="--accent:#5fe878">
+            <div class="card-head"><span class="index">05 // ANSI</span><span class="status">LIVE</span></div>
+            <div class="card-copy">
+              <h3>PNG2ANSI</h3>
+              <p>Offline single-file browser converter for classic 16-colour CP437 ANSI artwork.</p>
+              <div class="actions"><a href="PNG2ANSI-web.html">OPEN</a><a href="projects/png2ansi.html">INFO</a><a href="https://github.com/techrote/PNG2ANSI">GITHUB</a></div>
+            </div>
+            <span class="card-scan" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+          </article>
+
+          <article class="card" style="--accent:#4ddcf4">
+            <div class="card-head"><span class="index">06 // MESH</span><span class="status">LIVE</span></div>
+            <div class="card-copy">
+              <h3>EdgeCraft</h3>
+              <p>Triangle-mesh finishing kernel and browser STL editor.</p>
+              <div class="actions"><a href="edgecraft-stl.html">OPEN</a><a href="projects/edgecraft.html">INFO</a><a href="https://github.com/techrote/EdgeCraft">GITHUB</a></div>
+            </div>
+            <span class="card-scan" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+          </article>
+
+          <article class="card" style="--accent:#7655ff">
+            <div class="card-head"><span class="index">07 // ANSI</span><span class="status">SOURCE</span></div>
+            <div class="card-copy">
+              <h3>pyANSI</h3>
+              <p>Python reference converter behind PNG2ANSI-web.</p>
+              <div class="actions"><a href="projects/pyansi.html">INFO</a><a href="https://github.com/techrote/pyANSI">GITHUB</a></div>
+            </div>
+            <span class="card-scan" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+          </article>
+
+          <article class="card" style="--accent:#e4bd63">
+            <div class="card-head"><span class="index">08 // THERMAL</span><span class="status">LIVE</span></div>
+            <div class="card-copy">
+              <h3>ThermoPipe Parameter Suite</h3>
+              <p>Reduced-order exploration tool for copper heat pipes and gravity thermosyphons.</p>
+              <div class="actions"><a href="thermopipe_parameter_suite.html">OPEN</a><a href="projects/thermopipe.html">INFO</a><a href="https://github.com/techrote/ThermoPipeParameter">GITHUB</a></div>
+            </div>
+            <span class="card-scan" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+          </article>
+
+          <article class="card" style="--accent:#d74bf5">
+            <div class="card-head"><span class="index">09 // LAB</span><span class="status">LIVE</span></div>
+            <div class="card-copy">
+              <h3>Brachistochrone Lab</h3>
+              <p>Browser experiment racing a cycloid, a straight ramp and an adjustable curve.</p>
+              <div class="actions"><a href="brachistochrone-lab-v2.html">OPEN</a><a href="projects/brachistochrone.html">INFO</a><a href="https://github.com/techrote/Brachistochrone-Lab">GITHUB</a></div>
+            </div>
+            <span class="card-scan" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+          </article>
+
+          <article class="card" style="--accent:#e4bd63">
+            <div class="card-head"><span class="index">10 // GAME</span><span class="status dev">BETA</span></div>
+            <div class="card-copy">
+              <h3>Relay Moth Beta</h3>
+              <p>Uploaded beta snapshot of Relay Moth Forest for browser testing. Hosted separately from the auto-updating and stable copies.</p>
+              <div class="actions"><a href="relay_moth_beta/">PLAY</a><a href="projects/relay-moth-forest.html">INFO</a><a href="https://github.com/techrote/Relay-Moth-Forest">GITHUB</a></div>
+            </div>
+            <span class="card-scan" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+          </article>
+
+          <article class="card" style="--accent:#687982">
+            <div class="card-head"><span class="index">11 // MISC</span><span class="status dev">ARCHIVE</span></div>
+            <div class="card-copy">
+              <h3>scratchpad</h3>
+              <p>Loose public archive for experimental code, art and in-progress material.</p>
+              <div class="actions"><a href="projects/scratchpad.html">INFO</a><a href="https://github.com/techrote/scratchpad">GITHUB</a></div>
+            </div>
+            <span class="card-scan" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+          </article>
+
+          <article class="card" style="--accent:#249be8">
+            <div class="card-head"><span class="index">12 // REF</span><span class="status">REFERENCE</span></div>
+            <div class="card-copy">
+              <h3>devref</h3>
+              <p>Reusable, copy-paste-ready instruction fragments for agentic development work.</p>
+              <div class="actions"><a href="https://github.com/techrote/devref#readme">INFO</a><a href="https://github.com/techrote/devref">GITHUB</a></div>
+            </div>
+            <span class="card-scan" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+          </article>
+
+          
+
+          
+
+          <article class="card" style="--accent:#b7efb1">
+            <div class="card-head"><span class="index">13 // NETWORK</span><span class="status">LIVE</span></div>
+            <div class="card-copy">
+              <h3>Connection Lab</h3>
+              <p>Browser connection endurance tests with real page loads, sustained transfers, pause markers and timestamped results.</p>
+              <div class="actions"><a href="connection-lab/">OPEN</a><a href="https://github.com/techrote/techrote.github.io/tree/main/connection-lab">GITHUB</a></div>
+            </div>
+            <span class="card-scan" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+          </article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="shell">
+      <span>TECHROTE // PUBLIC WORKBENCH // STATIC INDEX</span>
+      <a href="https://github.com/techrote">github.com/techrote</a>
+    </div>
+  </footer>
+</body>
+</html>
