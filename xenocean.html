@@ -1,0 +1,2375 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Xenoflora Lab</title>
+<style>
+  :root{--bg:#050806;--panel:#0a120d;--panel2:#07100b;--line:#1f4a2c;--green:#6dff7a;--green2:#b8ff9c;--dim:#6f9a78;--red:#ff4d5e;--ink:#d4f7d9;}
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font:12px/1.35 ui-monospace,Consolas,"Courier New",monospace;overflow:hidden}
+  #app{height:100%;display:flex;flex-direction:column}
+  #bar{position:relative;height:36px;flex:0 0 36px;display:flex;align-items:center;gap:4px;padding:0 8px;background:#070d09;border-bottom:1px solid var(--line);z-index:20;white-space:nowrap}
+  .brand{color:var(--green);font-weight:700;letter-spacing:1.5px;margin-right:10px}
+  .menu-btn{background:transparent;color:var(--ink);border:1px solid transparent;padding:5px 9px;font:inherit;letter-spacing:.8px;cursor:pointer}
+  .menu-btn:hover{border-color:var(--line)}
+  .menu-btn.open{color:#041007;background:var(--green)}
+  #msg{margin-left:auto;color:var(--dim);overflow:hidden;text-overflow:ellipsis;max-width:34vw}
+  #life{width:110px;height:8px;border:1px solid var(--line);flex:0 0 auto}
+  #life i{display:block;height:100%;width:0;background:linear-gradient(90deg,#28c76f,var(--green),var(--green2));transition:width .25s}
+  #drop{position:absolute;top:36px;left:0;right:0;max-height:72vh;overflow:auto;background:var(--panel);border-bottom:2px solid var(--green);box-shadow:0 14px 34px #000d;padding:10px;display:none;z-index:19;white-space:normal}
+  #drop.open{display:block}
+  .panel{display:none}
+  .panel.on{display:block}
+  .grid-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px;align-items:start}
+  .card{border:1px solid var(--line);background:var(--panel2);padding:8px}
+  .card-h{display:flex;align-items:center;justify-content:space-between;gap:8px;color:var(--green);text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:6px}
+  .card-h .r{display:flex;gap:6px}
+  .lock,.mini{font:inherit;font-size:10px;border:1px solid var(--line);background:#0b1a10;color:var(--dim);padding:2px 7px;cursor:pointer}
+  .lock.on{background:var(--green);color:#041007;border-color:var(--green)}
+  .row{display:grid;grid-template-columns:minmax(120px,1fr) 2fr 104px auto;align-items:center;gap:6px;padding:3px 0}
+  .row label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .row input[type=range]{width:100%;accent-color:var(--green)}
+  .row input[type=number],select,input[type=text]{width:100%;background:#050b07;color:var(--green2);border:1px solid var(--line);padding:3px 4px;font:inherit}
+  .row button.rst{background:transparent;color:var(--dim);border:1px solid var(--line);cursor:pointer;font:inherit;padding:0 6px}
+  .row button:disabled,.row input:disabled{opacity:.35;cursor:not-allowed}
+  .tip{grid-column:1/-1;color:var(--dim);font-size:10.5px;display:none}
+  body.tips .tip{display:block}
+  .btn{background:#0b1a10;color:var(--ink);border:1px solid var(--line);padding:6px 9px;font:inherit;cursor:pointer;text-align:left}
+  .btn:hover{background:#15301d}
+  .btn.active,.btn.on{background:var(--green);color:#041007;border-color:var(--green)}
+  .btn.danger{border-color:var(--red);color:#ffb3bc}
+  .toolgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px}
+  .stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px}
+  .stat{border:1px dashed var(--line);padding:8px}
+  .stat strong{display:block;font-size:20px;color:var(--green2)}
+  .stat span{color:var(--dim);text-transform:uppercase;font-size:10px;letter-spacing:1px}
+  .prow{display:grid;grid-template-columns:1fr 1fr auto auto auto;gap:6px;align-items:center;margin-bottom:6px}
+  .note{color:var(--dim);font-size:11px;line-height:1.5;margin:0}
+  #stage{flex:1;min-height:0;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#000}
+  canvas#world{image-rendering:pixelated;image-rendering:crisp-edges;display:block;cursor:crosshair;touch-action:none;box-shadow:0 0 0 1px var(--line)}
+  #pbrWorld{position:absolute;inset:auto;align-self:center;pointer-events:none;image-rendering:pixelated;image-rendering:crisp-edges}
+  #pbrWorld[hidden]{display:none}
+  #hint{position:absolute;left:10px;bottom:8px;color:var(--dim);font-size:11px;pointer-events:none}
+</style>
+</head>
+<body>
+<div id="app">
+<header id="bar">
+  <div class="brand">🪴 XENOFLORA LAB</div>
+  <button class="menu-btn" data-menu="matter">MATTER ▾</button>
+  <button class="menu-btn" data-menu="genome">GENOME ▾</button>
+  <button class="menu-btn" data-menu="lab">LAB ▾</button>
+  <button class="menu-btn" data-menu="params">PARAMS ▾</button>
+  <button class="menu-btn" data-menu="telemetry">TELEMETRY ▾</button>
+  <button class="menu-btn" data-menu="presets">PRESETS ▾</button>
+  <div id="msg">Xenoflora substrate online.</div>
+  <div id="life"><i></i></div>
+  <div id="drop">
+    <section class="panel" data-panel="matter">
+      <div class="grid-cards">
+        <div class="card"><div class="card-h">Matter injector</div>
+          <div class="toolgrid" id="tools">
+            <button class="btn tool active" data-m="seed">◉ Gene nodule</button>
+            <button class="btn tool" data-m="water">💧 Coolant</button>
+            <button class="btn tool" data-m="soil">▦ Bio-soil</button>
+            <button class="btn tool" data-m="sand">⋰ Silica sand</button>
+            <button class="btn tool" data-m="sun">☄ Photon beam</button>
+            <button class="btn tool" data-m="wind">≋ Wind field</button>
+            <button class="btn tool" data-m="eraser">⌫ Null field</button>
+          </div>
+        </div>
+        <div class="card"><div class="card-h">Brush</div><div id="brushHost"></div></div>
+      </div>
+    </section>
+    <section class="panel" data-panel="genome">
+      <div class="grid-cards">
+        <div class="card"><div class="card-h">Genome rack — seed payload</div>
+          <div class="toolgrid" id="genes">
+            <button class="btn gene active" data-g="0">☘ Neon fern</button>
+            <button class="btn gene" data-g="1">⚙ Circuit cactus</button>
+            <button class="btn gene" data-g="2">✿ Void orchid</button>
+            <button class="btn gene" data-g="3">≈ Plasma moss</button>
+            <button class="btn gene" data-g="4">♬ Signal reed</button>
+            <button class="btn gene" data-g="5">◇ Glassroot</button>
+            <button class="btn gene" data-g="6">♁ Spore tower</button>
+            <button class="btn gene" data-g="7">〰 Coilvine</button>
+            <button class="btn gene" data-g="8">♨ Xenocoral</button>
+            <button class="btn gene" data-g="9">☾ Moon lily</button>
+            <button class="btn gene" data-g="10">✥ Ironbloom</button>
+            <button class="btn gene" data-g="11">⬡ Hex succulent</button>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="panel" data-panel="lab">
+      <div class="grid-cards">
+        <div class="card"><div class="card-h">Lab controls</div>
+          <div class="toolgrid">
+            <button class="btn" id="rain">☂ Coolant storm</button>
+            <button class="btn" id="surprise">✦ Gene surge</button>
+            <button class="btn danger" id="clear">↺ Reboot biome</button>
+            <button class="btn" id="pause">Ⅱ Pause</button>
+          </div>
+        </div>
+        <div class="card"><div class="card-h">Render cap</div>
+          <div class="toolgrid">
+            <button class="btn fpsBtn" data-fps="60">60 FPS</button>
+            <button class="btn fpsBtn" data-fps="120">120 FPS</button>
+          </div>
+          <p class="note">Physics runs on its own tick (see PARAMS › Simulation). The cap only limits redraws.</p>
+        </div>
+      </div>
+    </section>
+    <section class="panel" data-panel="params"><div class="grid-cards" id="paramHost"></div></section>
+    <section class="panel" data-panel="telemetry">
+      <div class="grid-cards">
+        <div class="card"><div class="card-h">Biome telemetry</div>
+          <div class="stats">
+            <div class="stat"><strong id="treeCount">0</strong><span>colonies</span></div>
+            <div class="stat"><strong id="bloomCount">0</strong><span>emitters</span></div>
+            <div class="stat"><strong id="mood">dormant</strong><span>signal state</span></div>
+            <div class="stat"><strong id="score">0</strong><span>bio-data</span></div>
+            <div class="stat"><strong id="lutBitsFlipped">0</strong><span>lut bits flipped</span></div>
+            <div class="stat"><strong id="critterCount">0</strong><span>critters</span></div>
+            <div class="stat"><strong id="crEra">Mixed · 3:00</strong><span>ecosystem era</span></div>
+            <div class="stat"><strong id="coolantPct">0.0%</strong><span>coolant</span></div>
+            <div class="stat"><strong id="coolantDrunk">0</strong><span>coolant drunk</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="panel" data-panel="presets">
+      <div class="grid-cards">
+        <div class="card"><div class="card-h">Preset</div>
+          <div class="prow">
+            <select id="presetSel" aria-label="Preset"></select>
+            <input id="presetName" type="text" placeholder="name…" aria-label="Preset name" />
+            <button class="btn" id="presetLoad">LOAD</button>
+            <button class="btn" id="presetSave">SAVE</button>
+            <button class="btn danger" id="presetDel">DEL</button>
+          </div>
+          <div class="card-h" style="margin-top:8px"><span>Display</span>
+            <span class="r"><label style="color:var(--ink)"><input type="checkbox" id="tipsToggle" checked /> TOOLTIPS</label></span></div>
+          <button class="btn danger" id="resetAll">↺ Reset all to FACTORY (locked groups skipped)</button>
+        </div>
+        <div class="card"><div class="card-h">Protocol</div>
+          <p class="note"><b>Protocol:</b> layer bio-soil, implant a genome nodule, and hydrate it with coolant. Photon beams accelerate emergence. Choose <b>Wind field</b>, then drag for a vortex or click for an up-and-right launch pulse. Each payload grows a different alien machine-plant. Lock a group to protect its values from presets and resets.</p>
+        </div>
+      </div>
+    </section>
+  </div>
+</header>
+<main id="stage">
+  <canvas id="world" aria-label="Pixel cybernetic plant and sand simulation"></canvas>
+  <canvas id="pbrWorld" aria-hidden="true" hidden></canvas>
+  <div id="hint">DRAG TO SEED • WIND: DRAG VECTOR / CLICK UPDRAFT • SPACE PAUSE</div>
+</main>
+</div>
+<script>
+(() => {
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const EMPTY=0,SOIL=1,SAND=2,WATER=3,SEED=4,STEM=5,FROND=6,BLOOM=7,ROCK=8,VINE=9,GLOW=10,FUNGUS=11,CACTUS=12,REED=13,CRYSTAL=14,PETAL=15,POD=16,CORAL=17,TENDRIL=18,LILY=19,THORN=20;
+const TYPE_BASE=['#173551','#76555a','#b6905b','#4aa7ba','#c5a25c','#775d77','#5bab8d','#b480b7','#647584','#8069a0','#65c4b4','#b18aaa','#75a970','#5ca4a1','#a6d0d7','#d092bc','#c8b06f','#d28478','#a984b8','#b7c5d0','#a6bb72'];
+const TYPE_SHADE=['#16344f','#705158','#ae8b5a','#49a3b4','#bf9d5c','#725a73','#57a687','#ad7cb1','#607181','#7b659b','#62bdaf','#ac85a5','#70a46d','#58a098','#a0c9cf','#c98bb5','#c1aa6c','#ca7e75','#a47fb3','#b1c0ca','#a0b372'];
+const genome=[
+  {name:'neon fern',seed:'#b6d976'},{name:'circuit cactus',seed:'#83bd75'},{name:'void orchid',seed:'#d48fbc'},{name:'plasma moss',seed:'#78cdbd'},
+  {name:'signal reed',seed:'#72b8c4'},{name:'glassroot',seed:'#a9d3da'},{name:'spore tower',seed:'#c59dbe'},{name:'coilvine',seed:'#ac8dca'},
+  {name:'xenocoral',seed:'#d9907d'},{name:'moon lily',seed:'#c5d1df'},{name:'ironbloom',seed:'#c4c77a'},{name:'hex succulent',seed:'#9fbd79'}
+];
+
+// ---------- parameters ----------
+const prm=(g,k,l,d,min,max,step,tip='',commit=false)=>({g,k,l,d,min,max,step,tip,commit});
+const PARAMS=[
+  prm('Simulation','simHz','Physics tick (Hz)',60,1,1000,1,'Fixed physics rate. Gravity and drag are per tick, so changing this changes apparent speed.'),
+  prm('Simulation','speed','Time scale',1,0,50,.01,'Multiplies elapsed time. 0 freezes physics but keeps the UI live.'),
+  prm('Simulation','renderFps','Render cap (FPS)',60,1,1000,1,'Maximum redraw rate. 60 and 120 are also in LAB.'),
+  prm('Simulation','maxSteps','Max catch-up steps',5,1,1000,1,'Physics steps allowed per frame after a stall.'),
+  prm('Simulation','gridW','Grid width (cells)',384,32,2048,1,'Simulation resolution. Applied on release; rebuilds the biome.',true),
+  prm('Simulation','gridH','Grid height (cells)',240,32,2048,1,'Simulation resolution. Applied on release; rebuilds the biome.',true),
+  prm('Noise','noiseBase','Static rate (Hz)',1,.01,120,.01,'Centre of the texture-static update rate. Cosmetic only; physics is unaffected.'),
+  prm('Noise','noiseMin','Walk floor (Hz)',.7,0,120,.01,'Lower bound of the static rate walk.'),
+  prm('Noise','noiseMax','Walk ceiling (Hz)',1.3,0,120,.01,'Upper bound of the static rate walk.'),
+  prm('Noise','noiseWalk','Walk step',.14,0,10,.01,'How far the static rate can wander per update.'),
+  prm('Noise','noiseDensity','Static density',1/29,0,1,.001,'Share of pixels that carry the static shade.'),
+  prm('Noise','noiseContrast','Static contrast',1,0,10,.01,'0 = no static. 1 = full shade. Above 1 pushes past the shade.'),
+  prm('Physics','gravSolid','Gravity (solids)',.115,-5,5,.001,'Downward acceleration per tick for soil, sand and seeds.'),
+  prm('Physics','gravWater','Gravity (coolant)',.055,-5,5,.001,'Downward acceleration per tick for coolant.'),
+  prm('Physics','dragSolid','Air drag (solids)',.988,0,2,.001,'Velocity retained per tick while airborne.'),
+  prm('Physics','dragWater','Air drag (coolant)',.96,0,2,.001,'Sideways coolant velocity retained per physics tick.'),
+  prm('Physics','vMaxDown','Terminal fall',2.25,0,200,.01,'Maximum downward speed, cells per tick.'),
+  prm('Physics','vMaxUp','Terminal rise',3.8,0,200,.01,'Maximum upward speed.'),
+  prm('Physics','vMaxSide','Side speed cap',3.8,0,200,.01,'Maximum sideways speed.'),
+  prm('Physics','bounce','Impact bounce',.12,0,5,.01,'Vertical energy kept on landing.'),
+  prm('Physics','reboundUp','Ceiling rebound',.32,0,5,.01,'Vertical energy kept after hitting a ceiling.'),
+  prm('Physics','frictionSand','Friction: sand',.79,0,2,.001,'Sideways retention when a grain cannot move.'),
+  prm('Physics','frictionSoil','Friction: soil',.70,0,2,.001,'Sideways retention when soil cannot move.'),
+  prm('Physics','frictionWater','Friction: coolant',.90,0,2,.001,'Sideways retention when coolant cannot move.'),
+  prm('Physics','skidSolid','Skid drag (solids)',.93,0,2,.001,'Sideways retention while sliding on a surface.'),
+  prm('Physics','skidWater','Skid drag (coolant)',.965,0,2,.001,'Sideways retention while coolant slides.'),
+  prm('Physics','wetSpread','Wetting per tick',5,0,65535,1,'Moisture coolant adds to neighbouring soil and seeds.'),
+  prm('Physics','wetMax','Wetting ceiling',120,0,65535,1,'Maximum moisture a cell can hold.'),
+  prm('Wind','windBase','Drag base force',1.45,0,500,.01,'Base force of a drag gust.'),
+  prm('Wind','windPerLen','Force per drag length',.32,0,50,.01,'Extra force per cell of drag distance.'),
+  prm('Wind','windCap','Drag force cap',5.2,0,500,.01,'Upper limit on a drag gust.'),
+  prm('Wind','windClick','Click updraft force',2.8,0,500,.01,'Strength of the click launch pulse.'),
+  prm('Wind','windRadius','Wind radius base',5,0,500,1,'Radius in cells. Brush radius adds three per brush cell.'),
+  prm('Wind','windCurl','Vortex curl',.65,-10,10,.01,'Perpendicular push that makes the vortex spin.'),
+  prm('Wind','windLift','Lift',.75,-10,10,.01,'Upward push from a gust.'),
+  prm('Wind','windRise','Lift swirl',.28,-10,10,.01,'Lift that depends on position across the gust.'),
+  prm('Wind','windVMax','Wind speed cap',4.4,0,500,.01,'Maximum speed a gust can impart.'),
+  prm('Wind','windMinDrag','Min drag step',.025,0,50,.001,'Smallest mouse movement that counts as a drag.'),
+  prm('Brush','brush','Brush radius (cells)',3,1,500,1,'Size of the paint and eraser brush.'),
+  prm('Matter','soilFraction','Soil share of seafloor',.84,0,1,.001,'Fraction of the top eighth of the seafloor that is soil instead of sand; deeper rows are all soil.'),
+  prm('Matter','seafloorDepth','Seafloor depth (rows)',16,1,2048,1,'Starting seafloor depth. Default 16 rows (one quarter of the original 64). Applies on reboot.'),
+  prm('Matter','bankHeight','Bank wave amplitude',4,0,512,.5,'Height of the wavy soil lip above the seafloor.'),
+  prm('Matter','rockChance','Rock chance',.025,0,1,.001,'Chance a seafloor cell is rock.'),
+  prm('Matter','sunPaint','Photon paint',90,0,65535,1,'Light added per photon-beam stroke.'),
+  prm('Matter','sunDecay','Light decay period (ticks)',20,1,100000,1,'Ticks between light decay steps.'),
+  prm('Matter','rainPerTick','Coolant per tick',850,0,1000000,1,'Coolant droplets spawned per tick during a storm.'),
+  prm('Matter','rainTicks','Storm length (ticks)',3,0,100000,1,'Ticks a coolant storm lasts.'),
+  prm('Matter','surpriseCount','Gene surge count',160,0,1000000,1,'Seeds and droplets dropped by a gene surge.'),
+  prm('Life','growthMul','Growth multiplier',1,0,1000,.01,'Scales every growth and spread probability.'),
+  prm('Life','compileWet','Seed wetness needed',11,0,65535,1,'Moisture a seed needs before it can compile.'),
+  prm('Life','compileAge','Seed settle age (ticks)',35,0,100000,1,'Minimum settle time before a seed compiles.'),
+  prm('Life','compileAgeRand','Seed settle jitter',45,0,100000,1,'Random extra settle time.'),
+  prm('Life','stemRate','Stem growth rate',.022,0,1,.001,'Chance per tick a stem extends.'),
+  prm('Life','frondRate','Frond growth rate',.009,0,1,.001,'Chance per tick a frond extends.'),
+  prm('Life','bloomRate','Bloom rate',.013,0,1,.001,'Chance per tick a frond or pod blooms.'),
+  prm('Life','emitRate','Side-shoot rate',.025,0,1,.001,'Chance per tick a stem sprouts a side shoot.'),
+  prm('Life','vineRate','Vine rate',.035,0,1,.001,'Chance per tick a vine or tendril extends.'),
+
+  prm('Plasma','plasmaOn','Master plasma',1,0,1,1,'Enables cosmetic plasma compositing only.'),
+  prm('Plasma','plasmaAmount','Amount multiplier',1,-4,4,.001,'Multiplies every material plasma weight.'),
+  prm('Plasma','plasmaTimeSpeed','Time speed',1,-100,100,.001,'Render-clock speed for animated plasma waves.'),
+  prm('Plasma','plasmaFx','Horizontal frequency',.075,-50,50,.001,'Horizontal plasma wave frequency.'),
+  prm('Plasma','plasmaFy','Vertical frequency',.11,-50,50,.001,'Vertical plasma wave frequency.'),
+  prm('Plasma','plasmaFd','Diagonal frequency',.058,-50,50,.001,'Static diagonal plasma wave frequency.'),
+  prm('Plasma','plasmaFr','Radial frequency',.09,-50,50,.001,'Radial plasma wave frequency.'),
+  prm('Plasma','plasmaSx','Horizontal time rate',.9,-100,100,.001,'Horizontal wave time rate.'),
+  prm('Plasma','plasmaSy','Vertical time rate',.61,-100,100,.001,'Vertical wave time rate.'),
+  prm('Plasma','plasmaSr','Radial time rate',.72,-100,100,.001,'Radial wave time rate.'),
+  prm('Plasma','plasmaPaletteSize','Palette size',32,2,256,1,'Number of evenly sampled LUT colours used by plasma.'),
+  prm('Plasma','plasmaHueShiftSpeed','Hue-shift speed',2,-100,100,.001,'Palette-index phase speed in entries per second.'),
+
+  prm('Plasma palette','plasmaHueStart','Hue start',185,-1440,1440,.1,'Starting HSL hue for the cyclic plasma LUT.'),
+  prm('Plasma palette','plasmaHueEnd','Hue end',325,-1440,1440,.1,'Peak HSL hue before the LUT returns to its start.'),
+  prm('Plasma palette','plasmaSaturation','Saturation',78,-400,400,.1,'HSL saturation; values are clamped to valid colour space when built.'),
+  prm('Plasma palette','plasmaLightness','Lightness',53,-400,400,.1,'HSL lightness; values are clamped to valid colour space when built.'),
+
+  prm('Plasma mix','plasmaBlendMode','Blend mode',0,0,3,1,'0 mix, 1 add, 2 multiply, 3 screen.'),
+  prm('Plasma mix','plasmaVoidWeight','Void weight',.35,-4,4,.001,'Plasma weight for EMPTY cells.'),
+  prm('Plasma mix','plasmaSedimentWeight','Sediment weight',0,-4,4,.001,'Plasma weight for SOIL, SAND and ROCK.'),
+  prm('Plasma mix','plasmaCoolantWeight','Coolant weight',.5,-4,4,.001,'Plasma weight for WATER.'),
+  prm('Plasma mix','plasmaSeedsWeight','Seeds weight',0,-4,4,.001,'Plasma weight for SEED.'),
+  prm('Plasma mix','plasmaStructureWeight','Structure weight',0,-4,4,.001,'Plasma weight for structural plant materials.'),
+  prm('Plasma mix','plasmaFoliageWeight','Foliage weight',0,-4,4,.001,'Plasma weight for fronds, vines and petals.'),
+  prm('Plasma mix','plasmaEmittersWeight','Emitters weight',.6,-4,4,.001,'Plasma weight for blooms, glow cells, pods and coral.'),
+
+  prm('PBR shading','pbrOn','On',0,0,1,1,'Shade the finished image using WebGL2. Cosmetic only.'),
+  prm('PBR shading','pbrSway','Light sway (rad/s)',.24,-12,12,.01,'Rate of the side-to-side light swing. Zero holds the light above the tank.'),
+  prm('PBR shading','pbrElevation','Light elevation (deg)',55,0,90,.5,'Angle out of the image plane: 0 grazes edges; 90 faces the tank.'),
+  prm('PBR shading','pbrSpec','Specular strength',1,0,8,.01,'Strength of reflected key-light highlights.'),
+  prm('PBR shading','pbrRough','Roughness multiplier',1,0,4,.01,'Lower values sharpen reflections; higher values broaden them.'),
+  prm('PBR shading','pbrNormal','Normal strength',1.6,0,16,.05,'Relief at material boundaries. Zero gives a flat surface.'),
+  prm('PBR shading','pbrEmit','Emissive strength',1,0,8,.01,'Self-light from blooms, glow cells, pods, coral and cold fire.'),
+  prm('PBR shading','pbrAmbient','Ambient light',.42,0,4,.01,'Fill light tinted by the working plasma palette while plasma is active.'),
+
+  prm('xhaos (LUT only)','xhaosOn','Enable xhaos',0,0,1,1,'Bit-corrupts only the working plasma LUT.'),
+  prm('xhaos (LUT only)','xhaosRatio','Bytes per flipped bit',8,1,4096,1,'One LUT bit is flipped for each N-byte window.'),
+  prm('xhaos (LUT only)','xhaosSampler','Sampler',0,0,1,1,'0 fixed stride, 1 seeded random byte and bit per window.'),
+  prm('xhaos (LUT only)','xhaosSeed','Seed',1337,-2147483648,2147483647,1,'Seed used by the deterministic random sampler.'),
+  prm('xhaos (LUT only)','xhaosPeriod','Period (seconds)',0,0,86400,.001,'0 applies only on changes; otherwise xhaos reapplies periodically.'),
+  prm('Currents','currentsOn','On',1,0,1,1,'Enable ocean-current acceleration for loose particles.'),
+  prm('Currents','currentStrength','Strength',3,-10,10,.001,'Rotational current strength; flow follows plasma bands.'),
+  prm('Currents','currentUpwell','Upwell',0,-10,10,.001,'Optional divergent component along the plasma gradient.'),
+  prm('Currents','currentCoolantWeight','Coolant weight',.72,-10,10,.01,'Current multiplier for coolant/water.'),
+  prm('Currents','currentSedimentWeight','Sediment weight',.04,-10,10,.01,'Current multiplier for soil and sand, strongest at the seafloor surface.'),
+  prm('Currents','currentSeedWeight','Seed weight',.12,-10,10,.01,'Current multiplier for seeds.'),
+  prm('Coolant','coolantEntrainment','Gravity offset in flow',.92,-4,4,.01,'Fraction of coolant gravity cancelled at full entrainment. The former value was 0.96.'),
+  prm('Coolant','coolantMoveChance','Move chance per tick',.50,0,1,.01,'Chance to take a cell step. Forces and wetting still update every tick; 1 restores full-speed stepping.'),
+  prm('Coolant','coolantTrickleOn','Trickle on',1,0,1,1,'Enable the top-edge source. Excess-coolant evaporation is controlled separately.'),
+  prm('Coolant','coolantRate','Base trickle (drops/s)',2,0,10000,.1,'Entry attempts per simulated second just below target. Blocked entries are skipped.'),
+  prm('Coolant','coolantDeficitBoost','Empty-tank rate boost',2,0,100,.1,'Extra multiple of the base rate at full deficit. A boost of 2 gives triple rate when empty.'),
+  prm('Coolant','coolantDrinkMatch','Drink replacement',1,0,4,.05,'While below target, add this multiple of the recent fish drinking rate to the trickle. Zero lets drinking draw the tank down.'),
+  prm('Coolant','coolantTarget','Target tank fraction',.05,0,1,.001,'Share of all tank cells desired as coolant. The trickle stops at this level.'),
+  prm('Coolant','coolantEvapBand','Evaporation margin',.01,0,1,.001,'Extra fraction of tank capacity tolerated above target before evaporation starts.'),
+  prm('Coolant','coolantEvapRate','Evaporation fraction/s',.002,0,1,.0001,'Above the margin, fraction of coolant sampled for removal per simulated second, subject to the probe cap. Zero disables evaporation.'),
+  prm('Coolant','coolantProbeCap','Max probes per tick',128,1,256,1,'Work limit for random entry or evaporation attempts. Unused or blocked attempts do not accumulate.'),
+  prm('Critters','crOn','On',1,0,1,1,'Enable critter simulation and drawing.'),
+  prm('Critters','crSpawn','Spawn rate',.02,0,1,.001,'Eras on: 60 × this value gives base attempts per simulated second, before era and boot multipliers. Eras off: chance per physics tick. Outbreak entries are independent.'),
+  prm('Critters','crCap','Population cap',60,0,500,1,'Maximum entities, including fading critters.'),
+  prm('Critters','crSpeed','Speed multiplier',1,0,12,.05,'Multiplier for self-propelled movement.'),
+  prm('Critters','crGraze','Grazing multiplier',1,0,20,.05,'Scale grazing probability on contact.'),
+  prm('Critters','crDrink','Drink rate',1,0,100,.05,'Multiplier for coolant drinking on sprite contact. Larger fish drink more; zero disables drinking.'),
+  prm('Critters','crPoll','Pollination multiplier',1,0,20,.05,'Scale pollination probability on contact.'),
+  prm('Critters','crHunt','Hunting on',1,0,1,1,'Allow targeting and eating smaller critters.'),
+  prm('Critters','crDrain','Energy drain',.35,0,50,.05,'Energy used per simulated second.'),
+  prm('Critters','crShoalSize','Sweep shoal size',6,1,128,1,'Same-species neighbours within 12 cells needed to start a sweep; excludes self.'),
+  prm('Critters','crSweepChance','Sweep chance per tick',.004,0,1,.001,'Sweep-start probability per tick in a qualifying shoal; nearby sweeps multiply it by five.'),
+  prm('Critters','crSweepCooldown','Sweep cooldown (s)',4,0,120,.25,'Simulated seconds of rest after a sweep.'),
+  prm('Critters','crExcavateMult','Excavator gust multiplier',1,0,10,.1,'Scales excavator gust impulses; zero disables gusts but not occasional digging.'),
+  prm('Critters','crBloomBoost','Bloom boost',1,0,50,.05,'Extra spawn weighting from available food biomass.'),
+  prm('Critters','crOutbreak','Outbreak threshold',.03,0,1,.001,'Plant fraction that triggers emergency grazer spawning.'),
+  prm('Eras','eraOn','Eras on',1,0,1,1,'Rotate creature blends. Off restores legacy entry and cancels retirements that have not started.'),
+  prm('Eras','eraDurationScale','Duration scale',1,.1,10,.1,'Multiply era lengths; sampled on entry to each era.'),
+  prm('Eras','eraTransitionSec','Transition (s)',10,0,60,1,'Blend settings and stagger retirement starts over this many simulated seconds, at most half the incoming era.'),
+  prm('Eras','eraWipeFraction','Retirement fraction',.40,0,.90,.01,'Fraction of live, non-fading actors selected at rotation. Zero keeps the cast; a sole survivor is never selected.'),
+  prm('Eras','eraBootSec','Startup window (s)',30,0,120,1,'Boost entry early in the initial Mixed era while below its startup target. Zero disables the boost.'),
+  prm('Eras','eraBootMult','Startup rate multiplier',4,1,12,.25,'Multiply normal entry attempts during the startup boost; placement and species limits still apply.'),
+  prm('Underwater fire','fireOn','Underwater fire',1,0,1,1,'Enable cold fire after grazing. Turning it off extinguishes existing fires.'),
+  prm('Underwater fire','fireChance','Ignition chance',.08,0,1,.01,'Chance of ignition per eaten vine cell.'),
+  prm('Underwater fire','fireFuel','Cells per ignition',220,1,4096,1,'Maximum cells ignited by one fire, including its starting cell.'),
+  prm('Underwater fire','fireSpread','Spread chance',.35,0,1,.01,'Chance per eligible neighbour tried, with at most two tries per burning cell per tick.'),
+  prm('Underwater fire','fireDuration','Burn duration',40,1,255,1,'Physics ticks before a burning cell is consumed.'),
+  prm('Underwater fire','fireMaxActive','Simultaneous fires',6,0,64,1,'Maximum number of separate ignitions still burning.'),
+];
+const PARAM_BY_KEY=Object.fromEntries(PARAMS.map(p=>[p.k,p]));
+const DEF=Object.fromEntries(PARAMS.map(p=>[p.k,p.d]));
+const P={...DEF};
+const groupLocks={}, rowRefs={}, lockBtns={};
+
+// ---------- state ----------
+let W=0,H=0,N=0;
+let world,age,wet,sun,gene,vx,vy,moved,img,data;
+const cvs=$('#world'), ctx=cvs.getContext('2d',{alpha:false});
+const pbrCanvas=$('#pbrWorld');
+let pbrGL=null,pbrState=null,pbrFailed=false,pbrLost=false,pbrNotified=false;
+
+function pbrFallback(){
+  if(!pbrCanvas.hidden)pbrCanvas.hidden=true;
+  if(P.pbrOn&&!pbrNotified){
+    pbrNotified=true;
+    toast('PBR shading unavailable. Using the 2D view.');
+  }
+}
+
+pbrCanvas.addEventListener('webglcontextlost',e=>{
+  e.preventDefault();
+  pbrLost=true;
+  pbrState=null; // All handles from this context generation are invalid.
+  pbrFallback();
+});
+pbrCanvas.addEventListener('webglcontextrestored',()=>{
+  pbrLost=false;
+  pbrFailed=false; // Rebuild lazily, only if shading is requested.
+});
+
+const pbrVS=`#version 300 es
+void main(){
+  // One oversized triangle covers the viewport without a vertex buffer.
+  vec2 p=vec2((gl_VertexID<<1)&2,gl_VertexID&2);
+  gl_Position=vec4(p*2.0-1.0,0.0,1.0);
+}`;
+
+const pbrFS=`#version 300 es
+precision highp float;
+precision highp int;
+uniform highp sampler2D uColor;
+uniform highp usampler2D uId,uBurn;
+uniform vec3 uLight,uSky;
+uniform vec4 uSurface; // specular strength, roughness scale, normal strength, emission scale
+uniform float uAmbient;
+out vec4 outColor;
+
+// Existing id order: roughness, metalness, emission, dielectric specular tint
+// (tint interpolates from white to the material's own hue).
+const vec4 mat[21]=vec4[21](
+  vec4(.99,.00,.00,.00), // EMPTY
+  vec4(.96,.00,.00,.14), // SOIL
+  vec4(.76,.02,.00,.24), // SAND
+  vec4(.27,.00,.00,.06), // WATER
+  vec4(.50,.06,.00,.30), // SEED
+  vec4(.78,.00,.00,.18), // STEM
+  vec4(.46,.00,.00,.18), // FROND
+  vec4(.40,.00,.48,.24), // BLOOM
+  vec4(.84,.08,.00,.12), // ROCK
+  vec4(.55,.00,.00,.20), // VINE
+  vec4(.32,.04,.90,.30), // GLOW
+  vec4(.69,.00,.00,.16), // FUNGUS
+  vec4(.62,.00,.00,.12), // CACTUS
+  vec4(.46,.00,.00,.18), // REED
+  vec4(.23,.38,.00,.55), // CRYSTAL
+  vec4(.51,.00,.00,.25), // PETAL
+  vec4(.42,.07,.38,.25), // POD
+  vec4(.59,.02,.44,.22), // CORAL
+  vec4(.48,.00,.00,.17), // TENDRIL
+  vec4(.35,.00,.00,.14), // LILY
+  vec4(.52,.04,.00,.22)  // THORN
+);
+
+float heightAt(ivec2 p,ivec2 last){
+  uint id=texelFetch(uId,clamp(p,ivec2(0),last),0).r;
+  return id==0u ? 0.0 : (id==3u ? .20 : 1.0);
+}
+vec3 linearRGB(vec3 c){
+  return mix(c/12.92,pow((c+.055)/1.055,vec3(2.4)),step(vec3(.04045),c));
+}
+vec3 displayRGB(vec3 c){
+  return mix(12.92*c,1.055*pow(c,vec3(1.0/2.4))-.055,step(vec3(.0031308),c));
+}
+void main(){
+  ivec2 last=textureSize(uId,0)-1;
+  ivec2 p=ivec2(gl_FragCoord.xy);
+  p.y=last.y-p.y; // Raw texture row zero is world row zero (the top).
+  vec4 pixel=texelFetch(uColor,p,0);
+  vec3 src=pixel.rgb;
+  int id=int(texelFetch(uId,p,0).r);
+  if(pixel.a==0.0 || id==0 || id>20){outColor=vec4(src,1);return;}
+
+  vec4 m=mat[id];
+  vec3 base=linearRGB(src);
+  vec2 slope=vec2(
+    heightAt(p-ivec2(1,0),last)-heightAt(p+ivec2(1,0),last),
+    heightAt(p-ivec2(0,1),last)-heightAt(p+ivec2(0,1),last)
+  );
+  // Coordinates are right, down, toward viewer; uLight uses the same axes.
+  vec3 n=normalize(vec3(.5*uSurface.z*slope,1));
+  vec3 h=normalize(uLight+vec3(0,0,1));
+  float nl=max(dot(n,uLight),0.0),nv=n.z,nh=clamp(dot(n,h),0.0,1.0);
+  float rough=clamp(m.x*uSurface.y,.085,1.0);
+  float a=rough*rough,a2=a*a;
+  float d=(1.0-nh*nh)+nh*nh*a2;
+  float D=a2/(3.141593*d*d);
+  float k=(rough+1.0)*(rough+1.0)*.125;
+  float vis=.25/(mix(nl,1.0,k)*mix(nv,1.0,k));
+  vec3 hue=base/max(.001,max(base.r,max(base.g,base.b)));
+  float reflectance=id==3 ? .022 : .04;
+  vec3 f0=mix(reflectance*mix(vec3(1),hue,m.w),base,m.y);
+  vec3 F=f0+(1.0-f0)*pow(1.0-clamp(h.z,0.0,1.0),5.0);
+
+  vec3 sky=mix(vec3(1),linearRGB(uSky),.45);
+  vec3 lit=base*(uAmbient*sky);
+  lit+=nl*((1.0-F)*(1.0-m.y)*base+3.141593*D*vis*F*uSurface.x);
+  float emission=m.z;
+  if((id==9 || id==18) && texelFetch(uBurn,p,0).r!=0u)emission+=1.1;
+  lit+=base*(emission*uSurface.w); // Fire already has its heat/flicker colour.
+
+  // Roll off bright reflections without clipping each colour channel separately.
+  float peak=max(lit.r,max(lit.g,lit.b));
+  if(peak>.85)lit*=(1.0-.15*exp(-((peak-.85)/.15)))/peak;
+  outColor=vec4(mix(src,displayRGB(lit),pixel.a),1);
+}`;
+
+function pbrInit(gl){
+  const s=pbrState={program:gl.createProgram(),tex:[],u:{},w:0,h:0,bytes:null};
+  for(const [stage,source] of [[gl.VERTEX_SHADER,pbrVS],[gl.FRAGMENT_SHADER,pbrFS]]){
+    const sh=gl.createShader(stage);
+    try{
+      gl.shaderSource(sh,source);
+      gl.compileShader(sh);
+      if(!gl.getShaderParameter(sh,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(sh));
+      gl.attachShader(s.program,sh);
+    }finally{
+      gl.deleteShader(sh); // Attached shaders live until the program releases them.
+    }
+  }
+  gl.linkProgram(s.program);
+  if(!gl.getProgramParameter(s.program,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(s.program));
+  gl.useProgram(s.program);
+  for(const name of ['uLight','uSky','uSurface','uAmbient']){
+    s.u[name]=gl.getUniformLocation(s.program,name);
+  }
+  const samplers=['uColor','uId','uBurn'];
+  for(let i=0;i<3;i++){
+    const tex=gl.createTexture();
+    if(!tex)throw Error('PBR texture creation failed');
+    s.tex.push(tex);
+    gl.activeTexture(gl.TEXTURE0+i);
+    gl.bindTexture(gl.TEXTURE_2D,tex);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+    gl.uniform1i(gl.getUniformLocation(s.program,samplers[i]),i);
+  }
+  gl.pixelStorei(gl.UNPACK_ALIGNMENT,1); // One-byte ID/timer rows may have odd widths.
+  gl.disable(gl.DITHER);
+  return s;
+}
+
+function pbrDraw(){
+  if(pbrFailed||pbrLost){pbrFallback();return;}
+  try{
+    const gl=pbrGL||(pbrGL=pbrCanvas.getContext('webgl2',{
+      alpha:false,antialias:false,depth:false,stencil:false,preserveDrawingBuffer:false
+    }));
+    if(!gl)throw Error('WebGL2 unavailable');
+    const s=pbrState||pbrInit(gl);
+    if(s.w!==W||s.h!==H){
+      pbrCanvas.width=W;pbrCanvas.height=H;
+      if(gl.drawingBufferWidth!==W||gl.drawingBufferHeight!==H)throw Error('PBR buffer size unavailable');
+      gl.viewport(0,0,W,H);
+      for(let i=0;i<3;i++){
+        gl.activeTexture(gl.TEXTURE0+i);
+        gl.texImage2D(gl.TEXTURE_2D,0,i?gl.R8UI:gl.RGBA8,W,H,0,
+                      i?gl.RED_INTEGER:gl.RGBA,gl.UNSIGNED_BYTE,null);
+      }
+      if(gl.getError()!==gl.NO_ERROR)throw Error('PBR texture allocation failed');
+      s.w=W;s.h=H;
+    }
+    // Alias ImageData storage, without copying pixels or invoking DOM-source conversion.
+    if(!s.bytes)s.bytes=new Uint8Array(data.buffer,data.byteOffset,data.byteLength);
+    // putImageData has already run, so the spare alpha byte can carry a per-pixel shading weight:
+    // critter sprite pixels are left unshaded (fading ones blend back in). render() resets alpha to 255.
+    if(P.crOn)for(const c of crActors){
+      const weight=c.fade?Math.round(255*(1-clamp(c.fade/crFadeSec,0,1))):0;
+      for(const p of c.s.pixels){
+        const i=crPixelIndex(c.s,c.x,c.y,c.facing<0,p);
+        if(i<0||(c.terrainClip&&(crCellFlags[world[i]]&2)))continue;
+        const a=4*i+3;
+        s.bytes[a]=Math.round(s.bytes[a]*weight/255);
+      }
+    }
+    gl.activeTexture(gl.TEXTURE0);
+    gl.texSubImage2D(gl.TEXTURE_2D,0,0,0,W,H,gl.RGBA,gl.UNSIGNED_BYTE,s.bytes);
+    gl.activeTexture(gl.TEXTURE1);
+    gl.texSubImage2D(gl.TEXTURE_2D,0,0,0,W,H,gl.RED_INTEGER,gl.UNSIGNED_BYTE,world);
+    gl.activeTexture(gl.TEXTURE2);
+    gl.texSubImage2D(gl.TEXTURE_2D,0,0,0,W,H,gl.RED_INTEGER,gl.UNSIGNED_BYTE,burnTimer);
+
+    const az=.9*Math.sin(performance.now()*.001*P.pbrSway);
+    const el=P.pbrElevation*Math.PI/180,span=Math.cos(el);
+    gl.uniform3f(s.u.uLight,Math.sin(az)*span,-Math.cos(az)*span,Math.sin(el));
+    if(plasmaActive&&plasmaPaletteCount>0){
+      // Representative mid-field colour, including phase and working-LUT edits.
+      const count=plasmaPaletteCount;
+      const j=3*((Math.floor(.5*(count-1)+plasmaHuePhase)%count+count)%count);
+      gl.uniform3f(s.u.uSky,plasmaPaletteRgb[j]/255,plasmaPaletteRgb[j+1]/255,plasmaPaletteRgb[j+2]/255);
+    }else gl.uniform3f(s.u.uSky,1,1,1);
+    gl.uniform4f(s.u.uSurface,P.pbrSpec,P.pbrRough,P.pbrNormal,P.pbrEmit);
+    gl.uniform1f(s.u.uAmbient,P.pbrAmbient);
+    gl.drawArrays(gl.TRIANGLES,0,3);
+    if(pbrCanvas.hidden)pbrCanvas.hidden=false;
+  }catch(err){
+    pbrFailed=true;
+    if(pbrGL&&pbrState&&!pbrGL.isContextLost()){
+      pbrGL.useProgram(null);
+      for(const tex of pbrState.tex)pbrGL.deleteTexture(tex);
+      pbrGL.deleteProgram(pbrState.program);
+    }
+    pbrState=null;
+    pbrFallback();
+  }
+}
+let selected='seed',activeGene=0,paused=false,frame=0,score=0,messageTimer=0,rainTicks=0;
+let simulationAccumulator=0,lastLoopAt=0,lastRenderAt=0;
+let noiseHz=1,noisePhase=0,nextNoiseAt=0;
+const EPS=.075;
+const ix=(x,y)=>x+y*W, inb=(x,y)=>x>=0&&x<W&&y>=0&&y<H;
+const rand=n=>Math.floor(Math.random()*n);
+const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
+const pr=p=>clamp(p,0,1);
+const hex=h=>[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];
+const palBase=new Float32Array(TYPE_BASE.length*3), palStatic=new Float32Array(TYPE_BASE.length*3);
+let genomeRGB=[];
+function buildPalette(){
+  TYPE_BASE.forEach((hb,t)=>{const a=hex(hb),b=hex(TYPE_SHADE[t]);for(let c=0;c<3;c++){palBase[t*3+c]=a[c];palStatic[t*3+c]=clamp(a[c]+(b[c]-a[c])*P.noiseContrast,0,255);}});
+  genomeRGB=genome.map(g=>hex(g.seed));
+}
+
+// ---------- plasma (cosmetic only; never touches physics) ----------
+const plasmaLutPristine=new Uint8Array(256*3);
+const plasmaLutWorking=new Uint8Array(256*3);
+const plasmaPaletteSamples=new Float32Array(256);
+const plasmaPaletteRgb=new Float32Array(257*3); // Extra knot repeats knot 0 at the seam.
+let plasmaRadFrac,plasmaRadTail=0;
+const plasmaWeightByType=new Float32Array(21);
+
+let plasmaColWave,plasmaRowWave,plasmaDiagWave,plasmaRadWave,plasmaRadIndex;
+let currentColCos,currentRowCos,currentDiagCos,currentRadCos,currentRadUX,currentRadUY;
+let coolantStock=null; // Last rendered WATER census plus controller and drinking writes since that render.
+let coolantDrinkPending=0,coolantDrinkRate=0; // Cells drunk since the last coolant tick; smoothed drink rate (cells/s).
+let plasmaDiagFd=NaN,plasmaPaletteCount=2,plasmaHuePhase=0,plasmaBlendMode=0;
+let plasmaHasWeight=false,plasmaActive=false;
+let plasmaLutBitsFlipped=0,xhaosLastAt=-Infinity;
+
+const PLASMA_LUT_KEYS=new Set(['plasmaHueStart','plasmaHueEnd','plasmaSaturation','plasmaLightness']);
+const PLASMA_WEIGHT_KEYS=new Set([
+  'plasmaAmount','plasmaVoidWeight','plasmaSedimentWeight','plasmaCoolantWeight',
+  'plasmaSeedsWeight','plasmaStructureWeight','plasmaFoliageWeight','plasmaEmittersWeight'
+]);
+const XHAOS_KEYS=new Set(['xhaosOn','xhaosRatio','xhaosSampler','xhaosSeed','xhaosPeriod']);
+
+function plasmaHslToRgb(h,s,l){
+  h=(((h%360)+360)%360)/360;
+  s=clamp(s,0,100)/100;l=clamp(l,0,100)/100;
+  if(s===0){const v=Math.round(l*255);return [v,v,v];}
+  const q=l<.5?l*(1+s):l+s-l*s,p=2*l-q;
+  const hue=(a,b,t)=>{
+    if(t<0)t+=1;
+    if(t>1)t-=1;
+    if(t<1/6)return a+(b-a)*6*t;
+    if(t<1/2)return b;
+    if(t<2/3)return a+(b-a)*(2/3-t)*6;
+    return a;
+  };
+  return [
+    Math.round(hue(p,q,h+1/3)*255),
+    Math.round(hue(p,q,h)*255),
+    Math.round(hue(p,q,h-1/3)*255)
+  ];
+}
+function buildPlasmaPalette(){
+  for(let i=0;i<256;i++){
+    const u=i/256,travel=u<=.5?u*2:(1-u)*2;
+    const rgb=plasmaHslToRgb(P.plasmaHueStart+(P.plasmaHueEnd-P.plasmaHueStart)*travel,P.plasmaSaturation,P.plasmaLightness);
+    const p=i*3;plasmaLutPristine[p]=rgb[0];plasmaLutPristine[p+1]=rgb[1];plasmaLutPristine[p+2]=rgb[2];
+  }
+}
+function buildPlasmaPaletteSamples(){
+  plasmaPaletteCount=Math.round(clamp(P.plasmaPaletteSize,2,256));
+  for(let i=0;i<plasmaPaletteCount;i++)plasmaPaletteSamples[i]=i*256/plasmaPaletteCount;
+}
+function buildPlasmaWeights(){
+  const a=P.plasmaAmount;
+  plasmaWeightByType.fill(0);
+  plasmaWeightByType[EMPTY]=a*P.plasmaVoidWeight;
+  plasmaWeightByType[SOIL]=a*P.plasmaSedimentWeight;
+  plasmaWeightByType[SAND]=a*P.plasmaSedimentWeight;
+  plasmaWeightByType[ROCK]=a*P.plasmaSedimentWeight;
+  plasmaWeightByType[WATER]=a*P.plasmaCoolantWeight;
+  plasmaWeightByType[SEED]=a*P.plasmaSeedsWeight;
+  plasmaWeightByType[STEM]=a*P.plasmaStructureWeight;
+  plasmaWeightByType[REED]=a*P.plasmaStructureWeight;
+  plasmaWeightByType[CACTUS]=a*P.plasmaStructureWeight;
+  plasmaWeightByType[FUNGUS]=a*P.plasmaStructureWeight;
+  plasmaWeightByType[CRYSTAL]=a*P.plasmaStructureWeight;
+  plasmaWeightByType[THORN]=a*P.plasmaStructureWeight;
+  plasmaWeightByType[FROND]=a*P.plasmaFoliageWeight;
+  plasmaWeightByType[VINE]=a*P.plasmaFoliageWeight;
+  plasmaWeightByType[TENDRIL]=a*P.plasmaFoliageWeight;
+  plasmaWeightByType[LILY]=a*P.plasmaFoliageWeight;
+  plasmaWeightByType[PETAL]=a*P.plasmaFoliageWeight;
+  plasmaWeightByType[BLOOM]=a*P.plasmaEmittersWeight;
+  plasmaWeightByType[GLOW]=a*P.plasmaEmittersWeight;
+  plasmaWeightByType[POD]=a*P.plasmaEmittersWeight;
+  plasmaWeightByType[CORAL]=a*P.plasmaEmittersWeight;
+  plasmaHasWeight=false;
+  for(let t=0;t<plasmaWeightByType.length;t++)if(plasmaWeightByType[t]!==0){plasmaHasWeight=true;break;}
+}
+function plasmaMulberry32(seed){
+  let a=seed>>>0;
+  return ()=>{
+    a=(a+0x6D2B79F5)|0;
+    let t=Math.imul(a^(a>>>15),1|a);
+    t=(t+Math.imul(t^(t>>>7),61|t))^t;
+    return ((t^(t>>>14))>>>0)/4294967296;
+  };
+}
+function applyXhaos(now=performance.now()){
+  // xhaos is intentionally restricted: the working LUT is its only allowed target.
+  plasmaLutWorking.set(plasmaLutPristine);
+  plasmaLutBitsFlipped=0;
+  xhaosLastAt=now;
+  if(Math.round(P.xhaosOn)!==1)return;
+
+  const ratio=Math.round(clamp(P.xhaosRatio,1,4096));
+  const random=Math.round(P.xhaosSampler)===1?plasmaMulberry32(Math.round(P.xhaosSeed)):null;
+  let flipped=0;
+  for(let start=0;start<plasmaLutWorking.length;start+=ratio){
+    let byteIndex,bitIndex;
+    if(random){
+      const width=Math.min(ratio,plasmaLutWorking.length-start);
+      byteIndex=start+Math.floor(random()*width);
+      bitIndex=Math.floor(random()*8);
+    }else{
+      byteIndex=start;
+      bitIndex=flipped&7;
+    }
+    plasmaLutWorking[byteIndex]^=1<<bitIndex;
+    flipped++;
+  }
+  plasmaLutBitsFlipped=flipped;
+}
+function updateXhaos(now){
+  const period=Math.max(0,P.xhaosPeriod)*1000;
+  if(Math.round(P.xhaosOn)===1&&period>0&&now-xhaosLastAt>=period)applyXhaos(now);
+}
+function refreshPlasmaSettings(keys,now=performance.now()){
+  const lutChanged=keys.some(k=>PLASMA_LUT_KEYS.has(k));
+  if(lutChanged)buildPlasmaPalette();
+  if(keys.includes('plasmaPaletteSize'))buildPlasmaPaletteSamples();
+  if(keys.some(k=>PLASMA_WEIGHT_KEYS.has(k)))buildPlasmaWeights();
+  if(lutChanged||keys.some(k=>XHAOS_KEYS.has(k)))applyXhaos(now);
+}
+function rebuildPlasmaDiagonal(){
+  const length=W+H-1;
+  if(!plasmaDiagWave||plasmaDiagWave.length!==length)plasmaDiagWave=new Float32Array(length);
+  for(let i=0;i<length;i++)plasmaDiagWave[i]=Math.sin(i*P.plasmaFd);
+  plasmaDiagFd=P.plasmaFd;
+}
+function preparePlasma(now){
+  updateXhaos(now);
+  plasmaActive=Math.round(P.plasmaOn)===1&&plasmaHasWeight;
+  if(!plasmaActive)return;
+
+  const t=now*.001*P.plasmaTimeSpeed;
+  for(let x=0;x<W;x++)plasmaColWave[x]=Math.sin(x*P.plasmaFx+t*P.plasmaSx);
+  for(let y=0;y<H;y++)plasmaRowWave[y]=Math.sin(y*P.plasmaFy+t*P.plasmaSy);
+  if(!plasmaDiagWave||plasmaDiagWave.length!==W+H-1||plasmaDiagFd!==P.plasmaFd)rebuildPlasmaDiagonal();
+  for(let k=0;k<plasmaRadWave.length;k++)plasmaRadWave[k]=Math.sin(k*.25*P.plasmaFr-t*P.plasmaSr);
+
+  // Upper neighbour if a cell's lower sample is the last entry in the allocated table.
+  plasmaRadTail=Math.sin(plasmaRadWave.length*.25*P.plasmaFr-t*P.plasmaSr);
+
+  let phase=(now*.001*P.plasmaHueShiftSpeed)%plasmaPaletteCount;
+  if(phase<0)phase+=plasmaPaletteCount;
+  plasmaHuePhase=phase;
+
+  // Sample the current working LUT once per palette knot, not once per pixel.
+  for(let s=0;s<plasmaPaletteCount;s++){
+    const u=plasmaPaletteSamples[s],lo=Math.floor(u),f=u-lo;
+    const a=lo*3,b=((lo+1)&255)*3,d=s*3;
+    for(let c=0;c<3;c++){
+      const v=plasmaLutWorking[a+c];
+      plasmaPaletteRgb[d+c]=v+(plasmaLutWorking[b+c]-v)*f;
+    }
+  }
+  plasmaPaletteRgb.copyWithin(plasmaPaletteCount*3,0,3);
+  plasmaBlendMode=Math.round(clamp(P.plasmaBlendMode,0,3));
+}
+function toast(t){$('#msg').textContent=t;messageTimer=220;}
+
+// ---------- grid ----------
+function allocate(w,h){
+  coolantStock=null;coolantDrinkPending=0;coolantDrinkRate=0;
+  W=Math.max(8,Math.round(w));H=Math.max(8,Math.round(h));N=W*H;
+  P.gridW=W;P.gridH=H;refreshRow('gridW');refreshRow('gridH');
+  world=new Uint8Array(N);age=new Uint32Array(N);wet=new Uint16Array(N);sun=new Uint16Array(N);
+  gene=new Uint8Array(N);vx=new Float32Array(N);vy=new Float32Array(N);moved=new Uint32Array(N);
+  cvs.width=W;cvs.height=H;ctx.imageSmoothingEnabled=false;
+  img=ctx.createImageData(W,H);data=img.data;
+  // A same-size rebuild also replaces the ImageData backing store.
+  if(pbrState)pbrState.bytes=null;
+  if(!pbrCanvas.hidden)pbrCanvas.hidden=true;
+  burnReset();
+  burnTimer=new Uint8Array(N);
+  plasmaColWave=new Float32Array(W);
+  plasmaRowWave=new Float32Array(H);
+  plasmaRadIndex=new Uint16Array(N);
+  plasmaRadFrac=new Float32Array(N);
+  const centreX=(W-1)*.5,centreY=(H-1)*.5;
+  let maxRadialIndex=0,i=0;
+  for(let y=0;y<H;y++){
+    const dy=y-centreY;
+    for(let x=0;x<W;x++,i++){
+      const radialPos=Math.hypot(x-centreX,dy)*4;
+      const radialIndex=Math.floor(radialPos);
+      plasmaRadIndex[i]=radialIndex;
+      plasmaRadFrac[i]=radialPos-radialIndex;
+      if(radialIndex>maxRadialIndex)maxRadialIndex=radialIndex;
+    }
+  }
+  plasmaRadWave=new Float32Array(maxRadialIndex+1);
+  plasmaDiagWave=new Float32Array(W+H-1);
+  currentColCos=new Float32Array(W);
+  currentRowCos=new Float32Array(H);
+  currentDiagCos=new Float32Array(W+H-1);
+  currentRadCos=new Float32Array(maxRadialIndex+1);
+  currentRadUX=new Float32Array(N);
+  currentRadUY=new Float32Array(N);
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+    const k=x+y*W,dx=x-centreX,dy=y-centreY,r=Math.hypot(dx,dy);
+    if(r){currentRadUX[k]=dx/r;currentRadUY[k]=dy/r;}
+  }
+  plasmaDiagFd=NaN;
+  rebuildPlasmaDiagonal();
+  fit();
+}
+function fit(){
+  if(!W)return;
+  const st=$('#stage'),aw=Math.max(1,st.clientWidth-2),ah=Math.max(1,st.clientHeight-2);
+  const s=Math.max(.01,Math.min(aw/W,ah/H));
+  cvs.style.width=Math.floor(W*s)+'px';cvs.style.height=Math.floor(H*s)+'px';
+  pbrCanvas.style.width=cvs.style.width;pbrCanvas.style.height=cvs.style.height;
+}
+function applyGrid(){allocate(P.gridW,P.gridH);setup();toast('Grid rebuilt at '+W+' × '+H+'.');}
+
+const empty=(x,y)=>inb(x,y)&&world[ix(x,y)]===EMPTY;
+const loose=t=>t===WATER||t===SAND||t===SOIL||t===SEED;
+function swap(a,b){let q=world[a];world[a]=world[b];world[b]=q;q=age[a];age[a]=age[b];age[b]=q;q=wet[a];wet[a]=wet[b];wet[b]=q;q=sun[a];sun[a]=sun[b];sun[b]=q;q=gene[a];gene[a]=gene[b];gene[b]=q;q=vx[a];vx[a]=vx[b];vx[b]=q;q=vy[a];vy[a]=vy[b];vy[b]=q;}
+function set(x,y,t,g=0){if(inb(x,y)){const i=ix(x,y);world[i]=t;age[i]=wet[i]=sun[i]=vx[i]=vy[i]=0;gene[i]=g;}}
+function put(x,y,t,g){if(inb(x,y)&&world[ix(x,y)]===EMPTY)set(x,y,t,g);}
+
+// ---------- underwater fire (Sol): bounded cold burn along connected vines ----------
+let burnTimer=new Uint8Array(0);
+const burnActive=[],burnOwner=[],burnMaterial=[];
+const burnCandidates=new Int32Array(8);
+let burnFireCount=0;
+
+function burnIsVine(t){return t===VINE||t===TENDRIL;}
+function burnDuration(){return Math.max(1,Math.min(255,P.fireDuration|0));}
+
+function burnReset(){
+  for(let k=0;k<burnActive.length;k++)burnTimer[burnActive[k]]=0;
+  burnActive.length=burnOwner.length=burnMaterial.length=0;
+  burnFireCount=0;
+}
+
+function burnAdd(i,fire,duration){
+  --fire.fuel;
+  ++fire.live;
+  burnTimer[i]=duration;
+  burnActive.push(i);
+  burnOwner.push(fire);
+  burnMaterial.push(world[i]);
+}
+
+function burnRemove(k){
+  burnTimer[burnActive[k]]=0;
+  const fire=burnOwner[k];
+  if(--fire.live===0)--burnFireCount;
+  const last=burnActive.length-1;
+  if(k!==last){
+    burnActive[k]=burnActive[last];
+    burnOwner[k]=burnOwner[last];
+    burnMaterial[k]=burnMaterial[last];
+  }
+  burnActive.pop();burnOwner.pop();burnMaterial.pop();
+}
+
+function burnIgnite(x,y){
+  if(!P.fireOn||burnFireCount>=(P.fireMaxActive|0)||!inb(x,y))return false;
+  const i=ix(x,y);
+  const fuel=Math.min(4096,P.fireFuel|0);
+  if(fuel<1||burnTimer[i]||!burnIsVine(world[i])||Math.random()>=P.fireChance)return false;
+  ++burnFireCount;
+  burnAdd(i,{fuel,live:0},burnDuration());
+  if(Math.random()<.15)toast('A vine flares with cold blue fire.');
+  return true;
+}
+
+function burnSpread(x,y,fire,duration){
+  let n=0;
+  for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
+    if((!dx&&!dy)||!inb(x+dx,y+dy))continue;
+    const j=ix(x+dx,y+dy);
+    if(!burnTimer[j]&&burnIsVine(world[j]))burnCandidates[n++]=j;
+  }
+  // Draw at most two eligible neighbours, without replacement.
+  for(let tries=0;tries<2&&n>0&&fire.fuel>0;tries++){
+    const pick=(Math.random()*n)|0;
+    const j=burnCandidates[pick];
+    burnCandidates[pick]=burnCandidates[--n];
+    if(Math.random()<P.fireSpread)burnAdd(j,fire,duration);
+  }
+}
+
+function burnTick(){
+  if(!burnActive.length)return;
+  if(!P.fireOn){burnReset();return;}
+  const duration=burnDuration();
+  // Walking backward keeps swap-removals safe and defers new embers to the next tick.
+  for(let k=burnActive.length-1;k>=0;k--){
+    const i=burnActive[k];
+    if(world[i]!==burnMaterial[k]){burnRemove(k);continue;}
+    const left=--burnTimer[i];
+    const fire=burnOwner[k];
+    if(left&&(fire.fuel<=0||P.fireSpread<=0))continue;
+    const x=i%W,y=(i-x)/W;
+    if(left){
+      burnSpread(x,y,fire,duration);
+    }else{
+      set(x,y,EMPTY);
+      // Ash: occasionally a seed drifts up into the water above.
+      if(y>0&&world[ix(x,y-1)]===WATER&&Math.random()<.02)set(x,y-1,SEED);
+      burnRemove(k);
+    }
+  }
+}
+
+// ---------- critters (entities, not grid cells) ----------
+// Species catalogue designed by Luna.
+const CRITTER_SPECIES=[
+  {id: "mossmunch", name: "Nibblebyte", kind: "swimmer", sprite: ["..b..", ".aba.", "abacb", ".aaa."], palette: {a: "#77e36f", b: "#d5ff75", c: "#185b6a"}, speed: 0.34, turnRate: 0.18, spawnWeight: 3, maxCount: 12, lifespanSec: 210, schooling: 0.4, currentFollow: 0.25, depth: [0.5, 0.9], eats: ["FROND", "PETAL", "VINE"], fleesFrom: ["coilviper", "glitchgator"], plantEffect: "graze", effectRate: 0.42, blurb: "Vacuum-mops kelp, then flees anything with more teeth than pixels."},
+  {id: "bloomboing", name: "Bloomboing", kind: "swimmer", sprite: ["..b..", ".bcb.", "abacb", ".aaa."], palette: {a: "#f75fba", b: "#b679ff", c: "#fff27a"}, speed: 0.42, turnRate: 0.24, spawnWeight: 3, maxCount: 10, lifespanSec: 180, schooling: 0.65, currentFollow: 0.35, depth: [0.15, 0.65], eats: ["SEED", "POD"], fleesFrom: ["coilviper", "glitchgator"], plantEffect: "pollinate", effectRate: 0.58, blurb: "Pollinates at speed; considers every seed a tiny dance partner."},
+  {id: "driftjelly", name: "Driftjelly", kind: "drifter", sprite: ["..bbb..", ".baaab.", "baaaacb", ".a.a.a.", "..b.b.."], palette: {a: "#58e6dd", b: "#9b67ff", c: "#f7e879"}, speed: 0.08, turnRate: 0.04, spawnWeight: 3, maxCount: 6, lifespanSec: 300, schooling: 0.08, currentFollow: 0.9, depth: [0.1, 0.8], eats: ["SEED"], fleesFrom: ["glitchgator"], plantEffect: "none", effectRate: 0, blurb: "A slow-motion snack sieve with excellent tentacle posture."},
+  {id: "scuttlebot", name: "Scuttlebot", kind: "crawler", sprite: ["..ab.", ".abca", "abcbc", ".a.a."], palette: {a: "#32f4d0", b: "#c8ff5e", c: "#ff62d5"}, speed: 0.17, turnRate: 0.14, spawnWeight: 1.0, maxCount: 8, lifespanSec: 180, schooling: 0.12, currentFollow: 0.18, depth: [0.86, 1.0], eats: ["SEED"], fleesFrom: ["glitchgator"], plantEffect: "none", effectRate: 0, blurb: "Its legs are mostly decorative; the crumbs aren't."},
+  {id: "coilviper", name: "Coilviper", kind: "swimmer", sprite: ["...ab..", "..abcac", "abcabca", ".a...a."], palette: {a: "#45d5ff", b: "#9374ff", c: "#ff4fa3"}, speed: 0.38, turnRate: 0.2, spawnWeight: 0.8, maxCount: 3, lifespanSec: 220, schooling: 0.1, currentFollow: 0.32, depth: [0.22, 0.72], eats: ["mossmunch", "bloomboing", "pixelfry", "sparkshrimp"], fleesFrom: ["glitchgator"], plantEffect: "none", effectRate: 0, blurb: "A spring-loaded noodle with snack-sized ambitions."},
+  {id: "glitchgator", name: "Glitchgator", kind: "swimmer", sprite: ["..a.a....", "abcabcab.", ".abcabcab", "..bcbcbca", "..a...a.."], palette: {a: "#6eff9f", b: "#7b58ff", c: "#ff6bdb"}, speed: 0.12, turnRate: 0.07, spawnWeight: 0.35, maxCount: 1, lifespanSec: 300, schooling: 0, currentFollow: 0.24, depth: [0.16, 0.9], eats: ["coilviper", "mossmunch", "scuttlebot"], fleesFrom: [], plantEffect: "none", effectRate: 0, blurb: "Slow as kelp, relentless as a pop-up."},
+  { id: "pixelfry", name: "Pixelfry", kind: "swimmer", sprite: ["..b..", "abacc", "..b.."], palette: { a: "#59f2d0", b: "#ff5aa8", c: "#fff09c" }, speed: 0.62, turnRate: 0.34, spawnWeight: 3, maxCount: 24, lifespanSec: 360, schooling: 0.85, currentFollow: 0.28, depth: [0.12, 0.62], eats: ["BLOOM", "PETAL"], fleesFrom: ["coilviper"], plantEffect: "pollinate", effectRate: 0.58, blurb: "A school of neon commas, all fleeing the same typo." },
+  { id: "grubzilla", name: "Grubzilla", kind: "burrower", sprite: ["...b...", "abaccc.", "aabcccc", "..abcc."], palette: { a: "#80ff6b", b: "#974cff", c: "#ffc857" }, speed: 0.13, turnRate: 0.08, spawnWeight: 3, maxCount: 6, lifespanSec: 1500, schooling: 0, currentFollow: 0.08, depth: [0.92, 1], eats: ["SEED"], fleesFrom: ["glitchgator"], plantEffect: "graze", effectRate: 0.22, blurb: "Digs for SEED and occasionally unearths an ancient patch note." },
+  { id: "lanternsnail", name: "Lanternsnail", kind: "crawler", sprite: ["..b.c..", ".abca..", "abbbccc", "..aaaa."], palette: { a: "#ffb66e", b: "#bd7dff", c: "#8dfcf2" }, speed: 0.07, turnRate: 0.035, spawnWeight: 3, maxCount: 10, lifespanSec: 2600, schooling: 0, currentFollow: 0.05, depth: [0.87, 1], eats: ["CORAL", "FUNGUS"], fleesFrom: [], plantEffect: "graze", effectRate: 0.22, blurb: "Grazes CORAL one pixel at a time; calls it fine dining." },
+  { id: "voidwhale", name: "Voidwhale", kind: "drifter", sprite: ["b........", ".abbbcc..", ".abbbccc.", "abbbcccac", "b........"], palette: { a: "#74f8ff", b: "#8b5dff", c: "#ffd36f" }, speed: 0.06, turnRate: 0.025, spawnWeight: 0.2, maxCount: 1, lifespanSec: 7200, schooling: 0, currentFollow: 0.86, depth: [0.04, 0.56], eats: ["BLOOM"], fleesFrom: [], plantEffect: "pollinate", effectRate: 0.72, blurb: "Rare as a clean server log; politely pollinates the neighborhood." },
+  { id: "sparkshrimp", name: "Sparkshrimp", kind: "swimmer", sprite: ["....c.", "..abcc", "ababc.", ".abc.."], palette: { a: "#8dff68", b: "#ff64c7", c: "#fff27a" }, speed: 0.46, turnRate: 0.27, spawnWeight: 3, maxCount: 14, lifespanSec: 540, schooling: 0.25, currentFollow: 0.38, depth: [0.3, 0.84], eats: ["GLOW"], fleesFrom: ["coilviper"], plantEffect: "graze", effectRate: 0.32, blurb: "Steals GLOW and leaves tiny neon footprints, never receipts." },
+  { id: "crystalcrab", name: "Crystalcrab", kind: "crawler", sprite: ["..b.c..", ".abccc.", "aabbccc", "b.b.bcc"], palette: { a: "#68e8ff", b: "#a96dff", c: "#f7fbff" }, speed: 0.16, turnRate: 0.12, spawnWeight: 3, maxCount: 8, lifespanSec: 1600, schooling: 0, currentFollow: 0.05, depth: [0.86, 1], eats: ["CRYSTAL"], fleesFrom: ["glitchgator"], plantEffect: "graze", effectRate: 0.28, blurb: "Polishes CRYSTAL with its claws, then invoices the moon." },
+  // Excavators (Sol flex): burrowers that fling loose material in gusts.
+  { id: "quasarmole", name: "Quasarmole", kind: "burrower", sprite: ["..bb...", ".abbcc.", "aabbccc", ".b.b.b."], palette: { a: "#ffc477", b: "#fa83bc", c: "#e5ffff" }, speed: 0.12, turnRate: 0.14, spawnWeight: 3, maxCount: 6, lifespanSec: 1500, schooling: 0, currentFollow: 0, depth: [0.85, 1], eats: [], fleesFrom: ["glitchgator"], plantEffect: "none", effectRate: 0, excavate: { radius: 3, force: 2.4, period: 2.8 }, blurb: "Excavates tiny wormholes. Mostly finds sand." },
+  { id: "ionbadger", name: "Ionbadger", kind: "burrower", sprite: ["...bb....", "..aabbc..", ".aaabbccc", "aabbbbbc.", "..b...b.."], palette: { a: "#9ef5d0", b: "#b5a0ff", c: "#fff2a1" }, speed: 0.10, turnRate: 0.10, spawnWeight: 2, maxCount: 4, lifespanSec: 1800, schooling: 0, currentFollow: 0, depth: [0.88, 1], eats: [], fleesFrom: ["glitchgator"], plantEffect: "none", effectRate: 0, excavate: { radius: 4, force: 3.2, period: 4.0 }, blurb: "Runs a particle accelerator with absolutely no planning permission." },
+  { id: "orbitgrub", name: "Orbitgrub", kind: "burrower", sprite: ["..bc.", "aabcc", ".b.b."], palette: { a: "#ffd98a", b: "#74ddff", c: "#fff7ed" }, speed: 0.17, turnRate: 0.18, spawnWeight: 4, maxCount: 8, lifespanSec: 1100, schooling: 0, currentFollow: 0, depth: [0.85, 1], eats: [], fleesFrom: ["glitchgator"], plantEffect: "none", effectRate: 0, excavate: { radius: 2, force: 1.8, period: 1.9 }, blurb: "Believes every pebble deserves a brief space programme." },
+  // Vine clearers (Terra): mostly outbreak-driven.
+  { id: "vinevac", name: "Vinevac Swarm", kind: "swimmer", sprite: [".ab..", "abcca", ".ab.."], palette: { a: "#71fff0", b: "#b78cff", c: "#f6d9ff" }, speed: 0.42, turnRate: 0.22, spawnWeight: 0.6, maxCount: 30, lifespanSec: 1000, schooling: 0.9, currentFollow: 0.3, depth: [0.05, 0.9], eats: ["VINE", "TENDRIL"], fleesFrom: ["glitchgator"], plantEffect: "graze", effectRate: 0.9, blurb: "Tiny vacuum drones that turn runaway vines into tasteful negative space." },
+  { id: "thornmower", name: "Thornmower Mk. II", kind: "crawler", sprite: [".ab...", "abcca.", "a...c."], palette: { a: "#d8ff75", b: "#ffb85c", c: "#f7edff" }, speed: 0.12, turnRate: 0.16, spawnWeight: 0.35, maxCount: 6, lifespanSec: 1500, schooling: 0, currentFollow: 0.08, depth: [0.85, 1], eats: ["VINE", "THORN", "TENDRIL"], fleesFrom: ["glitchgator"], plantEffect: "graze", effectRate: 0.8, blurb: "A cheerful hedge-trimmer rover with a plasma mower deck and no reverse gear." },
+];
+const CRITTER_SPECIES_EXAMPLE=[
+  {
+    id:'lantern_fry',name:'Lantern fry',kind:'swimmer',
+    sprite:['.bb.','abac','.bb.'],palette:{a:'#ffab54',b:'#ffd58f',c:'#493558'},
+    speed:.42,turnRate:.23,spawnWeight:3,maxCount:36,lifespanSec:100,
+    schooling:.8,currentFollow:.35,depth:[.18,.78],eats:['BLOOM'],
+    fleesFrom:['ribbon_ray'],plantEffect:'pollinate',effectRate:.25,
+    blurb:'Lantern fry carry pollen through the kelp.'
+  },
+  {
+    id:'ribbon_ray',name:'Ribbon ray',kind:'swimmer',
+    sprite:['..bbb..','abbabac','..bbb..'],palette:{a:'#739ac0',b:'#afe8dc',c:'#283b5e'},
+    speed:.55,turnRate:.17,spawnWeight:1,maxCount:8,lifespanSec:140,
+    schooling:.15,currentFollow:.2,depth:[.38,.95],eats:['FROND','lantern_fry'],
+    fleesFrom:[],plantEffect:'graze',effectRate:.12,
+    blurb:'A ribbon ray noses through the fronds in search of fry.'
+  }
+];
+const CRITTER_SPECIES_ACTIVE=typeof CRITTER_SPECIES!=='undefined'?CRITTER_SPECIES:CRITTER_SPECIES_EXAMPLE;
+
+const crMaterials={SEED,STEM,FROND,BLOOM,VINE,GLOW,FUNGUS,CACTUS,REED,
+                   CRYSTAL,PETAL,POD,CORAL,TENDRIL,LILY,THORN};
+const crPlants=new Set(Object.values(crMaterials));
+const crOpen=t=>t===EMPTY||t===WATER;
+const crTau=2*Math.PI, crFadeSec=.75;
+const crActors=[], crSeen=new Set();
+// Ecosystem eras: role weights are selection odds, not quotas.
+const crEraRows=[
+  {id:'mixed',label:'Mixed',seconds:180,cap:.80,rate:1.25,
+    roles:{shoal:1,hunter:1,graze:1,dig:1,drift:1,other:1}},
+  {id:'shoal',label:'Shoal era',seconds:210,cap:.95,rate:1.50,
+    roles:{shoal:6,hunter:.35,graze:.8,dig:.45,drift:.7,other:.7}},
+  {id:'predator',label:'Predator era',seconds:180,cap:.70,rate:1.35,
+    roles:{shoal:1.4,hunter:16,graze:.8,dig:.45,drift:.5,other:.7}},
+  {id:'grazer',label:'Grazer bloom',seconds:200,cap:.90,rate:1.50,
+    roles:{shoal:.65,hunter:.4,graze:5,dig:.7,drift:.6,other:.7}},
+  {id:'burrower',label:'Burrower dig',seconds:190,cap:.80,rate:1.25,
+    roles:{shoal:.7,hunter:.4,graze:.8,dig:5,drift:.5,other:1}},
+  {id:'drifter',label:'Drifter calm',seconds:210,cap:.70,rate:1.00,
+    roles:{shoal:.65,hunter:.25,graze:.7,dig:.45,drift:9,other:.8}}
+];
+let crEra=null;
+const crSample=new Int32Array(6);
+let crHeads=new Int32Array(0), crCols=0;
+
+// Compile once: opaque pixels serve both as drawing instructions and as a
+// contact sampler. Each octant also gets a leading opaque collision pixel.
+const crTypes=CRITTER_SPECIES_ACTIVE.map(s=>{
+  const h=s.sprite.length,w=s.sprite[0].length,ox=w>>1,oy=h>>1;
+  const rgb={a:hex(s.palette.a),b:hex(s.palette.b),c:hex(s.palette.c)};
+  const pixels=[];
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+    const col=rgb[s.sprite[y][x]];
+    if(col)pixels.push({x,y,col});
+  }
+  const tips=Array.from({length:8},(_,k)=>{
+    const dx=Math.round(Math.cos(k*crTau/8)),dy=Math.round(Math.sin(k*crTau/8));
+    let best=null,front=-Infinity,side=Infinity;
+    for(const p of pixels){
+      const x=p.x-(w-1)/2,y=p.y-(h-1)/2;
+      const f=x*dx+y*dy,b=Math.abs(x*dy-y*dx);
+      if(f>front||(f===front&&b<side)){best=p;front=f;side=b;}
+    }
+    return best;
+  });
+  return {...s,w,h,ox,oy,right:w-1-ox,bottom:h-1-oy,area:w*h,pixels,tips,
+    drinkPerSec:.1*pixels.length*Math.max(0,
+      s.drinks??(s.kind==='swimmer'||s.kind==='drifter'?1:0)),
+    diet:new Set(s.eats),food:new Set(s.eats.filter(k=>
+      Object.prototype.hasOwnProperty.call(crMaterials,k)).map(k=>crMaterials[k])),
+    threats:new Set(s.fleesFrom)};
+}).filter(s=>s.pixels.length);
+
+const crEraRoles=new Map(crTypes.map(t=>{
+  let role='other';
+  if(t.id==='coilviper'||t.id==='glitchgator')role='hunter';
+  else if(t.id==='pixelfry'||t.id==='bloomboing')role='shoal';
+  else if(t.kind==='burrower')role='dig';
+  else if(t.kind==='drifter')role='drift';
+  else if(t.plantEffect==='graze')role='graze';
+  return [t,role];
+}));
+
+function crEraDisarm(){
+  if(!crEra)return;
+  const msg=$('#msg');
+  if(msg&&msg.textContent===crEra.lastNotice){
+    msg.textContent='';
+    messageTimer=0;
+  }
+  // Drop appointments and queued notices, not fade causes on the actors.
+  crEra=null;
+}
+
+function crEraPlan(d){
+  const pool=crActors.filter(c=>!c.dead&&!c.fade);
+  const n=pool.length;
+  const count=Math.min(Math.max(0,n-1),Math.round(n*P.eraWipeFraction));
+  if(!(count>0))return;
+
+  // Removal odds favour animals that suit the incoming era less.
+  const odds=c=>1/Math.max(1e-6,d.row.roles[crEraRoles.get(c.s)]||1);
+  let sum=pool.reduce((v,c)=>v+odds(c),0);
+  const picked=[];
+  while(picked.length<count){
+    let ticket=Math.random()*sum,i=0;
+    while(i+1<pool.length&&(ticket-=odds(pool[i]))>=0)i++;
+    const c=pool[i];
+    picked.push(c);
+    sum-=odds(c);
+    pool[i]=pool[pool.length-1];
+    pool.pop();
+  }
+
+  // Selection is biased; the order of appointments within that set is not.
+  for(let i=0;i<count;i++){
+    const j=rand(picked.length);
+    d.due.set(picked[j],count===1?0:d.transition*i/(count-1));
+    picked[j]=picked[picked.length-1];
+    picked.pop();
+  }
+}
+
+function crEraEnter(index){
+  const first=crEra===null;
+  if(first)crEra={notices:new Set(),noticeWait:0,lastNotice:null};
+  const d=crEra,row=crEraRows[index];
+  // At expiry the outgoing blend is complete (transition <= duration/2).
+  d.from=first?row:d.row;
+  d.row=row;
+  d.index=index;
+  d.initial=first;
+  d.duration=row.seconds*P.eraDurationScale;
+  d.transition=first?0:Math.max(0,Math.min(P.eraTransitionSec,d.duration/2));
+  d.elapsed=0;
+  d.age=0;
+  d.mix=d.transition?0:1;
+  d.due=new WeakMap();
+  d.announce=true;
+  if(!first)crEraPlan(d);
+}
+
+function crEraAdvance(dt){
+  if(!P.eraOn){crEraDisarm();return;}
+  if(!crEra)crEraEnter(0);
+  else if(crEra.elapsed+1e-9>=crEra.duration)
+    crEraEnter((crEra.index+1)%crEraRows.length);
+
+  const d=crEra;
+  // Sample at the start of this tick, then account for exactly its simulated dt.
+  d.age=d.elapsed;
+  d.mix=d.transition?Math.min(1,d.age/d.transition):1;
+  d.elapsed+=dt;
+  d.noticeWait=Math.max(0,d.noticeWait-dt);
+}
+
+function crEraBlend(a,b){
+  return crEra.mix===1?b:a+(b-a)*crEra.mix;
+}
+
+function crEraWeight(type){
+  if(!crEra)return 1;
+  const role=crEraRoles.get(type)||'other';
+  return crEraBlend(crEra.from.roles[role],crEra.row.roles[role]);
+}
+
+function crEraEntries(dt,cap){
+  if(crActors.length>=cap||P.crSpawn<=0)return;
+  const d=crEra,goal=Math.ceil(.67*cap);
+  const boost=d.initial&&d.age<P.eraBootSec&&crActors.length<goal&&P.eraBootMult>1;
+  const base=60*P.crSpawn*crEraBlend(d.from.rate,d.row.rate)*dt;
+  const u=Math.random();
+  const ordinary=Math.min(4,Math.floor(base+u));
+  const attempts=boost?Math.min(4,Math.floor(base*P.eraBootMult+u)):ordinary;
+  for(let i=0;i<attempts&&crActors.length<cap;i++){
+    // Bonus (boot) tickets stop at the boot goal; ordinary tickets run to the soft cap.
+    if(i>=ordinary&&crActors.length>=goal)break;
+    crSpawn();
+  }
+}
+
+function crEraNotice(text){
+  if(!crEra){toast(text);return;}
+  // FIFO by insertion order, bounded by distinct species and outbreak messages.
+  crEra.notices.add(text);
+}
+
+function crEraFinishTick(){
+  const d=crEra;
+  if(!d)return;
+  let text;
+  if(d.announce){
+    text='Era: '+d.row.label;
+    d.announce=false;
+  }else if(d.noticeWait<=0&&d.notices.size){
+    text=d.notices.values().next().value;
+    d.notices.delete(text);
+  }else return;
+  toast(text);
+  d.lastNotice=text;
+  d.noticeWait=1.5;
+}
+
+function crEraReadout(){
+  if(!P.crOn||!P.eraOn)return 'Off';
+  const d=crEra,row=d?d.row:crEraRows[0];
+  if(d&&d.mix<1)return row.label+' · shifting';
+  const remaining=d?d.duration-d.elapsed:row.seconds*P.eraDurationScale;
+  const left=Math.max(0,Math.ceil(remaining-1e-9));
+  return row.label+' · '+Math.floor(left/60)+':'+String(left%60).padStart(2,'0');
+}
+
+let crCoolantDrunk=0;
+
+function crSetCoolantDrunk(total){
+  if(total===crCoolantDrunk)return;
+  crCoolantDrunk=total;
+  const el=document.getElementById('coolantDrunk');
+  if(el)el.textContent=String(total);
+}
+
+function crDrinkTick(dt){
+  const scale=P.crDrink*dt;
+  if(!(scale>0))return;
+
+  const limit=40,count=crActors.length,start=count>limit?rand(count):0;
+  let drunk=0;
+  for(let k=0;k<count&&drunk<limit;k++){
+    const c=crActors[(start+k)%count],s=c.s;
+    if(c.dead||c.fade||s.drinkPerSec<=0)continue;
+    if(Math.random()>=Math.min(1,s.drinkPerSec*scale))continue;
+
+    const left=c.facing<0;
+    for(let n=0;n<3;n++){
+      const p=s.pixels[rand(s.pixels.length)];
+      const i=crPixelIndex(s,c.x,c.y,left,p);
+      if(i<0||world[i]!==WATER)continue;
+      set(i%W,Math.floor(i/W),EMPTY);
+      c.energy=Math.min(36,c.energy+.125);
+      drunk++;
+      break;
+    }
+  }
+  if(drunk){
+    crSetCoolantDrunk(crCoolantDrunk+drunk);
+    // Keep the coolant controller's stock live between renders and feed its drink-rate estimate.
+    // The next render's census corrects any drift from writes made elsewhere (paint, storms, growth).
+    if(coolantStock!==null)coolantStock=Math.max(0,coolantStock-drunk);
+    coolantDrinkPending+=drunk;
+  }
+}
+
+function crReset(){
+  crEraDisarm();
+  crSetCoolantDrunk(0);
+  crActors.length=0;
+  crSeen.clear();
+}
+// Handle the falling edge of the era/critter switches at assignment time, so a
+// toggle made while paused (no physics tick observes it) still restarts cleanly.
+for(const key of ['eraOn','crOn']){
+  let value=P[key];
+  Object.defineProperty(P,key,{
+    enumerable:true,configurable:true,
+    get(){return value;},
+    set(next){
+      const disabling=value&&!next;
+      value=next;
+      if(disabling){
+        crEraDisarm();
+        if(key==='crOn')crActors.length=0;
+      }
+    }
+  });
+}
+
+function crPixelIndex(s,x,y,left,p){
+  const px=Math.floor(x)-s.ox+(left?s.w-1-p.x:p.x);
+  const py=Math.floor(y)-s.oy+p.y;
+  return inb(px,py)?ix(px,py):-1;
+}
+
+// Return the supported anchor row or NaN. Probe only the two feet and
+// midpoint; search a bounded step height rather than scanning a column.
+// Row flags: 0 = open, 1 = climbable plant, 2 = other obstruction.
+const crCellFlags=Uint8Array.from({length:256},(_,t)=>
+  crOpen(t)?0:t!==SEED&&crPlants.has(t)?1:2);
+const crPairFlags=Uint8Array.from({length:65536},(_,v)=>
+  crCellFlags[v&255]|crCellFlags[v>>>8]);
+
+let crViewedWorld,crGridView;
+function crFourFlags(i){
+  const v=crGridView.getUint32(i,true);
+  return crPairFlags[v&65535]|crPairFlags[v>>>16];
+}
+
+// Exact span test. A seven-cell foot row takes two unaligned loads;
+// the overlapping byte is harmless because flags are ORed.
+function crRowFlags(x,y,w){
+  if(x<0||x+w>W||y<0||y>=H)return 2;
+  let i=ix(x,y);
+  if(w===1)return crCellFlags[world[i]];
+  if(crViewedWorld!==world){
+    crViewedWorld=world;
+    crGridView=new DataView(world.buffer,world.byteOffset,world.byteLength);
+  }
+  if(w<=3)return crPairFlags[crGridView.getUint16(i,true)]|
+    (w===3?crCellFlags[world[i+2]]:0);
+  const last=i+w-4;
+  let flags=0;
+  for(;i<last;i+=4)flags|=crFourFlags(i);
+  return flags|crFourFlags(last);
+}
+
+function crHardBox(s,bx,by){
+  const x=bx-s.ox;
+  for(let y=by-s.oy;y<=by+s.bottom;y++){
+    if(crRowFlags(x,y,s.w)&2)return true;
+  }
+  return false;
+}
+
+// Placement query only. Walking does not search for, or snap to, a row.
+function crSurface(s,x,y,reach){
+  const bx=Math.floor(x),lo=bx-s.ox;
+  let by=Math.floor(y);
+  if(lo<0||lo+s.w>W)return NaN;
+  for(let n=0;n<=reach;n++){
+    const foot=by+s.bottom;
+    if(foot<0||foot>=H)return NaN;
+    if(crRowFlags(lo,foot,s.w)){
+      by--;
+    }else if(crRowFlags(lo,foot+1,s.w)){
+      if(by<s.oy)return NaN;
+      if(!crHardBox(s,bx,by))return by;
+      by--;
+    }else{
+      by++;
+    }
+  }
+  return NaN;
+}
+
+function crDeflect(c,dx,dy,wallX,wallY){
+  const h=Math.atan2(wallY?-dy:dy,wallX?-dx:dx);
+  c.heading=c.wander=h;
+  c.bend=c.bendGoal=0;
+  c.speed*=.55;
+  c.avoid=30;
+  c.leg=0;
+  c.rest=90+rand(121);
+}
+
+function crUpdateFace(c,wallFace){
+  if(c.faceLock>0)c.faceLock--;
+  const dir=wallFace||(Math.abs(c.vx)>.005?Math.sign(c.vx):0);
+  if(!dir||dir===c.facing){
+    c.reverseTicks=0;
+  }else{
+    c.reverseTicks++;
+    if(!c.faceLock&&(wallFace||c.reverseTicks>=18)){
+      c.facing=dir;
+      c.reverseTicks=0;
+      c.faceLock=18;
+    }
+  }
+}
+
+function crSpawn(){
+  const counts=(crSpawn.counts??=new Map());
+  for(const t of crTypes)counts.set(t,0);
+  for(const c of crActors)counts.set(c.s,(counts.get(c.s)||0)+1);
+  const filter=crSpawn.foodFilter;
+  const census=globalThis.crCensus;
+  let s=null,total=0;
+  for(const t of crTypes){
+    if(t.w>W||t.h>H||(counts.get(t)||0)>=t.maxCount||t.spawnWeight<=0||(filter&&!filter(t)))continue;
+    // Outbreak weighting: species whose food is abundant arrive more often.
+    let food=0;
+    if(census)for(const material of t.food)food+=census[material]||0;
+    const abundance=Math.min(1+P.crBloomBoost*20,Math.max(1,1+P.crBloomBoost*(food/N)*100));
+    const weight=t.spawnWeight*abundance*crEraWeight(t);
+    total+=weight;
+    if(Math.random()*total<weight)s=t;
+  }
+  if(!s)return;
+  const leftEdge=rand(2)===0, x=leftEdge?s.ox:W-1-s.right;
+  const floor=clamp(H-Math.max(1,Math.round(P.seafloorDepth)),0,H-1);
+  let y;
+  if(s.kind==='crawler'||s.kind==='burrower'){
+    const base=clamp(floor-1-s.bottom,s.oy,H-1-s.bottom);
+    y=crSurface(s,x,base,8);
+    if(!Number.isFinite(y))return;
+    if(s.kind==='burrower')y=clamp(y+s.bottom+1,s.oy,H-1-s.bottom);
+  }else{
+    const lo=Math.max(s.oy,Math.ceil(s.depth[0]*(H-1)));
+    const hi=Math.min(H-1-s.bottom,Math.floor(s.depth[1]*(H-1)));
+    if(hi<lo)return;
+    y=lo+rand(hi-lo+1);
+  }
+  // Check the entire entry footprint once at birth, not on steering ticks.
+  for(const p of s.pixels){
+    const t=world[crPixelIndex(s,x,y,!leftEdge,p)];
+    if(!crOpen(t)&&!(s.kind==='burrower'&&(t===SOIL||t===SAND)))return;
+  }
+  const heading=leftEdge?0:Math.PI;
+  crActors.push({s,x,y,heading,vx:0,vy:0,age:0,energy:18,
+    facing:leftEdge?1:-1,reverseTicks:0,faceLock:0,speed:0,
+    wander:heading,bend:0,bendGoal:0,bendTicks:0,avoid:0,
+    leg:0,rest:60+rand(241),goalX:x,goalY:y,terrainClip:false,
+    fade:0,dead:false,next:-1,prey:null,rolled:false});
+  if(!crSeen.has(s.id)){crSeen.add(s.id);crEraNotice(s.name+': '+s.blurb);}
+}
+
+function crBuckets(){
+  crCols=Math.ceil(W/16);
+  const size=crCols*Math.ceil(H/16);
+  if(crHeads.length!==size)crHeads=new Int32Array(size);
+  crHeads.fill(-1);
+  for(let j=0;j<crActors.length;j++){
+    const c=crActors[j];
+    if(c.fade||c.dead)continue;
+    const b=(Math.floor(c.x)>>4)+(Math.floor(c.y)>>4)*crCols;
+    c.next=crHeads[b];crHeads[b]=j;
+  }
+}
+
+function crSteer(c,currentsActive){
+  const s=c.s;
+  c.prey=null;c.rolled=false;
+  let ax=0,ay=0,cx=0,cy=0,school=0,fx=0,fy=0,seen=0;
+  const hunt=P.crHunt&&s.diet.size>s.food.size;
+  const x0=Math.max(0,Math.floor((c.x-20)/16));
+  const x1=Math.min(crCols-1,Math.floor((c.x+20)/16));
+  const y0=Math.max(0,Math.floor((c.y-20)/16));
+  const y1=Math.min(Math.ceil(H/16)-1,Math.floor((c.y+20)/16));
+  for(let by=y0;by<=y1;by++)for(let bx=x0;bx<=x1;bx++){
+    for(let j=crHeads[bx+by*crCols];j!==-1;j=crActors[j].next){
+      const o=crActors[j];
+      if(o===c)continue;
+      const dx=o.x-c.x,dy=o.y-c.y,d2=dx*dx+dy*dy;
+      if(d2>400)continue;
+      if(s.schooling&&o.s===s&&d2<=144){
+        const v=Math.hypot(o.vx,o.vy)||1;
+        ax+=o.vx/v;ay+=o.vy/v;cx+=dx;cy+=dy;school++;
+      }
+      if(s.threats.has(o.s.id)){
+        if(d2<.0001){fx+=Math.random()-.5;fy+=Math.random()-.5;}
+        else{const k=(21-Math.sqrt(d2))/Math.max(1,d2);fx-=dx*k;fy-=dy*k;}
+      }
+      if(hunt){
+        // Uniform reservoir: inspect at most six neighbours as possible meals.
+        seen++;
+        const slot=seen<=6?seen-1:rand(seen);
+        if(slot<6)crSample[slot]=j;
+      }
+    }
+  }
+
+  let best=Infinity,tx=0,ty=0,preyDist=Infinity;
+  for(let n=0;n<Math.min(6,seen);n++){
+    const o=crActors[crSample[n]];
+    if(o.s.area>=s.area||!s.diet.has(o.s.id))continue;
+    const dx=o.x-c.x,dy=o.y-c.y,d2=dx*dx+dy*dy;
+    if(d2<preyDist){preyDist=d2;c.prey=o;}
+    if(d2<best){best=d2;tx=dx;ty=dy;}
+  }
+  if(s.food.size)for(let n=0;n<(hunt?6:12);n++){
+    const a=Math.random()*crTau,r=20*Math.sqrt(Math.random());
+    const x=Math.round(c.x+r*Math.cos(a)),y=Math.round(c.y+r*Math.sin(a));
+    if(!inb(x,y)||!s.food.has(world[ix(x,y)]))continue;
+    const dx=x-c.x,dy=y-c.y,d2=dx*dx+dy*dy;
+    if(d2<best){best=d2;tx=dx;ty=dy;}
+  }
+
+  const ground=s.kind==='crawler',urgent=!!(fx||fy||best<Infinity);
+  const v=s.speed*P.crSpeed;
+  const top=clamp(s.depth[0]*(H-1),s.oy,H-1-s.bottom);
+  const bottom=clamp(s.depth[1]*(H-1),top,H-1-s.bottom);
+
+  // Slow, low-frequency wander: the heading bend drifts toward a new goal every few seconds.
+  if(--c.bendTicks<=0){
+    c.bendTicks=90+rand(151);
+    c.bendGoal=(Math.random()*2-1)*Math.min(.012,.45*s.turnRate);
+  }
+  c.bend+=.025*(c.bendGoal-c.bend);
+  c.wander=(c.wander+c.bend)%crTau;
+  let sx=.8*Math.cos(c.wander),sy=ground?0:.8*Math.sin(c.wander);
+
+  // Occasional long roaming legs toward a waypoint across the tank.
+  if(!c.leg&&!urgent&&!c.avoid&&--c.rest<=0){
+    const span=W-1-s.right-s.ox;
+    const far=.65+.35*Math.random();
+    c.goalX=s.ox+span*(c.x<s.ox+span*.5?far:1-far);
+    c.goalY=top+Math.random()*(bottom-top);
+    const dist=Math.hypot(c.goalX-c.x,ground?0:c.goalY-c.y);
+    c.leg=120+Math.ceil(2*dist/Math.max(.02,v));
+  }
+  if(c.leg){
+    const gx=c.goalX-c.x,gy=ground?0:c.goalY-c.y,d=Math.hypot(gx,gy);
+    if(--c.leg===0||d<2){
+      c.leg=0;
+      c.rest=180+rand(421);
+      c.wander=c.heading;
+    }else if(!urgent){
+      sx+=2.2*gx/d;sy+=2.2*gy/d;
+    }
+  }
+  if(school){
+    const k=s.schooling/school;
+    sx+=k*(1.4*ax+cx/7);sy+=k*(1.4*ay+cy/7);
+  }
+  if(best<Infinity){
+    const k=2.6/Math.max(1,Math.sqrt(best));
+    sx+=tx*k;sy+=ty*k;
+  }
+  if(fx||fy){
+    const k=5/Math.hypot(fx,fy);
+    sx=fx*k;sy=fy*k;
+  }
+  sx+=.38*(Math.max(0,5-(c.x-s.ox))-Math.max(0,5-(W-1-s.right-c.x)));
+  if(ground){
+    // Crawlers steer horizontally only, so their heading never tips toward vertical.
+    sy=0;
+    if(Math.abs(sx)<.08)sx=Math.cos(c.heading)<0?-1:1;
+  }else{
+    sy+=clamp((clamp(c.y,top,bottom)-c.y)*.3,-3,3);
+    sy+=.38*(Math.max(0,5-(c.y-s.oy))-Math.max(0,5-(H-1-s.bottom-c.y)));
+  }
+
+  let target=(sx||sy)?Math.atan2(sy,sx):c.heading;
+  if(c.avoid>0){c.avoid--;target=c.wander;}
+  const delta=target-c.heading;
+  const err=Math.atan2(Math.sin(delta),Math.cos(delta));
+  c.heading+=clamp(err*(urgent?.7:.14),-s.turnRate,s.turnRate);
+  // Ease speed toward the desired cruise; fleeing and hunting respond faster.
+  const cruise=v*(urgent?1:1-.25*Math.abs(err)/Math.PI);
+  c.speed+=(cruise-c.speed)*(urgent?.4:.08);
+  c.dx=c.speed*Math.cos(c.heading);
+  c.dy=ground?0:c.speed*Math.sin(c.heading);
+  if(currentsActive&&s.currentFollow){
+    const x=Math.floor(c.x),y=Math.floor(c.y),i=ix(x,y);
+    const diag=P.plasmaFd*currentDiagCos[x+y];
+    const rad=P.plasmaFr*currentRadCos[plasmaRadIndex[i]];
+    const k=.25*P.currentStrength*s.currentFollow;
+    c.dx+=k*(P.plasmaFy*currentRowCos[y]+diag+rad*currentRadUY[i]);
+    c.dy-=k*(P.plasmaFx*currentColCos[x]+diag+rad*currentRadUX[i]);
+  }
+  if(s.kind==='crawler')c.dy=0; // project motion onto the support surface
+}
+
+function crTouch(c,i){
+  if(i<0||c.rolled)return;
+  const s=c.s,t=world[i];
+  if(!crPlants.has(t))return;
+  const x=i%W,y=Math.floor(i/W);
+  if(s.plantEffect==='graze'&&s.food.has(t)){
+    c.rolled=true;
+    if(Math.random()>=s.effectRate*P.crGraze)return;
+    if(t===BLOOM)set(x,y,FROND,gene[i]);
+    else set(x,y,EMPTY);
+    if(t===VINE||t===TENDRIL){
+      // Dense vine meshes: also bite up to two connected cells of the same material.
+      const nearby=[];
+      for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
+        const nx=x+dx,ny=y+dy;
+        if((dx||dy)&&inb(nx,ny)&&world[ix(nx,ny)]===t)nearby.push([nx,ny]);
+      }
+      // Partial shuffle: a neighbour that survives its bite roll stays eligible for ignition.
+      for(let n=0;n<2&&n<nearby.length;n++){
+        const j=n+rand(nearby.length-n),pick=nearby[j];
+        nearby[j]=nearby[n];nearby[n]=pick;
+        if(Math.random()<s.effectRate*P.crGraze)set(pick[0],pick[1],EMPTY);
+      }
+      // The bitten cell is gone, so any underwater fire starts on a surviving, unlit neighbour.
+      for(const [nx,ny] of nearby){
+        const ni=ix(nx,ny);
+        if(world[ni]===t&&!burnTimer[ni]){burnIgnite(nx,ny);break;}
+      }
+    }
+  }else if(s.plantEffect==='pollinate'){
+    c.rolled=true;
+    if(Math.random()>=s.effectRate*P.crPoll)return;
+    // Inspect at most the contacted cell and its eight immediate neighbours.
+    let found=false;
+    const start=rand(9);
+    for(let k=0;k<9;k++){
+      const j=(start+k)%9,px=x+j%3-1,py=y+Math.floor(j/3)-1;
+      if(!inb(px,py))continue;
+      const pi=ix(px,py);
+      if(world[pi]===FROND){set(px,py,BLOOM,gene[pi]);found=true;break;}
+    }
+    if(!found)return;
+  }else return;
+  c.energy=Math.min(36,c.energy+2);
+  score++;
+}
+
+// Displace at most one grain on an orthogonal cell crossing, into the
+// just-vacated medium. Exchange the full cell records, not just their types.
+function crSwapGrain(a,b){
+  for(const field of [world,age,wet,sun,gene,vx,vy,moved]){
+    const tmp=field[a];field[a]=field[b];field[b]=tmp;
+  }
+}
+
+// Shoal sweeps (Sol flex): big enough schools carve an arc through plants together.
+function crShoalSweep(c){
+  const s=c.s;
+  if(s.schooling<.5||(s.plantEffect!=='graze'&&s.plantEffect!=='pollinate'))return;
+  const dt=1/Math.max(1,P.simHz);
+  c.crSweepCooldown=Math.max(0,(c.crSweepCooldown||0)-dt);
+  let sw=c.crSweep;
+
+  if(!sw){
+    if(c.crSweepCooldown>0||!crCols||!crHeads.length)return;
+
+    // Reject most ticks before doing any bucket work.
+    const chance=clamp(P.crSweepChance,0,1),roll=Math.random();
+    if(roll>=Math.min(1,chance*5))return;
+
+    const needed=Math.max(1,Math.round(P.crShoalSize));
+    const rows=Math.ceil(crHeads.length/crCols);
+    // Buckets precede movement: pad by one bucket, then test current positions.
+    const bx0=Math.max(0,Math.floor((c.x-12)/16)-1);
+    const bx1=Math.min(crCols-1,Math.floor((c.x+12)/16)+1);
+    const by0=Math.max(0,Math.floor((c.y-12)/16)-1);
+    const by1=Math.min(rows-1,Math.floor((c.y+12)/16)+1);
+    let count=0,together=false;
+    neighbours:
+    for(let by=by0;by<=by1;by++)for(let bx=bx0;bx<=bx1;bx++){
+      for(let j=crHeads[bx+by*crCols];j!==-1;j=crActors[j].next){
+        const n=crActors[j];
+        if(n===c||n.dead||n.fade||n.s.id!==s.id)continue;
+        const dx=n.x-c.x,dy=n.y-c.y;
+        if(dx*dx+dy*dy>144)continue;
+        count++;
+        if(n.crSweep)together=true;
+        if(count>=needed&&together)break neighbours;
+      }
+    }
+    if(count<needed||roll>=Math.min(1,chance*(together?5:1)))return;
+
+    const speed=Math.hypot(c.vx,c.vy);
+    const ux=speed>1e-6?c.vx/speed:Math.cos(c.heading);
+    const uy=speed>1e-6?c.vy/speed:Math.sin(c.heading);
+    sw=c.crSweep={
+      x:c.x,y:c.y,ux,uy,side:Math.random()<.5?-1:1,
+      time:0,step:0,changed:0,seen:new Set()
+    };
+  }
+
+  sw.time+=dt;
+  const last=Math.min(10,Math.floor(sw.time*20));
+  const rate=s.effectRate*(s.plantEffect==='graze'?P.crGraze:P.crPoll);
+
+  // Eleven stations along a radius-10 arc; three cells across.
+  // At most six candidate cells per tick, with twelve changes per sweep.
+  for(let budget=0;budget<2&&sw.step<=last&&sw.changed<12;budget++){
+    const angle=sw.step++/10,sn=Math.sin(angle),cs=Math.cos(angle);
+    const across=sw.side*10*(1-cs);
+    const px=sw.x+sw.ux*10*sn-sw.uy*across;
+    const py=sw.y+sw.uy*10*sn+sw.ux*across;
+    const nx=-sw.side*sw.ux*sn-sw.uy*cs;
+    const ny=-sw.side*sw.uy*sn+sw.ux*cs;
+    for(let band=-1;band<=1&&sw.changed<12;band++){
+      const x=Math.round(px+nx*band),y=Math.round(py+ny*band);
+      if(!inb(x,y))continue;
+      const i=ix(x,y);
+      if(sw.seen.has(i))continue;
+      sw.seen.add(i);
+      const t=world[i];
+      if(!crPlants.has(t))continue;
+      if(s.plantEffect==='graze'){
+        if(!s.food.has(t)||Math.random()>=rate)continue;
+        if(t===BLOOM)set(x,y,FROND,gene[i]);
+        else set(x,y,EMPTY);
+      }else{
+        if(t!==FROND||Math.random()>=rate)continue;
+        set(x,y,BLOOM,gene[i]);
+      }
+      sw.changed++;
+      score++;
+      c.energy=Math.min(36,c.energy+2);
+    }
+  }
+
+  // Stay visibly "in a sweep" to neighbours even after hitting the change cap.
+  // At low physics rates, finish the arc before ending (per-tick work stays bounded).
+  if(sw.time>=.5&&(sw.step>10||sw.changed>=12)){
+    c.crSweep=null;
+    c.crSweepCooldown=Math.max(0,P.crSweepCooldown);
+    if(sw.changed&&Math.random()<.04){
+      toast(s.plantEffect==='graze'
+        ?`A ${s.name} shoal mows the frond meadow.`
+        :`A ${s.name} shoal paints the meadow in blooms.`);
+    }
+  }
+}
+
+// Excavators (Sol flex): periodic wind-like gusts that fling nearby loose material.
+function crExcavate(c){
+  const e=c.s.excavate;
+  if(!e)return;
+  const dt=1/Math.max(1,P.simHz),period=Math.max(.05,e.period);
+  if(c.crExcavateIn==null)c.crExcavateIn=period*(.7+Math.random()*.6);
+  c.crExcavateIn-=dt;
+  if(c.crExcavateIn>0)return;
+  c.crExcavateIn=period*(.7+Math.random()*.6);
+
+  const facing=(c.facing|| (Math.cos(c.heading)<0?-1:1));
+  const gx=Math.floor(c.x),gy=Math.floor(c.y);
+  const gain=Math.max(0,P.crExcavateMult);
+  if(gain>0){
+    const saved=[
+      P.windRadius,P.brush,P.windClick,
+      P.windCurl,P.windLift,P.windRise
+    ];
+    try{
+      P.windRadius=Math.max(1,Math.round(e.radius));
+      P.brush=0;
+      P.windClick=Math.max(0,e.force)*gain;
+      P.windCurl*=gain;
+      P.windLift*=gain;
+      P.windRise*=gain;
+      blow(gx,gy,facing*.6,-1,true);
+    }finally{
+      [
+        P.windRadius,P.brush,P.windClick,
+        P.windCurl,P.windLift,P.windRise
+      ]=saved;
+    }
+  }
+
+  if(Math.random()<.3){
+    const y=gy+rand(2),front=gx+facing,back=gx-facing;
+    if(inb(front,y)&&inb(back,y)){
+      const a=ix(front,y),b=ix(back,y),t=world[a];
+      if((t===SOIL||t===SAND)&&crOpen(world[b]))crSwapGrain(a,b);
+    }
+  }
+}
+
+// Crawler locomotion: walks along terrain, climbs plant faces, eases vertically (no row snapping).
+function crWalk(c,left,tip){
+  const s=c.s,ax=Math.floor(c.x),ay=Math.floor(c.y),foot=ay+s.bottom;
+  const dx=clamp(c.dx,-1,1),dir=Math.sign(dx);
+  let nx=c.x+dx,bx=Math.floor(nx),wall=0,rise=false;
+
+  if(bx<s.ox||bx>W-1-s.right){
+    wall=-dir;
+    nx=c.x;bx=ax;
+  }else{
+    crTouch(c,crPixelIndex(s,nx,c.y,left,tip));
+    if(bx!==ax){
+      // Only the entering column can present a new side obstacle.
+      const edge=dir>0?bx+s.right:bx-s.ox;
+      for(let r=foot;r>=ay-s.oy;r--){
+        const f=crCellFlags[world[ix(edge,r)]];
+        if(!f)continue;
+        // Step up a low terrain lip. A taller hard face is a wall,
+        // not a vine. A plant face can be ascended over many ticks.
+        if((f&2)&&r<foot-1){wall=-dir;break;}
+        rise=true;
+      }
+      if(rise||wall){nx=c.x;bx=ax;}
+    }
+  }
+
+  if(!wall&&(crRowFlags(bx-s.ox,foot,s.w)&1))rise=true;
+  if(rise&&!wall&&(crRowFlags(bx-s.ox,ay-s.oy-1,s.w)&2)){
+    // No headroom. Do not repeatedly attempt the same climb.
+    wall=-dir;rise=false;nx=c.x;bx=ax;
+  }
+  if(wall)crDeflect(c,dx,0,true,false);
+
+  const supported=crRowFlags(bx-s.ox,foot+1,s.w)!==0;
+  const step=rise&&!wall?-1:supported?0:1;
+  // Aim at cell centres, not boundaries: a descending ease toward
+  // integer y would approach the next row without ever entering it.
+  const ny=c.y+.25*(ay+step+.5-c.y);
+  if(!crHardBox(s,bx,Math.floor(ny))){
+    c.x=nx;c.y=ny;c.terrainClip=false;
+    crTouch(c,crPixelIndex(s,c.x,c.y,left,tip));
+  }else{
+    // No move into hard terrain. The grid itself can also change under
+    // a stationary actor; distinguish that from an attempted wall hit.
+    c.terrainClip=crHardBox(s,ax,ay);
+    if(c.terrainClip){
+      const clear=crSurface(s,c.x,c.y,2);
+      if(Number.isFinite(clear)){c.y=clear+.5;c.terrainClip=false;}
+    }
+  }
+  return wall;
+}
+
+function crMove(c){
+  const s=c.s,x0=c.x,y0=c.y,left=c.facing<0;
+  const dx=c.dx,dy=c.dy;
+  const angle=Math.atan2(dy,left?-dx:dx);
+  const tip=s.tips[(Math.round(angle*8/crTau)+8)%8];
+  let wallFace=0;
+  if(s.kind==='crawler'){
+    wallFace=crWalk(c,left,tip);
+  }else{
+    const steps=Math.max(1,Math.ceil(Math.max(Math.abs(dx),Math.abs(dy))));
+    const mx=dx/steps,my=dy/steps,burrow=s.kind==='burrower';
+    let swapped=false;
+    // Bound probe cost even with unusually large speed/current settings.
+    // Never stretch a sub-step past one cell to make up the distance.
+    for(let n=0;n<Math.min(steps,4);n++){
+      const nx=c.x+mx,ny=c.y+my;
+      const wallX=nx<s.ox||Math.floor(nx)>W-1-s.right;
+      const wallY=ny<s.oy||Math.floor(ny)>H-1-s.bottom;
+      if(wallX||wallY){
+        crDeflect(c,dx,dy,wallX,wallY);
+        if(wallX)wallFace=-Math.sign(dx);
+        break;
+      }
+      const i=crPixelIndex(s,nx,ny,left,tip);
+      crTouch(c,i);
+      const t=world[i];
+      if(!crOpen(t)&&!(burrow&&(t===SOIL||t===SAND))){
+        crDeflect(c,dx,dy,true,true);
+        break;
+      }
+      if(burrow&&!swapped){
+        const ax=Math.floor(c.x),ay=Math.floor(c.y),bx=Math.floor(nx),by=Math.floor(ny);
+        if(Math.abs(ax-bx)+Math.abs(ay-by)===1){
+          const a=ix(ax,ay),b=ix(bx,by),grain=world[b];
+          if((grain===SOIL||grain===SAND)&&crOpen(world[a])&&Math.random()<.045){
+            crSwapGrain(a,b);swapped=true;
+          }
+        }
+      }
+      c.x=nx;c.y=ny;
+    }
+  }
+  c.vx=c.x-x0;c.vy=c.y-y0;
+  // Facing changes only after a sustained reversal or a wall, so sprites never mirror rapidly.
+  crUpdateFace(c,wallFace);
+
+  const faceLeft=c.facing<0;
+  if(s.plantEffect!=='none')for(let k=0;k<3&&!c.rolled;k++){
+    crTouch(c,crPixelIndex(s,c.x,c.y,faceLeft,s.pixels[rand(s.pixels.length)]));
+  }
+  const o=c.prey;
+  c.prey=null;
+  if(o&&!o.dead&&!o.fade){
+    const x=Math.floor(c.x)-s.ox,y=Math.floor(c.y)-s.oy;
+    const u=Math.floor(o.x)-o.s.ox,v=Math.floor(o.y)-o.s.oy;
+    if(x<u+o.s.w&&u<x+s.w&&y<v+o.s.h&&v<y+s.h){
+      o.dead=true;c.energy=Math.min(36,c.energy+8);
+      toast(s.name+' ate '+o.s.name+'.');
+    }
+  }
+}
+
+function crTick(currentsActive){
+  if(!P.crOn){crEraDisarm();crActors.length=0;return;}
+  const hardCap=Math.max(0,Math.floor(P.crCap));
+  if(crActors.length>hardCap)crActors.length=hardCap;
+  const dt=1/Math.max(1,P.simHz);
+  crEraAdvance(dt);
+  // Both normal and outbreak loops use this admission limit; only hardCap truncates.
+  const cap=crEra?Math.min(hardCap,Math.ceil(hardCap*crEraBlend(crEra.from.cap,crEra.row.cap))):hardCap;
+  if(crEra)crEraEntries(dt,cap);
+  else if(crActors.length<cap&&Math.random()<P.crSpawn)crSpawn();
+  crOutbreakTick();
+
+  // Outbreak response (Terra): when one plant material overruns the tank, its eaters flood in.
+  function crOutbreakTick(){
+    const census=globalThis.crCensus;
+    if(!census)return;
+
+    const threshold=N*P.crOutbreak;
+    const plants=(crTick.outbreakPlants??=[BLOOM,FROND,VINE,TENDRIL,THORN]);
+    const names=(crTick.outbreakNames??={
+      [BLOOM]:'Bloom',[FROND]:'Frond',[VINE]:'Vine',[TENDRIL]:'Tendril',[THORN]:'Thorn'
+    });
+    let material=globalThis.crOutbreakMaterial;
+    if(!Number.isInteger(material))material=-1;
+
+    if(material>=0&&census[material]<=threshold*.5){
+      material=-1;
+      globalThis.crOutbreakMaterial=-1;
+    }
+
+    if(material<0){
+      let largest=-1;
+      for(const plant of plants){
+        if(census[plant]>threshold&&(largest<0||census[plant]>census[largest])&&
+           crTypes.some(t=>t.plantEffect==='graze'&&t.food.has(plant)))largest=plant;
+      }
+      if(largest>=0){
+        material=largest;
+        globalThis.crOutbreakMaterial=material;
+        crEraNotice(material===VINE||material===TENDRIL
+          ?names[material]+' outbreak! The Vinevac swarm is inbound.'
+          :names[material]+' outbreak! Grazers are inbound.');
+      }
+    }
+
+    if(material<0||census[material]<=threshold)return;
+    crSpawn.foodFilter=type=>type.plantEffect==='graze'&&type.food.has(material);
+    for(let attempt=0;attempt<2&&crActors.length<cap;attempt++)crSpawn();
+    crSpawn.foodFilter=null;
+  }
+  if(!crActors.length){crEraFinishTick();return;}
+  for(const c of crActors){
+    if(c.fade){
+      c.fade-=dt;
+      if(c.fade<=0){
+        c.dead=true;
+        const x=Math.floor(c.x),y=Math.floor(c.y);
+        // Era retirements change the cast; they do not sow a crop.
+        if(!c.eraRetired&&inb(x,y)&&Math.random()<.22&&crOpen(world[ix(x,y)]))set(x,y,SEED,rand(genome.length));
+      }
+    }else if(!c.dead){
+      c.age+=dt;c.energy-=P.crDrain*dt;
+      const due=crEra?crEra.due.get(c):undefined;
+      if(c.age>=c.s.lifespanSec||c.energy<=0){
+        c.fade=crFadeSec;
+        if(due!==undefined)crEra.due.delete(c);
+      }else if(due!==undefined&&due<=crEra.age+1e-9){
+        crEra.due.delete(c);
+        c.eraRetired=true;
+        c.fade=crFadeSec;
+      }
+    }
+  }
+  // All neighbour decisions see the same positions and previous velocities.
+  crBuckets();
+  for(const c of crActors)if(!c.dead&&!c.fade)crSteer(c,currentsActive);
+  for(const c of crActors)if(!c.dead&&!c.fade)crMove(c);
+  for(const c of crActors)if(!c.dead&&!c.fade){crShoalSweep(c);crExcavate(c);}
+  crDrinkTick(dt);
+  let keep=0;
+  for(const c of crActors)if(!c.dead)crActors[keep++]=c;
+  crActors.length=keep;
+  crEraFinishTick();
+}
+
+function crDraw(){
+  if(!P.crOn)return 0;
+  let live=0;
+  for(const c of crActors){
+    const s=c.s,left=c.facing<0;
+    const x=Math.floor(c.x)-s.ox,y=Math.floor(c.y)-s.oy;
+    const a=c.fade?clamp(c.fade/crFadeSec,0,1):1;
+    if(!c.fade)live++;
+    for(const p of s.pixels){
+      const px=x+(left?s.w-1-p.x:p.x),py=y+p.y;
+      if(!inb(px,py))continue;
+      const i=ix(px,py);
+      // Only needed if external terrain encased an actor and there
+      // wasn't a free local pose. Ordinary drawing has no world probe.
+      if(c.terrainClip&&(crCellFlags[world[i]]&2))continue;
+      const k=4*i,rgb=p.col;
+      if(a===1){data[k]=rgb[0];data[k+1]=rgb[1];data[k+2]=rgb[2];}
+      else for(let j=0;j<3;j++)data[k+j]+=(rgb[j]-data[k+j])*a;
+    }
+  }
+  return live;
+}
+
+function setup(){
+  // A rebuilt tank starts clean: no inherited storm, outbreak, census or fractional sim time.
+  rainTicks=0;
+  simulationAccumulator=0;
+  lastLoopAt=0;
+  globalThis.crCensus=null;
+  globalThis.crOutbreakMaterial=-1;
+  coolantStock=null;coolantDrinkPending=0;coolantDrinkRate=0;
+  world.fill(0);age.fill(0);wet.fill(0);sun.fill(0);gene.fill(0);vx.fill(0);vy.fill(0);moved.fill(0);score=0;frame=0;
+  crReset();
+  burnReset();
+  const depth=clamp(Math.round(P.seafloorDepth),1,H);
+  const floorTop=H-depth, soilCut=floorTop+depth*.125;
+  for(let y=floorTop;y<H;y++)for(let x=0;x<W;x++){const i=ix(x,y);world[i]=(y>soilCut||Math.random()<P.soilFraction)?SOIL:SAND;if(Math.random()<P.rockChance)world[i]=ROCK;}
+  const bankTop=floorTop-2,bankBottom=floorTop+4,A=P.bankHeight;
+  for(let x=0;x<W;x++){const y0=bankTop+Math.floor(Math.sin(x*.0575)*A+Math.sin(x*.0185)*A);for(let yy=y0;yy<bankBottom;yy++)if(inb(x,yy)&&world[ix(x,yy)]===EMPTY)set(x,yy,SOIL);}
+  [[76,-10,0],[190,-18,5],[300,-10,2]].forEach(([x,dy,g])=>{const sx=Math.round(x*W/384),sy=floorTop+dy;set(sx,sy,SEED,g);if(inb(sx,sy))wet[ix(sx,sy)]=35;});
+  toast('Three xenogenomes are awaiting activation.');
+}
+
+// ---------- growth ----------
+function growPlant(x,y,g){
+  set(x,y,EMPTY); // Consume the seed (g was captured by the caller) so the recipe can place its root.
+  const up=(n,t=STEM)=>{for(let k=0;k<n;k++)put(x,y-k,t,g);};
+  const disk=(cx,cy,r,t)=>{for(let yy=cy-r;yy<=cy+r;yy++)for(let xx=cx-r;xx<=cx+r;xx++)if(Math.abs(xx-cx)+Math.abs(yy-cy)<=r+1)put(xx,yy,t,g);};
+  // Accent cells are placed before any disk that covers them, since put() only fills EMPTY cells.
+  if(g===0){up(5);put(x-3,y-4,VINE,g);put(x+3,y-3,VINE,g);disk(x,y-5,3,FROND);}
+  else if(g===1){up(6,CACTUS);for(let k=2;k<6;k+=2){put(x-1,y-k,THORN,g);put(x+1,y-k,THORN,g);}put(x,y-6,BLOOM,g);}
+  else if(g===2){up(4);put(x,y-6,BLOOM,g);disk(x,y-5,2,PETAL);}
+  else if(g===3){put(x,y-1,POD,g);put(x+2,y-1,POD,g);disk(x,y,3,GLOW);}
+  else if(g===4){up(7,REED);put(x-1,y-5,FROND,g);put(x+1,y-3,FROND,g);put(x,y-8,GLOW,g);}
+  else if(g===5){up(4,CRYSTAL);put(x-1,y-3,CRYSTAL,g);put(x+1,y-2,CRYSTAL,g);put(x,y-5,GLOW,g);}
+  else if(g===6){up(4,FUNGUS);put(x,y-6,GLOW,g);disk(x,y-5,2,POD);}
+  else if(g===7){put(x,y,TENDRIL,g);put(x+1,y-1,TENDRIL,g);put(x+2,y-2,VINE,g);put(x+1,y-3,TENDRIL,g);put(x,y-4,BLOOM,g);}
+  else if(g===8){put(x,y-4,BLOOM,g);put(x-2,y-3,GLOW,g);disk(x,y-1,3,CORAL);}
+  else if(g===9){up(4);put(x,y-6,PETAL,g);disk(x,y-5,2,LILY);}
+  else if(g===10){up(6);put(x-2,y-4,THORN,g);put(x+2,y-4,THORN,g);put(x,y-7,BLOOM,g);disk(x,y-6,3,FROND);}
+  else {up(3,CACTUS);put(x,y-5,GLOW,g);put(x+1,y-4,THORN,g);disk(x,y-3,2,CACTUS);}
+  score+=10;if(Math.random()<.3)toast(genome[g].name+' has compiled into the biome.');
+}
+
+// ---------- physics ----------
+function coolantTrials(mean){
+  // Stochastic rounding preserves sub-one-drop rates without banking a burst.
+  return Math.min(Math.floor(P.coolantProbeCap),Math.floor(mean+Math.random()));
+}
+
+function coolantTick(){
+  const hz=Math.max(1,P.simHz);
+  // Smooth the fish drinking rate (about a 4 s time constant) so the trickle can replace it.
+  const drank=coolantDrinkPending;coolantDrinkPending=0;
+  coolantDrinkRate+=(drank*hz-coolantDrinkRate)*Math.min(1,.25/hz);
+  if(rainTicks>0){coolantStock=null;return;}
+  if(coolantStock===null)return;
+
+  const target=Math.round(N*P.coolantTarget);
+  const deficit=target-coolantStock;
+  if(deficit>0){
+    if(!P.coolantTrickleOn)return;
+    const rate=Math.max(0,P.coolantRate)*(1+P.coolantDeficitBoost*deficit/Math.max(1,target))+
+      Math.max(0,P.coolantDrinkMatch)*coolantDrinkRate;
+    if(!(rate>0))return;
+    const tries=Math.min(deficit,coolantTrials(rate/hz));
+    for(let k=0;k<tries;k++){
+      const x=rand(W);
+      if(empty(x,0)){set(x,0,WATER);coolantStock++;}
+    }
+    return;
+  }
+
+  const high=target+Math.ceil(N*P.coolantEvapBand);
+  if(coolantStock<=high||P.coolantEvapRate<=0)return;
+  // Each uniform probe hits coolant in proportion to its share of the tank.
+  const probes=coolantTrials(N*P.coolantEvapRate/hz);
+  for(let k=0;k<probes&&coolantStock>high;k++){
+    const i=rand(N);
+    if(world[i]!==WATER)continue;
+    set(i%W,Math.floor(i/W),EMPTY);
+    coolantStock--;
+  }
+}
+
+function step(){
+  if(paused)return;frame++;
+  coolantTick();
+  if(rainTicks>0){rainTicks--;const n=Math.round(P.rainPerTick);for(let k=0;k<n;k++)set(rand(W),rand(Math.max(1,Math.floor(H*.2))),WATER);}
+  const sd=Math.max(1,Math.round(P.sunDecay));
+  if(frame%sd===0)for(let i=0;i<N;i++)if(sun[i])sun[i]--;
+  const currentStrength=P.currentStrength,currentUpwell=P.currentUpwell;
+  const currentsActive=P.currentsOn!==0&&(currentStrength!==0||currentUpwell!==0);
+  const currentFloorY=H-Math.max(1,Math.round(P.seafloorDepth));
+  if(currentsActive){
+    const currentT=performance.now()*.001*P.plasmaTimeSpeed;
+    for(let x=0;x<W;x++)currentColCos[x]=Math.cos(x*P.plasmaFx+currentT*P.plasmaSx);
+    for(let y=0;y<H;y++)currentRowCos[y]=Math.cos(y*P.plasmaFy+currentT*P.plasmaSy);
+    for(let d=0;d<W+H-1;d++)currentDiagCos[d]=Math.cos(d*P.plasmaFd);
+    for(let k=0;k<currentRadCos.length;k++)currentRadCos[k]=Math.cos(k*.25*P.plasmaFr-currentT*P.plasmaSr);
+  }
+  for(let y=H-1;y>=0;y--)for(let x=0;x<W;x++){
+    const i=ix(x,y),t=world[i];
+    if(!t||moved[i]===frame)continue;
+    age[i]++;
+    if(loose(t)){
+      let follow=0;
+      if(currentsActive){
+        // Ocean currents: rotated gradient of the plasma field, so flow runs along the visible bands.
+        // Sediment is only stirred within 16 rows of the seafloor surface.
+        const currentWeight=t===WATER?P.currentCoolantWeight:t===SEED?P.currentSeedWeight:
+          P.currentSedimentWeight*Math.max(0,1-Math.abs(y-currentFloorY)*.0625);
+        const radCos=currentRadCos[plasmaRadIndex[i]];
+        const dFdx=(P.plasmaFx*currentColCos[x]+P.plasmaFd*currentDiagCos[x+y]+P.plasmaFr*radCos*currentRadUX[i])*.25;
+        const dFdy=(P.plasmaFy*currentRowCos[y]+P.plasmaFd*currentDiagCos[x+y]+P.plasmaFr*radCos*currentRadUY[i])*.25;
+        const ax=currentWeight*(currentStrength*dFdy+currentUpwell*dFdx);
+        const ay=currentWeight*(-currentStrength*dFdx+currentUpwell*dFdy);
+        if(t===WATER){
+          // Entrainment: where the flow is strong, water rides the band instead of falling out of it.
+          follow=Math.min(1,16*(Math.abs(ax)+Math.abs(ay)));
+          const retain=1-.18*follow;
+          vx[i]=retain*vx[i]+ax;
+          // Gravity is added below; offset it only where the flow entrains water.
+          vy[i]=retain*vy[i]+ay-P.coolantEntrainment*P.gravWater*follow;
+        }else{
+          // Steer toward a bounded drift so seeds can still settle and sediment is stirred, not blasted.
+          const drift=t===SEED?(y>=currentFloorY-1?.06:.12):.16;
+          const steer=Math.min(1,8*Math.abs(ax));
+          vx[i]+=steer*((ax<0?-drift:drift)-vx[i]);
+          vy[i]+=ay;
+        }
+      }
+      const water=t===WATER;
+      vy[i]=clamp(vy[i]+(water?P.gravWater:P.gravSolid),-P.vMaxUp,P.vMaxDown);
+      vx[i]=clamp(vx[i]*(water?P.dragWater:P.dragSolid),-P.vMaxSide,P.vMaxSide);
+      const tryMove=!water||P.coolantMoveChance>=1||Math.random()<P.coolantMoveChance;
+      // Entrained coolant rasterizes its post-drag velocity so sideways flow carries it sideways.
+      const entrained=water&&follow>=.5;
+      let sx=0,sy=0;
+      if(tryMove){
+        const mx=Math.abs(vx[i]),my=Math.abs(vy[i]);
+        let takeX=mx>EPS,takeY=my>EPS;
+        if(entrained){
+          const m=Math.max(.40,mx,my),u=Math.random();
+          takeX=takeX&&u<mx/m;
+          takeY=takeY&&u<my/m;
+        }
+        if(takeX)sx=vx[i]<0?-1:1;
+        if(takeY)sy=vy[i]<0?-1:1;
+      }
+      // Pick one scalar destination (same route order as before), then swap once.
+      let j=-1,landed=false,tx=x,ty=y;
+      if(sy&&(sy<0||empty(x,y+sy))){
+        if(sx&&(entrained||Math.abs(vx[i])>.18)&&empty(x+sx,y+sy)){tx+=sx;ty+=sy;}
+        else if(empty(x,y+sy))ty+=sy;
+        else if(sx&&empty(x+sx,y))tx+=sx;
+      }
+      if(tx===x&&ty===y){
+        if(sy>0){
+          landed=true;vy[i]*=-P.bounce;
+          const slide=sx||(Math.random()<.5?-1:1);
+          if(empty(x+slide,y+1)){tx+=slide;ty++;}
+          else if(empty(x+slide,y))tx+=slide;
+          else if(empty(x-slide,y+1)){tx-=slide;ty++;}
+          else vx[i]*=water?P.frictionWater:(t===SAND?P.frictionSand:P.frictionSoil);
+        }else if(sy<0){
+          vy[i]*=-P.reboundUp;vx[i]*=.88;
+        }else if(sx){
+          if(empty(x+sx,y))tx+=sx;
+          else if(empty(x+sx,y+1)){tx+=sx;ty++;}
+          else vx[i]*=-.24;
+        }
+      }
+      if(tx!==x||ty!==y){j=ix(tx,ty);swap(i,j);moved[j]=frame;}
+      const at=j>=0?j:i,ax=j>=0?j%W:x,ay=j>=0?Math.floor(j/W):y;
+      if(j>=0){if(landed)vx[at]*=water?P.skidWater:P.skidSolid;vy[at]*=.985;}
+      else if(tryMove&&!landed&&(!entrained||sx||sy)){vx[at]*=.94;vy[at]*=.92;}
+      if(t===SOIL&&wet[at])wet[at]--;
+      if(water)for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++)if(inb(ax+dx,ay+dy)){const near=ix(ax+dx,ay+dy);if(world[near]===SOIL||world[near]===SEED)wet[near]=Math.min(P.wetMax,wet[near]+P.wetSpread);}
+      if(t===SEED&&j<0&&Math.abs(vx[at])<.13&&(wet[at]>P.compileWet||sun[at]>0)&&age[at]>P.compileAge+rand(Math.max(1,P.compileAgeRand)))growPlant(ax,ay,gene[at]);
+    }
+    else if(t===STEM||t===REED||t===CACTUS||t===FUNGUS||t===CRYSTAL){
+      if(age[i]>82&&Math.random()<pr(P.stemRate*P.growthMul)&&y>2&&empty(x,y-1)&&!empty(x,y+1)){set(x,y-1,t,gene[i]);age[i]=0;score++;}
+      if(age[i]>45&&Math.random()<pr(P.emitRate*P.growthMul)){const d=Math.random()<.5?-1:1;if(empty(x+d,y-1))set(x+d,y-1,t===FUNGUS?POD:FROND,gene[i]);}
+    }
+    else if(t===VINE||t===TENDRIL){
+      if(age[i]>65&&Math.random()<pr(P.vineRate*P.growthMul)){const d=Math.random()<.5?-1:1;if(empty(x+d,y-1))set(x+d,y-1,t,gene[i]);}
+    }
+    else if(t===FROND||t===GLOW||t===CORAL||t===LILY||t===PETAL||t===POD){
+      if(age[i]>105&&Math.random()<pr(P.frondRate*P.growthMul)&&empty(x,y-1)){set(x,y-1,t,gene[i]);score++;}
+      if(age[i]>145&&Math.random()<pr(P.bloomRate*P.growthMul)&&t!==GLOW){world[i]=BLOOM;age[i]=0;score+=2;}
+    }
+    else if(t===BLOOM&&age[i]>800&&Math.random()<pr(.01*P.growthMul)){world[i]=FROND;age[i]=0;}
+  }
+  if(frame%50===0)for(let i=0;i<N;i++)if((world[i]===FROND||world[i]===GLOW)&&Math.random()<.025)score++;
+  burnTick();
+  crTick(currentsActive);
+}
+
+// ---------- tools ----------
+function paint(gx,gy){
+  const x=Math.floor(gx),y=Math.floor(gy);if(!inb(x,y))return;
+  const b=Math.max(1,Math.round(P.brush)),b2=b*b;
+  for(let dy=-b;dy<=b;dy++)for(let dx=-b;dx<=b;dx++){
+    if(dx*dx+dy*dy>b2)continue;
+    const xx=x+dx,yy=y+dy;if(!inb(xx,yy))continue;
+    const i=ix(xx,yy);
+    if(selected==='eraser'){world[i]=EMPTY;age[i]=wet[i]=sun[i]=gene[i]=0;vx[i]=vy[i]=0;}
+    else if(selected==='sun'){sun[i]=Math.min(65535,sun[i]+P.sunPaint);if(world[i]===SEED)wet[i]=Math.max(wet[i],22);}
+    else{
+      const type={soil:SOIL,sand:SAND,water:WATER,seed:SEED}[selected];
+      if(type===SEED&&world[i]===EMPTY){world[i]=type;gene[i]=activeGene;wet[i]=Math.max(wet[i],4);age[i]=vx[i]=vy[i]=0;}
+      else if(type!==SEED&&world[i]===EMPTY){world[i]=type;age[i]=0;gene[i]=vx[i]=vy[i]=0;}
+    }
+  }
+}
+function paintLine(x0,y0,x1,y1){
+  const d=Math.hypot(x1-x0,y1-y0),steps=Math.max(1,Math.ceil(d/Math.max(1,P.brush*.5)));
+  for(let s=0;s<=steps;s++){const t=s/steps;paint(x0+(x1-x0)*t,y0+(y1-y0)*t);}
+}
+function blow(gx,gy,dx,dy,clicked=false){
+  const x=Math.floor(gx),y=Math.floor(gy);
+  let length=Math.hypot(dx,dy);if(!length){dx=1;dy=-.8;length=Math.hypot(dx,dy);}
+  const nx=dx/length,ny=dy/length,r=Math.max(1,Math.round(P.windRadius+P.brush*3));
+  const strength=clicked?P.windClick:Math.min(P.windCap,P.windBase+length*P.windPerLen);
+  const vmax=P.windVMax;
+  const x0=Math.max(0,x-r),x1=Math.min(W-1,x+r);
+  const y0=Math.max(0,y-r),y1=Math.min(H-1,y+r);
+  for(let yy=y0;yy<=y1;yy++)for(let xx=x0;xx<=x1;xx++){
+    const i=ix(xx,yy);if(!loose(world[i]))continue;
+    const dist=Math.hypot(xx-x,yy-y);if(dist>r)continue;
+    const falloff=Math.pow(1-dist/(r+1),.7);
+    const rx=(xx-x)/(r||1),ry=(yy-y)/(r||1),power=strength*falloff;
+    vx[i]=clamp(vx[i]+nx*power-ry*P.windCurl*falloff,-vmax,vmax);
+    vy[i]=clamp(vy[i]+ny*power-P.windLift*falloff+rx*P.windRise*falloff,-vmax,vmax);
+  }
+}
+
+// ---------- render ----------
+function render(){
+  let cores=0,emitters=0,life=0;
+  const ph=noisePhase*97,thr=Math.round(clamp(P.noiseDensity,0,1)*1000);
+  preparePlasma(performance.now());
+  const crCensus=globalThis.crCensus||(globalThis.crCensus=new Uint32Array(21));
+  crCensus.fill(0);
+  for(let i=0;i<N;i++){
+    const t=world[i];
+    crCensus[t]++;
+    let r,g,b;
+    if(t===SEED){const c=genomeRGB[gene[i]]||[255,255,255];r=c[0];g=c[1];b=c[2];}
+    else{
+      const table=(t&&((i*13+ph)%1000)<thr)?palStatic:palBase;
+      const p=t*3;r=table[p];g=table[p+1];b=table[p+2];
+    }
+    if(sun[i]&&t===EMPTY){r=190;g=255;b=108;}
+    if(plasmaActive){
+      const w=plasmaWeightByType[t];
+      if(w!==0){
+        const x=i%W,y=(i-x)/W;
+        const rk=plasmaRadIndex[i],rad0=plasmaRadWave[rk];
+        const rad1=rk+1<plasmaRadWave.length?plasmaRadWave[rk+1]:plasmaRadTail;
+        const radial=rad0+(rad1-rad0)*plasmaRadFrac[i];
+        const field=(plasmaColWave[x]+plasmaRowWave[y]+plasmaDiagWave[x+y]+radial)*.125+.5;
+        let palettePos=clamp(field,0,1)*(plasmaPaletteCount-1)+plasmaHuePhase;
+        if(palettePos>=plasmaPaletteCount)palettePos-=plasmaPaletteCount;
+        const slot=Math.floor(palettePos),paletteFrac=palettePos-slot,base=slot*3;
+        const pr0=plasmaPaletteRgb[base],pg0=plasmaPaletteRgb[base+1],pb0=plasmaPaletteRgb[base+2];
+        const pr=pr0+(plasmaPaletteRgb[base+3]-pr0)*paletteFrac;
+        const pg=pg0+(plasmaPaletteRgb[base+4]-pg0)*paletteFrac;
+        const pb=pb0+(plasmaPaletteRgb[base+5]-pb0)*paletteFrac;
+        if(plasmaBlendMode===0){
+          r=r+(pr-r)*w;g=g+(pg-g)*w;b=b+(pb-b)*w;
+        }else if(plasmaBlendMode===1){
+          r=r+pr*w;g=g+pg*w;b=b+pb*w;
+        }else if(plasmaBlendMode===2){
+          r=r*(1-w+w*pr/255);g=g*(1-w+w*pg/255);b=b*(1-w+w*pb/255);
+        }else{
+          r=255-(255-r)*(255-pr*w)/255;g=255-(255-g)*(255-pg*w)/255;b=255-(255-b)*(255-pb*w)/255;
+        }
+        r=clamp(r,0,255);g=clamp(g,0,255);b=clamp(b,0,255);
+      }
+    }
+    if(burnTimer[i]&&(t===VINE||t===TENDRIL)){
+      // Cold underwater fire: hot white-cyan when fresh, fading to deep magenta.
+      const heat=Math.min(1,burnTimer[i]/burnDuration());
+      const flicker=((i*7+frame)&3)<<1;
+      r=(104+130*heat*heat+flicker)|0;
+      g=(8+240*heat+flicker)|0;
+      b=(120+129*heat+flicker)|0;
+    }
+    if(t>=STEM&&t!==ROCK)life++;
+    if(t===STEM||t===CACTUS||t===REED||t===FUNGUS||t===CRYSTAL)cores++;
+    if(t===BLOOM||t===GLOW||t===POD)emitters++;
+    const k=i*4;data[k]=r;data[k+1]=g;data[k+2]=b;data[k+3]=255;
+  }
+  const liveCritters=crDraw();
+  ctx.putImageData(img,0,0);
+  if(P.pbrOn)pbrDraw();
+  else if(!pbrCanvas.hidden)pbrCanvas.hidden=true;
+  $('#critterCount').textContent=liveCritters;
+  $('#crEra').textContent=crEraReadout();
+  coolantStock=crCensus[WATER];
+  $('#coolantPct').textContent=(100*coolantStock/N).toFixed(1)+'%';
+  $('#treeCount').textContent=Math.max(0,Math.round(cores/4));
+  $('#bloomCount').textContent=emitters;
+  $('#score').textContent=score;
+  $('#lutBitsFlipped').textContent=plasmaLutBitsFlipped;
+  $('#mood').textContent=life<15?'dormant':life<70?'scanning':life<160?'networked':life<350?'symbiotic':'TRANSCENDENT';
+  $('#life i').style.width=Math.min(100,life/4)+'%';
+  if(messageTimer>0)messageTimer--;
+  else if(frame%240===0)toast(['Root mesh reports favorable conditions.','A distant moon approves your irrigation.','The biome is exchanging encrypted pollen.','Photosynthesis protocol: successful.'][rand(4)]);
+}
+
+// ---------- noise (cosmetic static only) ----------
+function updateNoise(now){
+  if(now<nextNoiseAt)return;
+  const lo=Math.min(P.noiseMin,P.noiseMax),hi=Math.max(P.noiseMin,P.noiseMax);
+  noiseHz=clamp(noiseHz+(Math.random()-.5)*P.noiseWalk+(P.noiseBase-noiseHz)*.06,lo,hi);
+  noisePhase=(noisePhase+1+rand(997))%997;
+  nextNoiseAt=now+1000/Math.max(.0001,noiseHz);
+}
+
+// ---------- loop ----------
+function loop(now){
+  if(!lastLoopAt){lastLoopAt=now;}
+  const elapsed=Math.min(now-lastLoopAt,250);lastLoopAt=now;
+  updateNoise(now);
+  if(paused||P.speed<=0){simulationAccumulator=0;}
+  else{
+    const interval=1000/Math.max(1,P.simHz);
+    simulationAccumulator+=elapsed*Math.max(0,P.speed);
+    const cap=Math.max(1,Math.round(P.maxSteps));let updates=0;
+    while(simulationAccumulator>=interval&&updates<cap){step();simulationAccumulator-=interval;updates++;}
+    if(updates>=cap)simulationAccumulator=0;
+  }
+  const renderInterval=1000/Math.max(1,P.renderFps);
+  // Advance on the cap's schedule so a 60 FPS cap averages 60 on faster displays; never run ahead of now.
+  const slots=Math.floor((now-lastRenderAt+.25)/renderInterval);
+  if(slots>=1){lastRenderAt=Math.min(now,lastRenderAt+slots*renderInterval);render();}
+  requestAnimationFrame(loop);
+}
+
+// ---------- parameter UI ----------
+function refreshRow(k){
+  for(const r of rowRefs[k]||[]){
+    if(document.activeElement!==r.num)r.num.value=String(P[k]);
+    r.range.value=String(clamp(P[k],r.p.min,r.p.max));
+  }
+}
+function refreshLocks(){
+  for(const g in lockBtns){const on=!!groupLocks[g];lockBtns[g].textContent='LOCK '+(on?'ON':'OFF');lockBtns[g].classList.toggle('on',on);}
+  for(const k in rowRefs)for(const r of rowRefs[k]){const dis=!!groupLocks[r.p.g];r.range.disabled=dis;r.num.disabled=dis;r.rst.disabled=dis;}
+}
+function afterChange(k){
+  if(k==='noiseContrast')buildPalette();
+  refreshPlasmaSettings([k]);
+  if((k==='gridW'||k==='gridH')&&(P.gridW!==W||P.gridH!==H))applyGrid();
+}
+function boundedParam(p,v){
+  return clamp(p.step===1?Math.round(v):v,p.min,p.max);
+}
+function setParam(k,v){
+  const p=PARAM_BY_KEY[k];if(!p||!Number.isFinite(v))return;
+  P[k]=boundedParam(p,v);refreshRow(k);afterChange(k);
+}
+function applyValues(obj){
+  const changed=[];
+  for(const k in obj){
+    const p=PARAM_BY_KEY[k];if(!p||groupLocks[p.g])continue;
+    const v=Number(obj[k]);if(!Number.isFinite(v))continue;
+    P[k]=boundedParam(p,v);changed.push(k);
+  }
+  changed.forEach(refreshRow);
+  if(changed.includes('noiseContrast'))buildPalette();
+  refreshPlasmaSettings(changed);
+  if(P.gridW!==W||P.gridH!==H)applyGrid();
+  return changed.length;
+}
+function makeRow(p){
+  const row=document.createElement('div');row.className='row';
+  const lab=document.createElement('label');lab.textContent=p.l;lab.title=p.tip||p.l;
+  const range=document.createElement('input');range.type='range';range.min=p.min;range.max=p.max;range.step=p.step;
+  const num=document.createElement('input');num.type='number';num.step='any';
+  const rst=document.createElement('button');rst.className='rst';rst.textContent='↺';rst.title='Reset to default ('+p.d+')';
+  const tip=document.createElement('div');tip.className='tip';tip.textContent=p.tip||'';
+  range.addEventListener('input',()=>{if(p.commit)num.value=range.value;else setParam(p.k,+range.value);});
+  range.addEventListener('change',()=>setParam(p.k,+range.value));
+  num.addEventListener('change',()=>setParam(p.k,parseFloat(num.value)));
+  rst.onclick=()=>setParam(p.k,DEF[p.k]);
+  row.append(lab,range,num,rst,tip);
+  (rowRefs[p.k]=rowRefs[p.k]||[]).push({range,num,rst,p});
+  return row;
+}
+function buildUI(){
+  const host=$('#paramHost');
+  [...new Set(PARAMS.map(p=>p.g))].forEach(g=>{
+    const card=document.createElement('div');card.className='card';
+    const h=document.createElement('div');h.className='card-h';
+    const title=document.createElement('span');title.textContent=g;
+    const right=document.createElement('span');right.className='r';
+    const reset=document.createElement('button');reset.className='mini';reset.textContent='↺ group';
+    reset.onclick=()=>{if(groupLocks[g])return;PARAMS.filter(p=>p.g===g).forEach(p=>setParam(p.k,DEF[p.k]));};
+    const lock=document.createElement('button');lock.className='lock';
+    lock.onclick=()=>{groupLocks[g]=!groupLocks[g];refreshLocks();};
+    lockBtns[g]=lock;
+    right.append(reset,lock);h.append(title,right);card.append(h);
+    PARAMS.filter(p=>p.g===g).forEach(p=>card.append(makeRow(p)));
+    host.append(card);
+  });
+  $('#brushHost').append(makeRow(PARAM_BY_KEY.brush));
+  for(const k in rowRefs)refreshRow(k);
+  refreshLocks();
+}
+
+// ---------- presets ----------
+const STORE_KEY='xenoflora.presets.v1';
+function readStore(){try{return JSON.parse(localStorage.getItem(STORE_KEY))||{};}catch(e){return {};}}
+function writeStore(s){try{localStorage.setItem(STORE_KEY,JSON.stringify(s));}catch(e){toast('Preset storage is unavailable in this window.');}}
+function listPresets(select){
+  const cur=select.value,store=readStore();
+  select.innerHTML='';
+  const add=n=>{const o=document.createElement('option');o.value=n;o.textContent=n;select.append(o);};
+  add('FACTORY');Object.keys(store).sort().forEach(add);
+  if([...select.options].some(o=>o.value===cur))select.value=cur;
+}
+
+// ---------- menus ----------
+const drop=$('#drop'),menuBtns=$$('.menu-btn');
+let openMenu=null;
+function openDrop(name){
+  openMenu=name;drop.classList.add('open');
+  $$('.panel').forEach(p=>p.classList.toggle('on',p.dataset.panel===name));
+  menuBtns.forEach(b=>b.classList.toggle('open',b.dataset.menu===name));
+}
+function closeDrop(){openMenu=null;drop.classList.remove('open');menuBtns.forEach(b=>b.classList.remove('open'));}
+menuBtns.forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();if(openMenu===b.dataset.menu)closeDrop();else openDrop(b.dataset.menu);}));
+document.addEventListener('pointerdown',e=>{if(openMenu&&!drop.contains(e.target)&&!e.target.closest('.menu-btn'))closeDrop();});
+addEventListener('keydown',e=>{
+  if(e.key==='Escape')closeDrop();
+  else if(e.key===' '&&!e.target.closest('input,select,textarea')){e.preventDefault();$('#pause').click();}
+});
+addEventListener('resize',fit);
+
+// ---------- tools, genes, lab ----------
+const TOOL_MSG={seed:()=>genome[activeGene].name+' genome armed.',water:()=>'Coolant is seeking a low point.',soil:()=>'Bio-soil is a living foundation.',sand:()=>'Silica has been introduced.',sun:()=>'Photon beam deployed.',wind:()=>'Wind field armed: drag a vector for a vortex, or click for an updraft launch.',eraser:()=>'Null field engaged.'};
+$('#tools').addEventListener('click',e=>{const b=e.target.closest('[data-m]');if(!b)return;selected=b.dataset.m;$$('.tool').forEach(x=>x.classList.toggle('active',x===b));toast(TOOL_MSG[selected]());});
+$('#genes').addEventListener('click',e=>{const b=e.target.closest('[data-g]');if(!b)return;activeGene=+b.dataset.g;$$('.gene').forEach(x=>x.classList.toggle('active',x===b));toast(genome[activeGene].name+' genome selected; deploy nodules.');});
+$('#rain').onclick=()=>{rainTicks=Math.round(P.rainTicks);toast('Coolant storm released from orbital tanks.');};
+$('#surprise').onclick=()=>{const n=Math.round(P.surpriseCount),hy=Math.max(1,Math.floor(H*.4));for(let k=0;k<n;k++)set(rand(W),rand(hy),Math.random()<.6?SEED:WATER,rand(genome.length));toast('Uncatalogued gene surge detected!');};
+$('#clear').onclick=()=>setup();
+$('#pause').onclick=e=>{paused=!paused;e.currentTarget.textContent=paused?'▶ Unpause':'Ⅱ Pause';toast(paused?'Biome clock suspended.':'Biome clock resumed.');};
+$$('.fpsBtn').forEach(b=>b.addEventListener('click',()=>{setParam('renderFps',+b.dataset.fps);toast('Render cap set to '+P.renderFps+' FPS.');}));
+
+// ---------- presets panel ----------
+$('#presetLoad').onclick=()=>{
+  const name=$('#presetSel').value,obj=name==='FACTORY'?DEF:readStore()[name];
+  if(!obj){toast('No such preset.');return;}
+  const n=applyValues(obj);toast('Loaded '+name+' ('+n+' values applied).');
+};
+$('#presetSave').onclick=()=>{
+  const name=($('#presetName').value||'').trim()||('preset '+new Date().toLocaleTimeString());
+  const s=readStore();s[name]={...P};writeStore(s);listPresets($('#presetSel'));$('#presetSel').value=name;toast('Saved preset: '+name);
+};
+$('#presetDel').onclick=()=>{
+  const name=$('#presetSel').value;if(name==='FACTORY'){toast('FACTORY cannot be deleted.');return;}
+  const s=readStore();delete s[name];writeStore(s);listPresets($('#presetSel'));toast('Deleted preset: '+name);
+};
+$('#resetAll').onclick=()=>{const n=applyValues(DEF);toast('Reset applied ('+n+' values; locked groups skipped).');};
+$('#tipsToggle').addEventListener('change',e=>document.body.classList.toggle('tips',e.target.checked));
+
+// ---------- pointer ----------
+let down=false,lastGX=0,lastGY=0,windDragged=false;
+function toGrid(e){const r=cvs.getBoundingClientRect();return [(e.clientX-r.left)/r.width*W,(e.clientY-r.top)/r.height*H];}
+cvs.addEventListener('pointerdown',e=>{
+  if(e.button>0)return;
+  down=true;windDragged=false;cvs.setPointerCapture(e.pointerId);
+  const [gx,gy]=toGrid(e);lastGX=gx;lastGY=gy;
+  if(selected!=='wind')paint(gx,gy);
+});
+cvs.addEventListener('pointermove',e=>{
+  if(!down)return;
+  const [gx,gy]=toGrid(e);
+  if(selected==='wind'){
+    const dx=gx-lastGX,dy=gy-lastGY;
+    if(Math.hypot(dx,dy)>P.windMinDrag){blow(gx,gy,dx,dy);windDragged=true;}
+    lastGX=gx;lastGY=gy;
+  }else{paintLine(lastGX,lastGY,gx,gy);lastGX=gx;lastGY=gy;}
+});
+cvs.addEventListener('pointerup',e=>{
+  if(!down)return;
+  const [gx,gy]=toGrid(e);
+  if(selected==='wind'&&!windDragged){blow(gx,gy,1,-.8,true);toast('Updraft pulse launched — drag a vector to steer the vortex.');}
+  down=false;
+});
+cvs.addEventListener('pointercancel',()=>{down=false;});
+
+// ---------- start ----------
+buildUI();
+listPresets($('#presetSel'));
+document.body.classList.add('tips');
+noiseHz=clamp(P.noiseBase,P.noiseMin,P.noiseMax);
+allocate(P.gridW,P.gridH);buildPalette();setup();
+buildPlasmaPalette();buildPlasmaPaletteSamples();buildPlasmaWeights();applyXhaos();
+requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
